@@ -1,0 +1,211 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel", "setuptools-scm>=8"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rheoQCM"
+version = "0.1.0"
+description = "QCM-D data acquisition and analysis software with rheological modeling"
+readme = "README.md"
+license = {file = "LICENSE"}
+authors = [
+    {name = "Wei Chen", email = "wchen@anl.gov"},
+]
+maintainers = [
+    {name = "Wei Chen", email = "wchen@anl.gov"},
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Physics",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Operating System :: OS Independent",
+]
+requires-python = ">=3.12"
+
+dependencies = [
+    # Core scientific computing
+    "numpy>=2.0.0,<3.0.0",
+    "scipy>=1.14.0,<2.0.0",
+    "pandas>=2.2.0,<3.0.0",
+    "matplotlib>=3.9.0,<4.0.0",
+
+    # JAX ecosystem for GPU-accelerated computation
+    "jax>=0.8.0",
+    "jaxlib>=0.8.0",
+    "jaxopt",
+
+    # Curve fitting (replaces lmfit)
+    "nlsq>=0.4.1",
+
+    # Bayesian inference
+    "numpyro",
+
+    # Interpolation (cubic/spline replacement for scipy.interpolate)
+    "interpax",
+
+    # Data I/O
+    "h5py>=3.12.0,<4.0.0",
+    "hdf5storage>=0.1.19",
+    "openpyxl>=3.1.0,<4.0.0",
+    "xlsxwriter>=3.2.0,<4.0.0",
+    "xlrd>=2.0.0,<3.0.0",
+
+    # Utilities
+    "packaging>=24.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=5.0.0",
+    "pytest-xdist>=3.5.0",
+    "hypothesis>=6.100.0",
+    "black>=24.0.0",
+    "ruff>=0.5.0",
+    "mypy>=1.10.0",
+    "pre-commit>=3.7.0",
+    "ipython>=8.26.0",
+    "jupyter>=1.0.0",
+    "build>=1.2.0",
+]
+gui = [
+    "PyQt6>=6.6.0",
+]
+hardware = [
+    # NI DAQ for temperature sensor
+    "nidaqmx>=1.0.0",
+    # Windows-specific for AccessMyVNA module
+    "pypiwin32>=223; sys_platform == 'win32'",
+]
+all = [
+    "rheoQCM[dev,gui,hardware]",
+]
+
+[project.scripts]
+rheoqcm = "rheoQCM.main:main"
+
+[project.urls]
+"Homepage" = "https://github.com/imewei/RheoQCM"
+"Bug Tracker" = "https://github.com/imewei/RheoQCM/issues"
+"Source Code" = "https://github.com/imewei/RheoQCM"
+
+[tool.uv]
+# UV-specific configuration
+package = true
+
+[tool.uv.sources]
+# Local path for NLSQ development
+nlsq = { path = "/home/wei/Documents/GitHub/NLSQ", editable = true }
+
+[tool.setuptools.packages.find]
+include = ["rheoQCM", "rheoQCM.*", "QCMFuncs", "QCMFuncs.*"]
+exclude = ["tests*", "docs*", "example*", "test_data*", "stand_alone*", "UI*"]
+
+[tool.setuptools.package-data]
+"rheoQCM" = ["py.typed", "*.json", "*.yaml"]
+"QCMFuncs" = ["*.json", "*.yaml"]
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+addopts = [
+    "-v",
+    "--strict-markers",
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: integration tests",
+    "gui: GUI tests requiring PyQt6",
+    "hardware: tests requiring hardware (NI DAQ, myVNA)",
+    "physics: physics core tests",
+    "model: model layer tests",
+]
+filterwarnings = [
+    "ignore:FigureCanvasAgg is non-interactive:UserWarning",
+    "ignore:More than 20 figures have been opened:RuntimeWarning",
+]
+
+[tool.black]
+line-length = 88
+target-version = ['py312']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+    \.git
+  | \.eggs
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+  | venv
+  | UI
+)/
+'''
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".hg",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "venv",
+    "UI",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "C",  # flake8-comprehensions
+    "B",  # flake8-bugbear
+    "UP", # pyupgrade
+]
+ignore = [
+    "E501",  # line too long
+    "B008",  # do not perform function calls in argument defaults
+    "C901",  # too complex
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+"tests/*" = ["B", "C", "E", "F", "W"]
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = false
+warn_unused_configs = true
+disallow_untyped_defs = false
+disallow_any_generics = false
+ignore_missing_imports = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_unreachable = true
+strict_equality = true
