@@ -30,11 +30,11 @@ import pandas as pd
 import scipy.signal
 # from collections import OrderedDict
 # import types
-from PyQt5.QtCore import pyqtSlot, Qt, QEvent, QTimer, QEventLoop, QCoreApplication, QSize, qFatal, QT_VERSION 
-from PyQt5.QtWidgets import (
-    QApplication, QWidget, QMainWindow, QFileDialog, QActionGroup, QComboBox, QCheckBox, QTabBar, QTabWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QLineEdit, QCheckBox, QComboBox, QSpinBox, QDoubleSpinBox, QRadioButton, QMenu, QAction, QMessageBox, QTableWidgetItem, QSizePolicy, QFrame, QLabel, QPlainTextEdit
+from PyQt6.QtCore import pyqtSlot, Qt, QEvent, QTimer, QEventLoop, QCoreApplication, QSize, qFatal, QT_VERSION 
+from PyQt6.QtWidgets import (
+    QApplication, QWidget, QMainWindow, QFileDialog, QComboBox, QCheckBox, QTabBar, QTabWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QLineEdit, QCheckBox, QComboBox, QSpinBox, QDoubleSpinBox, QRadioButton, QMenu,  QMessageBox, QTableWidgetItem, QSizePolicy, QFrame, QLabel, QPlainTextEdit
 )
-from PyQt5.QtGui import QIcon, QPixmap, QMouseEvent, QValidator, QIntValidator, QDoubleValidator, QRegExpValidator
+from PyQt6.QtGui import QIcon, QPixmap, QMouseEvent, QValidator, QIntValidator, QDoubleValidator, QRegularExpressionValidator, QAction, QActionGroup
 
 # packages
 from MainWindow import Ui_MainWindow # UI from QT5
@@ -1292,10 +1292,10 @@ class QCMApp(QMainWindow):
         self.ui.frame_plt2.setLayout(self.set_frame_layout(self.ui.mpl_plt2))
 
         # selector menu
-        self.ui.mpl_plt1.canvas.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.ui.mpl_plt1.canvas.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.ui.mpl_plt1.canvas.customContextMenuRequested.connect(lambda position, mpl=self.ui.mpl_plt1, plt_str='plt1': self.mpl_data_open_custom_menu(position, mpl, plt_str))
 
-        self.ui.mpl_plt2.canvas.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.ui.mpl_plt2.canvas.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.ui.mpl_plt2.canvas.customContextMenuRequested.connect(lambda position, mpl=self.ui.mpl_plt2, plt_str='plt2': self.mpl_data_open_custom_menu(position, mpl, plt_str))
 
         self.ui.radioButton_data_showall.toggled['bool'].connect(self.update_widget)
@@ -1373,7 +1373,7 @@ class QCMApp(QMainWindow):
 
         #### add widgets to status bar. from left to right
         # move progressBar_status_interval_time to statusbar
-        self.ui.progressBar_status_interval_time.setAlignment(Qt.AlignCenter)
+        self.ui.progressBar_status_interval_time.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.ui.statusbar.addPermanentWidget(self.ui.progressBar_status_interval_time)
         # move label_status_pts to statusbar
         self.ui.statusbar.addPermanentWidget(self.ui.label_status_pts)
@@ -1503,7 +1503,7 @@ class QCMApp(QMainWindow):
         Make sure the text is unique in the widget
         if not, return None
         '''
-        item = parent.findItems(text, Qt.MatchExactly | Qt.MatchRecursive, 0)
+        item = parent.findItems(text, Qt.MatchFlag.MatchExactly | Qt.MatchFlag.MatchRecursive, 0)
         if len(item) == 1:
             item = item[0]
         else:
@@ -1590,7 +1590,7 @@ class QCMApp(QMainWindow):
             # while self.idle == False:
             #     loop = QEventLoop()
             #     QTimer.singleShot(1000, loop.quit)
-            #     loop.exec_()
+            #     loop.exec()
             #     logger.info('looping') 
 
             # write dfs and settings to file
@@ -1853,13 +1853,13 @@ class QCMApp(QMainWindow):
         buttons = QMessageBox.Ok
 
         msg = QMessageBox()
-        msg.setTextFormat(Qt.RichText)
+        msg.setTextFormat(Qt.TextFormat.RichText)
         # msg.setIcon(QMessageBox.Information)
         msg.setWindowTitle('About ' + _version.__projectname__)
         msg.setText('<b>{} {}<\b>'.format(_version.__projectname__, _version.__version__))
         msg.setInformativeText('<P>'.join(msg_text))
         msg.setStandardButtons(buttons)
-        msg.exec_()
+        msg.exec()
 
 
     def set_recording_time(self):
@@ -2123,7 +2123,7 @@ class QCMApp(QMainWindow):
             msg.setInformativeText('\n'.join(message))
             msg.setWindowTitle(_version.__projectname__ + ' Message')
             msg.setStandardButtons(buttons)
-            retval = msg.exec_()
+            retval = msg.exec()
 
             if retval == QMessageBox.Yes:
                 if self.timer.isActive():
@@ -7202,6 +7202,6 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     qcm_app = QCMApp()
     qcm_app.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
 
 

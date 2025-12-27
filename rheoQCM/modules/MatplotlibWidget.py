@@ -10,18 +10,18 @@ ax.change_geometry(2,2,i+1)
 '''
 
 # import matplotlib
-# matplotlib.use('QT5Agg')
+# matplotlib.use('QTAgg')
 # matplotlib.rcParams['toolbar'] = 'toolmanager'
 # matplotlib.rcParams['font.size'] = 10
 
 # import matplotlib.rcParams
 # rcParams['font.size'] = 9
 
-from PyQt5.QtCore import QSize, Qt
-from PyQt5.QtWidgets import QSizePolicy, QVBoxLayout, QWidget, QPushButton
-from PyQt5.QtGui import QIcon, QPixmap
+from PyQt6.QtCore import QSize, Qt
+from PyQt6.QtWidgets import QSizePolicy, QVBoxLayout, QWidget, QPushButton
+from PyQt6.QtGui import QIcon, QPixmap
 
-from matplotlib.backends.backend_qt5agg import (
+from matplotlib.backends.backend_qtagg import (
     FigureCanvasQTAgg as FigureCanvas,
     NavigationToolbar2QT)
 from matplotlib.figure import Figure
@@ -113,9 +113,9 @@ class MatplotlibWidget(QWidget):
 
         # FigureCanvas.__init__(self, fig)
         self.canvas = FigureCanvas(self.fig)
-        self.canvas.setSizePolicy(QSizePolicy.Expanding,
-                                   QSizePolicy.Expanding)
-        self.canvas.setFocusPolicy(Qt.ClickFocus)
+        self.canvas.setSizePolicy(QSizePolicy.Policy.Expanding,
+                                   QSizePolicy.Policy.Expanding)
+        self.canvas.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
         self.canvas.setFocus()
         # connect with resize function
         # self.canvas.mpl_connect("resize_event", self.resize)
@@ -454,8 +454,7 @@ class MatplotlibWidget(QWidget):
             useblit=True,
             button=[1],  # left click
             minspan=5,
-            span_stays=False,
-            rectprops=dict(facecolor='red', alpha=0.2)
+            props=dict(facecolor='red', alpha=0.2)
         )        
 
         self.span_selector_zoomout = SpanSelector(
@@ -465,8 +464,7 @@ class MatplotlibWidget(QWidget):
             useblit=True,
             button=[3],  # right
             minspan=5,
-            span_stays=False,
-            rectprops=dict(facecolor='blue', alpha=0.2)
+            props=dict(facecolor='blue', alpha=0.2)
         )        
 
 
@@ -608,18 +606,14 @@ class MatplotlibWidget(QWidget):
         self.rect_selector = RectangleSelector(
             self.ax[0], 
             self.data_rectselector_callback,
-            drawtype='box',
             button=[1], # left
             useblit=True,
             minspanx=5,
             minspany=5,
             # lineprops=None,
-            rectprops=dict(edgecolor = 'black', facecolor='none', alpha=0.2, fill=False),
+            props=dict(edgecolor='black', facecolor='none', alpha=0.2, fill=False),
             spancoords='pixels', # default 'data'
-            maxdist=10,
-            marker_props=None,
             interactive=False, # change rect after drawn
-            state_modifier_keys=None,
         )  
         # set if inavtive
         self.rect_selector.set_active(False)
@@ -631,7 +625,7 @@ class MatplotlibWidget(QWidget):
         self.pushButton_selectorswitch.setFlat(True)
         # icon
         icon_sel = QIcon()
-        icon_sel.addPixmap(QPixmap(':/button/rc/selector.svg'), QIcon.Normal, QIcon.Off)
+        icon_sel.addPixmap(QPixmap(':/button/rc/selector.svg'), QIcon.Mode.Normal, QIcon.State.Off)
         self.pushButton_selectorswitch.setIcon(icon_sel)
         
         self.pushButton_selectorswitch.clicked.connect(self.data_rectsleector_picker_switch)

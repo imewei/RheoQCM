@@ -3,8 +3,8 @@ matplotlibplugin.py
 '''
 
 import os
-from PyQt5.QtGui import QIcon
-from PyQt5.QtDesigner import QPyDesignerCustomWidgetPlugin
+from PyQt6.QtGui import QIcon
+from PyQt6.QtDesigner import QPyDesignerCustomWidgetPlugin
 from matplotlib import rcParams
 from matplotlibwidget import MatplotlibWidget
 

@@ -17,11 +17,11 @@ from matplotlib import __version__ as mp_ver
 # import matplotlib.rcParams
 # rcParams['font.size'] = 9
 
-from PyQt5.QtCore import QSize, Qt
-from PyQt5.QtWidgets import QSizePolicy, QVBoxLayout, QWidget, QPushButton
-from PyQt5.QtGui import QIcon, QPixmap
+from PyQt6.QtCore import QSize, Qt
+from PyQt6.QtWidgets import QSizePolicy, QVBoxLayout, QWidget, QPushButton
+from PyQt6.QtGui import QIcon, QPixmap
 
-from matplotlib.backends.backend_qt5agg import (
+from matplotlib.backends.backend_qtagg import (
     FigureCanvasQTAgg as FigureCanvas,
     NavigationToolbar2QT)
 from matplotlib.figure import Figure

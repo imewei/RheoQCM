@@ -31,11 +31,11 @@ import pandas as pd
 import scipy.signal
 # from collections import OrderedDict
 # import types
-from PyQt5.QtCore import pyqtSlot, Qt, QEvent, QTimer, QEventLoop, QCoreApplication, QSize, qFatal, QT_VERSION 
-from PyQt5.QtWidgets import (
+from PyQt6.QtCore import pyqtSlot, Qt, QEvent, QTimer, QEventLoop, QCoreApplication, QSize, qFatal, QT_VERSION 
+from PyQt6.QtWidgets import (
     QApplication, QWidget, QMainWindow, QFileDialog, QActionGroup, QComboBox, QCheckBox, QTabBar, QTabWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QLineEdit, QCheckBox, QComboBox, QSpinBox, QDoubleSpinBox, QRadioButton, QMenu, QAction, QMessageBox, QTableWidgetItem, QSizePolicy, QFrame, QLabel, QPlainTextEdit
 )
-from PyQt5.QtGui import QIcon, QPixmap, QMouseEvent, QValidator, QIntValidator, QDoubleValidator, QRegExpValidator
+from PyQt6.QtGui import QIcon, QPixmap, QMouseEvent, QValidator, QIntValidator, QDoubleValidator, QRegExpValidator
 
 # packages
 from MainWindow import Ui_MainWindow # UI from QT5
@@ -1720,7 +1720,7 @@ class QCMApp(QMainWindow):
             # while self.idle == False:
             #     loop = QEventLoop()
             #     QTimer.singleShot(1000, loop.quit)
-            #     loop.exec_()
+            #     loop.exec()
             #     logger.info('looping') 
 
             # write dfs and settings to file
@@ -1978,7 +1978,7 @@ class QCMApp(QMainWindow):
         msg.setText('<b>{} {}<\b>'.format(_version.__projectname__, _version.__version__))
         msg.setInformativeText('<P>'.join(msg_text))
         msg.setStandardButtons(buttons)
-        msg.exec_()
+        msg.exec()
 
 
     def set_recording_time(self):
@@ -2242,7 +2242,7 @@ class QCMApp(QMainWindow):
             msg.setInformativeText('\n'.join(message))
             msg.setWindowTitle(_version.__projectname__ + ' Message')
             msg.setStandardButtons(buttons)
-            retval = msg.exec_()
+            retval = msg.exec()
 
             if retval == QMessageBox.Yes:
                 if self.timer.isActive():
@@ -7638,7 +7638,7 @@ def run():
     app = QApplication(sys.argv)
     qcm_app = QCMApp()
     qcm_app.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
 
 
 
