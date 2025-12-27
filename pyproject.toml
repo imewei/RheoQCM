@@ -74,8 +74,7 @@ dev = [
 ]
 gui = [
     "PyQt6>=6.6.0",
-    # PeakTracker uses lmfit for peak fitting (pending migration to nlsq)
-    "lmfit>=1.2.0",
+    # lmfit dependency removed - PeakTracker now uses NLSQ (nlsq>=0.4.1 in core deps)
 ]
 hardware = [
     # NI DAQ for temperature sensor

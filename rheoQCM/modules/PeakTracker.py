@@ -1,14 +1,15 @@
 '''
-class for peak tracking and fitting 
+class for peak tracking and fitting
+
+Migrated from lmfit to NLSQ for peak fitting.
+Uses JAX-accelerated nonlinear least squares via nlsq.curve_fit.
 '''
 import numpy as np
-from lmfit import Model, Minimizer, minimize, Parameters, fit_report
-from lmfit.models import ConstantModel
+import jax.numpy as jnp
+from jax import jit
+from nlsq import curve_fit
 from scipy.signal import find_peaks, peak_widths, peak_prominences
 from random import randrange
-
-import UISettings
-from modules import UIModules
 
 # for debugging
 import traceback
@@ -17,246 +18,377 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-config_default = UISettings.get_config() # load default configuration
+# =============================================================================
+# Configuration Loading (with fallback for testing)
+# =============================================================================
 
+# Default configuration values used by PeakTracker
+_CONFIG_DEFAULTS = {
+    'peak_min_distance_Hz': 1e3,
+    'peak_min_width_Hz': 10,
+    'xtol': 1e-10,
+    'ftol': 1e-10,
+    'cen_range': 0.05,
+    'big_move_thresh': 1.5,
+    'wid_ratio_range': (8, 20),
+    'change_thresh': (0.05, 0.5),
+}
 
-# peak_min_distance_Hz = 1e3 # in Hz
-# peak_min_width_Hz = 10 # in Hz full width
-# xtol = 1e-18 
-# ftol = 1e-18
+# Try to import UISettings, fallback to defaults for testing
+try:
+    import UISettings
+    config_default = UISettings.get_config()
+except ImportError:
+    # Running in test environment without full GUI stack
+    logger.info("UISettings not available, using default config values")
+    config_default = _CONFIG_DEFAULTS
+
+# Try to import UIModules for converter function
+try:
+    from modules import UIModules
+    converter_startstop_to_centerspan = UIModules.converter_startstop_to_centerspan
+except ImportError:
+    # Fallback implementation for testing
+    def converter_startstop_to_centerspan(start, stop):
+        """Convert start/stop to center/span."""
+        center = (start + stop) / 2
+        span = stop - start
+        return center, span
+
 
 # peak finder method
-# peak_finder_method = 'simple_func'
 peak_finder_method = 'py_func'
 
+
+# =============================================================================
+# JAX-Compatible Peak Model Functions
+# =============================================================================
+
+@jit
 def fun_G(x, amp, cen, wid, phi):
-    ''' 
-    function of relation between frequency (f) and conductance (G) 
     '''
-    return amp * (4 * wid**2 * x**2 * np.cos(phi) - 2 * wid * x * np.sin(phi) * (cen**2 - x**2)) / (4 * wid**2 * x**2 + (cen**2 -x**2)**2)
+    JAX-compatible function of relation between frequency (f) and conductance (G).
+    Lorentzian peak model with phase.
+    '''
+    return amp * (4 * wid**2 * x**2 * jnp.cos(phi) - 2 * wid * x * jnp.sin(phi) * (cen**2 - x**2)) / (4 * wid**2 * x**2 + (cen**2 - x**2)**2)
 
 
+@jit
 def fun_B(x, amp, cen, wid, phi):
-    ''' 
-    function of relation between frequency (f) and susceptance (B) 
     '''
-    return amp * (4 * wid**2 * x**2 * np.sin(phi) + 2 * wid * x * np.cos(phi) * (cen**2 - x**2)) / (4 * wid**2 * x**2 + (cen**2 -x**2)**2)
-
-
-def make_gmod(n):
+    JAX-compatible function of relation between frequency (f) and susceptance (B).
+    Lorentzian peak model with phase.
     '''
-    make complex model of G (w/o params) for multiple (n) peaks
-    input:
-    n:    number of peaks
+    return amp * (4 * wid**2 * x**2 * jnp.sin(phi) + 2 * wid * x * jnp.cos(phi) * (cen**2 - x**2)) / (4 * wid**2 * x**2 + (cen**2 - x**2)**2)
+
+
+def fun_G_numpy(x, amp, cen, wid, phi):
     '''
-    gmod = ConstantModel(prefix='g_')
-    for i in np.arange(n):
-        gmod_i = Model(fun_G, prefix='p'+str(i)+'_', name='g'+str(i))
-        gmod += gmod_i
-    return gmod
-
-
-def make_bmod(n):
+    NumPy version of fun_G for evaluation (non-JAX contexts).
     '''
-    make complex model of B (w/o params) for multiple (n) peaks
-    input:
-    n:    number of peaks
+    return amp * (4 * wid**2 * x**2 * np.cos(phi) - 2 * wid * x * np.sin(phi) * (cen**2 - x**2)) / (4 * wid**2 * x**2 + (cen**2 - x**2)**2)
+
+
+def fun_B_numpy(x, amp, cen, wid, phi):
     '''
-    bmod = ConstantModel(prefix='b_')
-    for i in np.arange(n):
-        bmod_i = Model(fun_B, prefix='p'+str(i)+'_', name='b'+str(i))
-        bmod += bmod_i
-    return bmod
-
-
-def make_gbmodel(n=1):
+    NumPy version of fun_B for evaluation (non-JAX contexts).
     '''
-    make complex model for multiple peaks
-    input:
-    n:    number of peaks
-    '''
-    gmod = ConstantModel(prefix='g_')
-    bmod = ConstantModel(prefix='b_')
-
-    for i in np.arange(n):
-        # gmod and bmod sharing the same varible so use the same prefix
-        gmod_i = Model(fun_G, prefix='p'+str(i)+'_', name='g'+str(i))
-        bmod_i = Model(fun_B, prefix='p'+str(i)+'_', name='b'+str(i))
-        gmod += gmod_i
-        bmod += bmod_i
-    
-    return gmod, bmod
+    return amp * (4 * wid**2 * x**2 * np.sin(phi) + 2 * wid * x * np.cos(phi) * (cen**2 - x**2)) / (4 * wid**2 * x**2 + (cen**2 - x**2)**2)
 
 
-def make_models(n=1):
-    '''
-    Since minimizeResult class doesn't have eval_components method, we will make complex models with single peak for evaluation
-    input:
-        n:    number of peaks
-    output:
-        gmods = list of n models of G
-        bmods = list of n models of B
-    '''
-    gmods = []
-    bmods = []
-    gc = ConstantModel(prefix='g_')
-    bc = ConstantModel(prefix='b_')
+# =============================================================================
+# Composite Model Functions for NLSQ Fitting
+# =============================================================================
 
-    for i in np.arange(n):
-        # gmod and bmod sharing the same varible so use the same prefix
-        gmod_i = Model(fun_G, prefix='p'+str(i)+'_', name='g'+str(i)) + gc
-        bmod_i = Model(fun_B, prefix='p'+str(i)+'_', name='b'+str(i)) + bc
-        gmods.append(gmod_i)
-        bmods.append(bmod_i)
-    
-    return gmods, bmods
+def create_composite_model(n_peaks):
+    """
+    Create a composite model function for simultaneous G and B fitting.
 
+    The model accepts x_stacked = [freq, freq] (duplicated frequency array)
+    and returns [G_values, B_values] matching ydata = [G, B].
 
-def make_model_n(n=1):
-    '''
-    Since minimizeResult class doesn't have eval_components method, we will make complex models with single peak for evaluation
-    input:
-        n:    the nth peak
-    output:
-        gmod = the nth model of G
-        bmod = the nth model of B
-    '''
-    gc = ConstantModel(prefix='g_')
-    bc = ConstantModel(prefix='b_')
+    Parameters
+    ----------
+    n_peaks : int
+        Number of peaks in the model.
 
-    # gmod and bmod sharing the same varible so use the same prefix
-    gmod = Model(fun_G, prefix='p'+str(i)+'_', name='g'+str(i)) + gc
-    bmod = Model(fun_B, prefix='p'+str(i)+'_', name='b'+str(i)) + bc
-    
-    return gmod, bmod
+    Returns
+    -------
+    callable
+        Model function with signature model(x_stacked, *params) where:
+        - x_stacked is [freq, freq] (2N points)
+        - params contains: [p0_amp, p0_cen, p0_wid, p0_phi, p1_amp, ..., g_c, b_c]
+        - Returns [G, B] (2N points)
+    """
+    def model(x_stacked, *params):
+        # x_stacked is the frequency array duplicated: [f, f]
+        # First half is for G, second half is for B
+        n = len(x_stacked) // 2
+        freq = x_stacked[:n]
 
+        # Extract parameters
+        n_params_per_peak = 4
+        g_c = params[-2]
+        b_c = params[-1]
 
-def make_models_pars(n=1):
-    '''
-    make complex model for multiple peaks
-    input:
-    n:    number of peaks
-    '''
-    gmod = ConstantModel(prefix='g_', name='cg')
-    gpars = gmod.make_params(c=0)
-    bmod = ConstantModel(prefix='b_', name='cb')
-    bpars = bmod.make_params(c=0)
+        G_total = jnp.full_like(freq, g_c)
+        B_total = jnp.full_like(freq, b_c)
 
-    for i in np.arange(1, n+1):
-        # gmod and bmod sharing the same varible so use the same prefix
-        gmod_i = Model(fun_G, prefix='p'+str(i)+'_', name='g'+str(i))
-        gpars.update(gmod_i.make_params())
-        gpars['p'+str(i)+'_amp'].set(0, min=0)
-        gpars['p'+str(i)+'_cen'].set()
-        gpars['p'+str(i)+'_wid'].set(1, min=1)
-        gpars['p'+str(i)+'_phi'].set(0, min=-np.pi/2, max=np.pi/2)
-        bmod_i = Model(fun_B, prefix='p'+str(i)+'_', name='b'+str(i))
-        bpars.update(bmod_i.make_params())
-        bpars['p'+str(i)+'_amp'].set(0, min=0)
-        bpars['p'+str(i)+'_cen'].set()
-        bpars['p'+str(i)+'_wid'].set(1, min=1)
-        bpars['p'+str(i)+'_phi'].set(0, min=-np.pi/2, max=np.pi/2)
-        gmod += gmod_i
-        bmod += bmod_i
-    
-    return gmod, bmod, gpars, bpars
+        for i in range(n_peaks):
+            idx = i * n_params_per_peak
+            amp = params[idx]
+            cen = params[idx + 1]
+            wid = params[idx + 2]
+            phi = params[idx + 3]
+
+            G_total = G_total + fun_G(freq, amp, cen, wid, phi)
+            B_total = B_total + fun_B(freq, amp, cen, wid, phi)
+
+        return jnp.concatenate([G_total, B_total])
+
+    return model
 
 
-def res_GB(params, f, G, B, **kwargs):
-    '''
-    residual of both G and B
-    '''
-    # gmod and bmod have to be assigned to real models
-    gmod = kwargs.get('gmod')
-    bmod = kwargs.get('bmod')
-    eps = kwargs.get('eps', None)
-    # eps = 100
-    # eps = (G - np.amin(G))
-    # eps = pow((G - np.amin(G)*1.001), 1/2)
-    
-    residual_G = G - gmod.eval(params, x=f)
-    residual_B = B - bmod.eval(params, x=f)
+# =============================================================================
+# Parameter Management System
+# =============================================================================
 
-    if eps is None:
-        return np.concatenate((residual_G, residual_B))
+def get_param_index(name, n_peaks):
+    """
+    Get the index of a parameter in the parameter array.
+
+    Parameters
+    ----------
+    name : str
+        Parameter name (e.g., 'p0_amp', 'p1_cen', 'g_c', 'b_c')
+    n_peaks : int
+        Number of peaks in the model
+
+    Returns
+    -------
+    int
+        Index of the parameter in the p0/popt array
+    """
+    if name == 'g_c':
+        return n_peaks * 4
+    elif name == 'b_c':
+        return n_peaks * 4 + 1
     else:
-        return np.concatenate((residual_G * eps, residual_B * eps))
+        # Parse peak parameter: p{i}_{param}
+        parts = name.split('_')
+        peak_idx = int(parts[0][1:])  # Remove 'p' prefix
+        param_name = parts[1]
+
+        param_offset = {'amp': 0, 'cen': 1, 'wid': 2, 'phi': 3}
+        return peak_idx * 4 + param_offset[param_name]
 
 
-def findpeaks(array, output, sortstr=None, npeaks=np.inf, minpeakheight=-np.inf, 
-            threshold=0, minpeakdistance=0, widthreference=None, minpeakwidth=0, maxpeakwidth=np.inf):
-    '''
-    output: 'indices' or 'values'
-    sortstr: 'ascend' or 'descend'
-    '''
-    # NOTUSING
-    indices = np.array([]).astype('int64')
-    values = np.array([]).astype('float64')
-    data = np.atleast_1d(array).astype('float64')
-    if data.size < 3:
-        return np.array([])
+def build_p0_and_bounds(params_dict, n_peaks, zerophase=False):
+    """
+    Build p0 (initial guesses) and bounds arrays from a parameters dictionary.
 
-    hnpeaks = 0
-    diffs = data[1:]-data[:-1]
-    for i in range(diffs.size-1):
-        if hnpeaks >= npeaks:
-            break
-        if diffs[i] > 0 and diffs[i+1] < 0:
-            lthreshold = np.absolute(diffs[i])
-            rthreshold = np.absolute(diffs[i+1])
-            if data[i+1] >= minpeakheight and lthreshold >= threshold and rthreshold >= threshold:
-                indices = np.append(indices, i+1)
-                values = np.append(values, data[i+1])
-                hnpeaks = hnpeaks + 1
+    Parameters
+    ----------
+    params_dict : dict
+        Dictionary with structure: {i: {'amp': v, 'cen': v, 'wid': v, 'phi': v}, ...}
+        where i is the peak index
+    n_peaks : int
+        Number of peaks
+    zerophase : bool
+        If True, fix phi to 0 using tight bounds
 
-    indices_copy = np.copy(indices)
-    if sortstr:
-        if sortstr.lower() == 'ascend':
-            order = np.argsort(values)
-            values = np.sort(values)
-            for i in range(order.size):
-                indices[i] = indices_copy[order[i]]
-        elif sortstr.lower() == 'descend':
-            order = np.argsort(-values)
-            values = -np.sort(-values)
-            for i in range(order.size):
-                indices[i] = indices_copy[order[i]]
+    Returns
+    -------
+    p0 : np.ndarray
+        Initial parameter values
+    bounds : tuple
+        (lower_bounds, upper_bounds) arrays
+    fixed_mask : np.ndarray
+        Boolean mask indicating which parameters are fixed
+    """
+    n_params = n_peaks * 4 + 2  # 4 params per peak + g_c + b_c
 
-    if output.lower() == 'indices':
-        return indices
-    elif output.lower() == 'values':
-        return values
+    p0 = np.zeros(n_params)
+    lb = np.full(n_params, -np.inf)
+    ub = np.full(n_params, np.inf)
+    fixed_mask = np.zeros(n_params, dtype=bool)
 
+    # Fill in peak parameters
+    for i in range(n_peaks):
+        idx = i * 4
+        peak_params = params_dict.get(i, {})
+
+        # amp: amplitude (>= 0)
+        p0[idx] = peak_params.get('amp', 1.0)
+        lb[idx] = peak_params.get('amp_min', 0.0)
+        ub[idx] = peak_params.get('amp_max', np.inf)
+
+        # cen: center frequency
+        p0[idx + 1] = peak_params.get('cen', 1e6)
+        lb[idx + 1] = peak_params.get('cen_min', -np.inf)
+        ub[idx + 1] = peak_params.get('cen_max', np.inf)
+
+        # wid: half-width at half-maximum
+        p0[idx + 2] = peak_params.get('wid', 1000.0)
+        lb[idx + 2] = peak_params.get('wid_min', 1.0)
+        ub[idx + 2] = peak_params.get('wid_max', np.inf)
+
+        # phi: phase
+        p0[idx + 3] = peak_params.get('phi', 0.0)
+        if zerophase:
+            # Fix phi to 0 using tight bounds
+            eps = 1e-10
+            p0[idx + 3] = 0.0
+            lb[idx + 3] = -eps
+            ub[idx + 3] = eps
+            fixed_mask[idx + 3] = True
+        else:
+            lb[idx + 3] = peak_params.get('phi_min', -np.pi / 2)
+            ub[idx + 3] = peak_params.get('phi_max', np.pi / 2)
+
+    # g_c and b_c (baseline offsets)
+    g_c_idx = n_peaks * 4
+    b_c_idx = n_peaks * 4 + 1
+
+    p0[g_c_idx] = params_dict.get('g_c', 0.0)
+    p0[b_c_idx] = params_dict.get('b_c', 0.0)
+
+    # Baselines are unbounded
+    lb[g_c_idx] = -np.inf
+    ub[g_c_idx] = np.inf
+    lb[b_c_idx] = -np.inf
+    ub[b_c_idx] = np.inf
+
+    return p0, (lb, ub), fixed_mask
+
+
+# =============================================================================
+# Result Adapter for Backward Compatibility
+# =============================================================================
+
+class NLSQResultAdapter:
+    """
+    Adapter class to provide lmfit-like interface for NLSQ results.
+
+    This allows existing code that expects lmfit result objects to work
+    with NLSQ results without modification.
+    """
+
+    def __init__(self, popt, pcov, n_peaks, success=True, message=''):
+        """
+        Initialize the result adapter.
+
+        Parameters
+        ----------
+        popt : np.ndarray
+            Optimized parameter values
+        pcov : np.ndarray
+            Parameter covariance matrix
+        n_peaks : int
+            Number of peaks in the model
+        success : bool
+            Whether the fit was successful
+        message : str
+            Status message from the optimizer
+        """
+        self.popt = popt
+        self.pcov = pcov
+        self.n_peaks = n_peaks
+        self.success = success
+        self.message = message
+        self.lmdif_message = message
+
+        # Calculate standard errors from covariance
+        self.stderr = np.sqrt(np.diag(pcov)) if pcov is not None else None
+
+        # Calculate chi-squared (will be set externally)
+        self.chisqr = np.nan
+
+        # Create params-like object
+        self.params = NLSQParamsAdapter(popt, pcov, n_peaks)
+
+    def __bool__(self):
+        """Return True if the result exists (for compatibility checks)."""
+        return True
+
+
+class NLSQParamsAdapter:
+    """
+    Adapter to provide lmfit Parameters-like interface for NLSQ results.
+    """
+
+    def __init__(self, popt, pcov, n_peaks):
+        self.popt = popt
+        self.pcov = pcov
+        self.n_peaks = n_peaks
+        self.stderr = np.sqrt(np.diag(pcov)) if pcov is not None else np.full(len(popt), np.nan)
+
+        # Build name-to-index mapping
+        self._name_to_idx = {}
+        for i in range(n_peaks):
+            for j, param_name in enumerate(['amp', 'cen', 'wid', 'phi']):
+                name = f'p{i}_{param_name}'
+                self._name_to_idx[name] = i * 4 + j
+        self._name_to_idx['g_c'] = n_peaks * 4
+        self._name_to_idx['b_c'] = n_peaks * 4 + 1
+
+    def get(self, name):
+        """Get a parameter by name (lmfit-compatible interface)."""
+        idx = self._name_to_idx.get(name)
+        if idx is None:
+            return None
+        return NLSQParamValue(self.popt[idx], self.stderr[idx] if self.stderr is not None else np.nan)
+
+    def valuesdict(self):
+        """Return a dictionary of parameter values (lmfit-compatible interface)."""
+        return {name: self.popt[idx] for name, idx in self._name_to_idx.items()}
+
+    def __repr__(self):
+        return f"NLSQParamsAdapter({self.valuesdict()})"
+
+
+class NLSQParamValue:
+    """
+    Adapter for individual parameter value with stderr (lmfit-compatible).
+    """
+
+    def __init__(self, value, stderr):
+        self.value = value
+        self.stderr = stderr
+
+
+# =============================================================================
+# Peak Finding Helper Functions (unchanged from original)
+# =============================================================================
 
 def findpeaks_py(x, resonance, output=None, sortstr=None, threshold=None, prominence=None, distance=None, width=None):
     '''
     A wrap up of scipy.signal.find_peaks.
     advantage of find_peaks function of scipy is
-    the peaks can be constrained by more properties 
+    the peaks can be constrained by more properties
     such as: width, distance etc..
     output: 'indices' or 'values'. if None, return all (indices, heights, prominences, widths)
     sortstr: 'ascend' or 'descend' ordering data by peak height
     '''
-    # logger.info(resonance) 
-    if x is None or len(x) == 1: # for debuging
+    if x is None or len(x) == 1:
         logger.warning('findpeaks_py input x is not well assigned!\nx = {}'.format(x))
         exit(0)
 
-    logger.info(threshold) 
-    logger.info('f distance %s', distance / (x[1] - x[0])) 
-    logger.info(prominence) 
-    logger.info('f width %s', width / (x[1] - x[0])) 
+    logger.info(threshold)
+    logger.info('f distance %s', distance / (x[1] - x[0]))
+    logger.info(prominence)
+    logger.info('f width %s', width / (x[1] - x[0]))
     peaks, props = find_peaks(
-        resonance, 
-        threshold=threshold, 
-        distance=max(1, distance / (x[1] - x[0])), # make it >= 1
+        resonance,
+        threshold=threshold,
+        distance=max(1, distance / (x[1] - x[0])),
         prominence=prominence,
-        width=max(1, width / (x[1] - x[0])), # make it >= 1
+        width=max(1, width / (x[1] - x[0])),
     )
 
-    logger.info(peaks) 
-    logger.info(props) 
-    
+    logger.info(peaks)
+    logger.info(props)
+
     indices = np.copy(peaks)
     values = resonance[indices]
     heights = np.array([])
@@ -265,23 +397,22 @@ def findpeaks_py(x, resonance, output=None, sortstr=None, threshold=None, promin
     if sortstr:
         if sortstr.lower() == 'ascend':
             order = np.argsort(values)
-            # values = np.sort(values)
         elif sortstr.lower() == 'descend':
             order = np.argsort(-values)
             values = -np.sort(-values)
         else:
             order = np.argsort(values)
-        logger.info(values) 
-        logger.info(peaks) 
-        logger.info(order) 
-        logger.info(props) 
+        logger.info(values)
+        logger.info(peaks)
+        logger.info(order)
+        logger.info(props)
 
         for i in range(order.size):
             indices[i] = indices[order[i]]
             heights = np.append(heights, props['width_heights'][order[i]])
             prominences = np.append(prominences, props['prominences'][order[i]])
-            widths = np.append(widths, props['widths'][order[i]] * (x[1] - x[0])) # in Hz
-    
+            widths = np.append(widths, props['widths'][order[i]] * (x[1] - x[0]))
+
     if output:
         if output.lower() == 'indices':
             return indices
@@ -291,7 +422,7 @@ def findpeaks_py(x, resonance, output=None, sortstr=None, threshold=None, promin
 
 
 def guess_peak_factors(freq, resonance):
-    ''' 
+    '''
     guess the factors of a peak.
     input:
         freq: frequency
@@ -302,37 +433,33 @@ def guess_peak_factors(freq, resonance):
         cen: peak center
         half_wid: half-maxium hal-width (HMHW)
     '''
-
     if peak_finder_method == 'simple_func':
-        cen_index = np.argmax(resonance) # use max value as peak
-
-        cen = freq[cen_index] # peak center
-        # determine the estimated associated conductance (or susceptance) value at the resonance peak
-        Rmax = resonance[cen_index] 
-        amp = Rmax-np.amin(resonance)
-        # determine the estimated half-max conductance (or susceptance) of the resonance peak
+        cen_index = np.argmax(resonance)
+        cen = freq[cen_index]
+        Rmax = resonance[cen_index]
+        amp = Rmax - np.amin(resonance)
         half_max = amp / 2 + np.amin(resonance)
-        logger.info('Rmax %s', Rmax) 
-        logger.info('amp %s', amp) 
-
-        # logger.info('where %s', np.where(np.abs(half_max-resonance)==np.min(np.abs(half_max-resonance)))) 
-        half_wid = np.absolute(freq[np.argmin(np.abs(half_max-resonance))] -  cen)
-        logger.info(half_wid) 
+        logger.info('Rmax %s', Rmax)
+        logger.info('amp %s', amp)
+        half_wid = np.absolute(freq[np.argmin(np.abs(half_max - resonance))] - cen)
+        logger.info(half_wid)
         return amp, cen, half_wid, half_max
-    elif peak_finder_method == 'py_func': 
-        #TODO if find_peaks(x) is necessary?
-        cen_index = np.argmax(resonance) # use max value as peak
-        prominences = peak_prominences(resonance, np.array([cen_index])) # tuple of 3 arrays
+    elif peak_finder_method == 'py_func':
+        cen_index = np.argmax(resonance)
+        prominences = peak_prominences(resonance, np.array([cen_index]))
         widths = peak_widths(resonance, np.array([cen_index]), prominence_data=prominences, rel_height=0.5)
-        
-        cen = freq[cen_index] # peak center
-        # use prominence as amp since the peak we are looking for is th tallest one
+
+        cen = freq[cen_index]
         amp = prominences[0][0]
-        half_wid = min(cen_index-widths[2][0], widths[3][0]-cen_index) * (freq[1] - freq[0]) # min of left and right side
+        half_wid = min(cen_index - widths[2][0], widths[3][0] - cen_index) * (freq[1] - freq[0])
         half_max = widths[1][0]
 
         return amp, cen, half_wid, half_max
 
+
+# =============================================================================
+# Main PeakTracker Class
+# =============================================================================
 
 class PeakTracker:
 
@@ -351,14 +478,10 @@ class PeakTracker:
 
         self.active_harm = None
         self.active_chn = None
-        self.x = None # temp value (freq) for fitting and tracking
-        self.resonance = None # temp value for fitting and tracking
+        self.x = None
+        self.resonance = None
         self.peak_guess = {}
         self.found_n = None
-
-        # ?
-        # self.refit_flag = 0
-        # self.refit_counter = 1
 
 
     def init_harmdict(self):
@@ -381,27 +504,26 @@ class PeakTracker:
         harmdata: it should be from the main ui self.settings['harmdata']
         if empty harmdata, initialize the key to None
         chn_name: 'samp' or 'ref'
-        if f, G, B  all(is None): update harmdata, freq_span only. (This make sure every change of the settings will be updated when there is no scan)
+        if f, G, B  all(is None): update harmdata, freq_span only.
         harm: int
         '''
-        logger.info('#### update_input ####') 
-        # setattr(self.harminput, chn_name, setattr())
+        logger.info('#### update_input ####')
         if fGB is not None:
             f, G, B = fGB
-            self.harminput[chn_name][harm]['isfitted'] = False # if the data has been fitted
+            self.harminput[chn_name][harm]['isfitted'] = False
             self.harminput[chn_name][harm]['f'] = f
             self.harminput[chn_name][harm]['G'] = G
             self.harminput[chn_name][harm]['B'] = B
-            logger.info('f[chn][harm] %s', 'None' if f is None else len(f)) 
+            logger.info('f[chn][harm] %s', 'None' if f is None else len(f))
 
-        if not harmdata: # harmdata is empty (for initialize)
+        if not harmdata:
             harm_dict = {}
         else:
             harm_dict = harmdata[chn_name][harm]
-        
+
             logger.info('chn_name:  %s, harm: %s', chn_name, harm)
-            logger.info('harmdata[chn][harm] %s', harm_dict) 
-        logger.info(' #####################') 
+            logger.info('harmdata[chn][harm] %s', harm_dict)
+        logger.info(' #####################')
 
         if not freq_span:
             self.harminput[chn_name][harm]['current_span'] = [None, None]
@@ -413,19 +535,19 @@ class PeakTracker:
         self.harminput[chn_name][harm]['fit'] = harm_dict.get('checkBox_harmfit', True)
         self.harminput[chn_name][harm]['factor'] = harm_dict.get('spinBox_harmfitfactor', None)
         self.harminput[chn_name][harm]['n'] = harm_dict.get('spinBox_peaks_num', None)
-        
+
         if harm_dict.get('radioButton_peaks_num_max', None) == True:
             self.harminput[chn_name][harm]['n_policy'] = 'max'
         elif harm_dict.get('radioButton_peaks_num_fixed', None) == True:
             self.harminput[chn_name][harm]['n_policy'] = 'fixed'
-        else: # initialize data
+        else:
             self.harminput[chn_name][harm]['n_policy'] = None
-        
+
         if harm_dict.get('radioButton_peaks_policy_minf', None) == True:
             self.harminput[chn_name][harm]['p_policy'] = 'minf'
         elif harm_dict.get('radioButton_peaks_policy_maxamp', None) == True:
             self.harminput[chn_name][harm]['p_policy'] = 'maxamp'
-        else: # initialize data
+        else:
             self.harminput[chn_name][harm]['p_policy'] = None
 
         self.harminput[chn_name][harm]['zerophase'] = harm_dict.get('checkBox_settings_settings_harmzerophase', False)
@@ -446,21 +568,15 @@ class PeakTracker:
         if kwargs:
             for key, val in kwargs.items():
                 self.harmoutput[chn_name][harm][key] = val
-        else: # initialize
-            self.harmoutput[chn_name][harm]['span'] = kwargs.get('span', [np.nan, np.nan])       # span for next scan
-            self.harmoutput[chn_name][harm]['cen_trk'] = kwargs.get('cen_trk', np.nan)       # tracking peak center 
-            self.harmoutput[chn_name][harm]['factor_span'] = kwargs.get('span', [np.nan, np.nan])       # span of freq used for fitting
-            self.harmoutput[chn_name][harm]['method'] = kwargs.get('method', '')       # method for next scan
-            self.harmoutput[chn_name][harm]['found_n'] = kwargs.get('found_n', np.nan)       # condition for next scan
-            # self.harmoutput[chn_name][harm]['wid'] = kwargs.get('wid', np.nan)       # peak width
-            # self.harmoutput[chn_name][harm]['amp'] = kwargs.get('amp', np.nan)       # peak amp
-            # self.harmoutput[chn_name][harm]['phi'] = kwargs.get('phi', np.nan)       # phase angle
-            self.harmoutput[chn_name][harm]['gmod'] = kwargs.get('gmod', np.nan) # parameters input for clculation
-            self.harmoutput[chn_name][harm]['bmod'] = kwargs.get('bmod', np.nan) # parameters input for clculation
-            self.harmoutput[chn_name][harm]['params'] = kwargs.get('params', np.nan) # parameters input for clculation
-            self.harmoutput[chn_name][harm]['result'] = kwargs.get('result', {}) # clculation result
-        
-        # logger.info('update params', kwargs.get('params')) 
+        else:
+            self.harmoutput[chn_name][harm]['span'] = kwargs.get('span', [np.nan, np.nan])
+            self.harmoutput[chn_name][harm]['cen_trk'] = kwargs.get('cen_trk', np.nan)
+            self.harmoutput[chn_name][harm]['factor_span'] = kwargs.get('span', [np.nan, np.nan])
+            self.harmoutput[chn_name][harm]['method'] = kwargs.get('method', '')
+            self.harmoutput[chn_name][harm]['found_n'] = kwargs.get('found_n', np.nan)
+            self.harmoutput[chn_name][harm]['n_peaks'] = kwargs.get('n_peaks', 1)
+            self.harmoutput[chn_name][harm]['params'] = kwargs.get('params', {})
+            self.harmoutput[chn_name][harm]['result'] = kwargs.get('result', {})
 
 
     def get_input(self, key=None, chn_name=None, harm=None):
@@ -475,8 +591,8 @@ class PeakTracker:
 
         if key is not None:
             return self.harminput[chn_name][harm].get(key, None)
-        else: 
-            return self.harminput[chn_name][harm] # return all of the corresponding chn_name and harm
+        else:
+            return self.harminput[chn_name][harm]
 
 
     def get_output(self, key=None, chn_name=None, harm=None):
@@ -491,8 +607,8 @@ class PeakTracker:
 
         if key is not None:
             return self.harmoutput[chn_name][harm].get(key, None)
-        else: 
-            return self.harmoutput[chn_name][harm] # return all of the corresponding chn_name and harm
+        else:
+            return self.harmoutput[chn_name][harm]
 
 
     def init_active_val(self, chn_name=None, harm=None, method=None):
@@ -506,303 +622,211 @@ class PeakTracker:
         if method is None:
             method = self.harminput[chn_name][harm]['method']
 
-        # x and resonance
-        if method == 'bmax': # use max susceptance
+        if method == 'bmax':
             self.x = self.harminput[chn_name][harm]['f']
             self.resonance = self.harminput[chn_name][harm]['B']
-        elif method == 'derv': # use derivative
+        elif method == 'derv':
             self.resonance = np.sqrt(
-                np.diff(self.harminput[chn_name][harm]['G'])**2 + 
+                np.diff(self.harminput[chn_name][harm]['G'])**2 +
                 np.diff(self.harminput[chn_name][harm]['B'])**2
-            ) # use modulus
-            self.x = self.harminput[chn_name][harm]['f'][:-1] + np.diff(self.harminput[chn_name][harm]['f']) # change f size and shift
-        elif method == 'prev': # use previous value
+            )
+            self.x = self.harminput[chn_name][harm]['f'][:-1] + np.diff(self.harminput[chn_name][harm]['f'])
+        elif method == 'prev':
             try:
                 pre_method = self.harmoutput[chn_name][harm]['method']
                 if pre_method == 'prev':
                     pre_method = 'gmax'
             except:
                 pre_method = 'gmax'
-            
+
             self.init_active_val(harm=harm, chn_name=chn_name, method=pre_method)
         else:
             self.resonance = self.harminput[chn_name][harm]['G']
             self.x = self.harminput[chn_name][harm]['f']
 
-        self.found_n = 0 # number of found peaks
-        self.peak_guess = {} # guess values of found peaks
+        self.found_n = 0
+        self.peak_guess = {}
 
 
     ########### peak tracking function ###########
     def peak_tracker(self):
         '''
         track the peak and give the span for next scan
-        NOTE: the returned span may out of span_range defined the the main UI!
         '''
         def set_new_cen(freq, cen, current_span, current_xlim):
-            ''' set new center '''
-            cen_range = config_default['cen_range'] # cen of span +/- cen_range*span as the accessible range
-            cen_diff = cen - np.mean(np.array([freq[0],freq[-1]]))
-            logger.info('cen_diff %s', cen_diff) 
+            cen_range = config_default['cen_range']
+            cen_diff = cen - np.mean(np.array([freq[0], freq[-1]]))
+            logger.info('cen_diff %s', cen_diff)
             half_cen_span = cen_range * current_span
-            logger.info('half_cen_span %s', half_cen_span) 
-            if np.absolute(cen_diff) > half_cen_span: # out of range
-                # new start and end frequencies in Hz
-                # return cen # return current peak center as new center
-                # OR move the center to the oppsite direction a little incase of a big move of the peak center
-                if cen_diff / half_cen_span < -config_default['big_move_thresh']: # peak on the left side of center range
+            logger.info('half_cen_span %s', half_cen_span)
+            if np.absolute(cen_diff) > half_cen_span:
+                if cen_diff / half_cen_span < -config_default['big_move_thresh']:
                     return cen - half_cen_span
-                elif cen_diff / half_cen_span > config_default['big_move_thresh']: # peak on the right side of center range
+                elif cen_diff / half_cen_span > config_default['big_move_thresh']:
                     return cen + half_cen_span
-                else: # small move use center
+                else:
                     return cen
-
-            else: 
-                # use span center
-                # return np.mean(np.array([freq[0],freq[-1]]))
+            else:
                 return np.mean(np.array(current_xlim))
 
         def set_new_span(current_span, half_wid):
-            wid_ratio_range = config_default['wid_ratio_range'] # width_ratio[0] <= span <= width_ratio[1]
-            change_thresh = config_default['change_thresh'] # span change threshold current_span * change_thresh[0/1]
-            ''' set new span '''
+            wid_ratio_range = config_default['wid_ratio_range']
+            change_thresh = config_default['change_thresh']
             wid_ratio = 0.5 * current_span / half_wid
-            logger.info('wid_ratio %s', wid_ratio) 
-            if wid_ratio < wid_ratio_range[0]: # too fat
+            logger.info('wid_ratio %s', wid_ratio)
+            if wid_ratio < wid_ratio_range[0]:
                 new_span = max(
                     min(
-                        wid_ratio_range[0] * half_wid * 2, 
+                        wid_ratio_range[0] * half_wid * 2,
                         current_span * (1 + change_thresh[1]),
                     ),
                     current_span * (1 + change_thresh[0])
                 )
-            elif wid_ratio > wid_ratio_range[1]: # too thin
+            elif wid_ratio > wid_ratio_range[1]:
                 logger.info('peak too thin\n %s %s %s %s',
                     half_wid,
                     wid_ratio_range[1] * half_wid * 2,
                     current_span * (1 - change_thresh[1]),
-                    current_span * (1 - change_thresh[0]) # 
+                    current_span * (1 - change_thresh[0])
                 )
                 new_span = min(
                     max(
                         wid_ratio_range[1] * half_wid * 2,
                         current_span * (1 - change_thresh[1]),
-                        ), # lower bound of wid_ratio_range
-                    current_span * (1 - change_thresh[0]) # 
+                    ),
+                    current_span * (1 - change_thresh[0])
                 )
             else:
                 new_span = current_span
-            
-            return max(new_span, config_default['peak_min_width_Hz']) # add min limit of peak to new_span
+
+            return max(new_span, config_default['peak_min_width_Hz'])
 
         def set_new_xlim(new_cen, new_span):
             return [new_cen - 0.5 * new_span, new_cen + 0.5 * new_span]
 
-                
+
         chn_name = self.active_chn
         harm = self.active_harm
         track_condition = self.harminput[chn_name][harm]['condition']
         track_method = self.harminput[chn_name][harm]['method']
         logger.info('track_condition: %s', track_condition)
         logger.info('track_method: %s', track_method)
-        # determine the structure field that should be used to extract out the initial-guessing method
         freq = self.harminput[chn_name][harm]['f']
         if track_method == 'bmax':
             resonance = self.harminput[chn_name][harm]['B']
         else:
             resonance = self.harminput[chn_name][harm]['G']
 
-        ## the fitted data might be wrong when the peak is dampped too much !! So, we don't use the fitted data for now
-        # if self.get_output('isfitted', chn_name=chn_name, harm=harm): # data has been fitted
-        #     cen = self.get_fit_values(chn_name=chn_name, harm=harm)['cen_trk']['value']
-        #     half_wid = self.get_fit_values(chn_name=chn_name, harm=harm)['wid_trk']['value']
-        # else:
-        #     _, cen, half_wid, _ = guess_peak_factors(freq, resonance)
-    
-        # use the guessed value
         _, cen, half_wid, _ = guess_peak_factors(freq, resonance)
 
         current_xlim = np.array(self.harminput[chn_name][harm]['current_span'])
-        # get the current center and current span of the data in Hz
-        current_center, current_span = UIModules.converter_startstop_to_centerspan(*self.harminput[chn_name][harm]['current_span'])
-        
+        current_center, current_span = converter_startstop_to_centerspan(*self.harminput[chn_name][harm]['current_span'])
+
         logger.info('current_center %s', current_center)
         logger.info('current_span %s', current_span)
         logger.info('current_xlim %s', current_xlim)
         logger.info('f1f2 %s %s', freq[0], freq[-1])
-        # initiate new_cen
         new_cen = current_center
-        # initiate new_xlim == previous span
         new_xlim = self.harminput[chn_name][harm]['current_span']
 
-        # find the starting and ending frequency of the peak in Hz
         if track_condition == 'fixspan':
-            new_cen = set_new_cen(freq, cen, current_span, current_xlim) # replace current_xlim with current_span
+            new_cen = set_new_cen(freq, cen, current_span, current_xlim)
             new_xlim = set_new_xlim(new_cen, current_span)
-            ''' if np.absolute(np.mean(np.array([freq[0],freq[-1]]))-cen) > 0.1 * current_span:
-                # new start and end frequencies in Hz
-                new_xlim=np.array([cen-0.5*current_span,cen+0.5*current_span]) '''
         elif track_condition == 'fixcenter':
             new_span = set_new_span(current_span, half_wid), config_default['peak_min_width_Hz']
             new_xlim = set_new_xlim(current_center, new_span)
-
-            ''' # peak_xlim = np.array([cen-half_wid*3, cen+half_wid*3])
-            if np.sum(np.absolute(np.subtract(current_xlim, np.array([current_center-3*half_wid, current_center + 3*half_wid])))) > 3e3:
-                #TODO above should equal to abs(sp - 6 * half_wid) > 3e3
-                # set new start and end freq based on the location of the peak in Hz
-                new_xlim = np.array(current_center-3*half_wid, current_center+3*half_wid) '''
-
         elif track_condition == 'auto':
             new_cen = set_new_cen(freq, cen, current_span, current_xlim)
             new_span = set_new_span(current_span, half_wid)
             new_xlim = set_new_xlim(new_cen, new_span)
 
-
-            logger.info('current_center %s', current_center) 
-            logger.info('current_span %s', current_span) 
-            logger.info('current_xlim %s', current_xlim) 
-            logger.info('new_cen %s', new_cen) 
-            logger.info('new_span %s', new_span) 
-            logger.info('new_xlim %s', new_xlim) 
-
-            ''' # adjust window if neither span or center is fixed (default)
-            if(np.mean(current_xlim)-cen) > 1*current_span/12: # peak center freq too low
-                new_xlim = current_xlim - current_span / 15  # new start and end frequencies in Hz
-            elif (np.mean(current_xlim)-cen) < -1*current_span/12: # peak center freq too high
-                new_xlim = current_xlim + current_span / 15  # new start and end frequencies in Hz
-            else: # peak center in the accessible range
-                pass
-
-            thresh1 = .05 * current_span + current_xlim[0] # Threshold frequency in Hz
-            thresh2 = .03 * current_span # Threshold frequency span in Hz
-            LB_peak = cen - half_wid * 3 # lower bound of the resonance peak
-            if LB_peak - thresh1 > half_wid * 8: # if peak is too thin, zoom into the peak
-                new_xlim = [(current_xlim[0] + thresh2), (current_xlim[1] - thresh2)] # Hz
-            elif thresh1 - LB_peak > -half_wid*5: # if the peak is too fat, zoom out of the peak
-                new_xlim = [(current_xlim[0] - thresh2), (current_xlim[1] + thresh2)] # Hz '''
+            logger.info('current_center %s', current_center)
+            logger.info('current_span %s', current_span)
+            logger.info('current_xlim %s', current_xlim)
+            logger.info('new_cen %s', new_cen)
+            logger.info('new_span %s', new_span)
+            logger.info('new_xlim %s', new_xlim)
         elif track_condition == 'fixcntspn':
-            logger.info('fixcntspn') 
-            # both span and cent are fixed
-            # no changes
+            logger.info('fixcntspn')
             pass
-        elif track_condition == 'usrdef': #run custom tracking algorithm
-            ### CUSTOM, USER-DEFINED
-            ### CUSTOM, USER-DEFINED
-            ### CUSTOM, USER-DEFINED
+        elif track_condition == 'usrdef':
             pass
 
         logger.info('new_cen: %s', new_cen)
         logger.info('new_xlim: %s', new_xlim)
 
-        # set new start/end freq in Hz
         self.update_output(chn_name, harm, span=new_xlim)
         self.update_output(chn_name, harm, cen_trk=cen)
 
-
-    ########### peak finding functions ###########
 
     ########### initial values guess functions ###
     def params_guess(self, method='gmax'):
         '''
         guess initial values based on given method
-        if method == 'bmax': use max susceptance
-        'gmax': use max conductance
-        'derivative': use modulus
         '''
-        # # determine the structure field that should be used to extract out the initial-guessing method
-        # if method == 'bmax': # use max susceptance
-        #     resonance = B
-        #     x = f
-        # elif method == 'derv': # use derivative
-        #     resonance = np.sqrt(np.diff(G)**2 + np.diff(B)**2) # use modulus
-        #     x = f[:-1] + np.diff(f) # change f size and shift
-        # elif method == 'prev': # use previous value
-        #     # this conditin should not go to this function
-        #     return
-        # else:
-        #     resonance = G
-        #     x = f
-
         phi = 0
-        # peak_guess = {}
 
         chn_name = self.active_chn
         harm = self.active_harm
         n_policy = self.harminput[chn_name][harm]['n_policy']
         p_policy = self.harminput[chn_name][harm]['p_policy']
-        logger.info('chn_name %s', chn_name) 
-        logger.info('harm %s', harm) 
-        logger.info('p_policy %s', p_policy) 
-        
-        # ordering by peak height decreasing
+        logger.info('chn_name %s', chn_name)
+        logger.info('harm %s', harm)
+        logger.info('p_policy %s', p_policy)
+
         if p_policy == 'maxamp':
-            sortstr = 'descend' # ordering by peak height decreasing
+            sortstr = 'descend'
         elif p_policy == 'minf':
-            sortstr = 'descend' # ordering by peak height decreasing
+            sortstr = 'descend'
 
         indices, heights, prominences, widths = findpeaks_py(
             self.x,
-            self.resonance, 
-            sortstr=sortstr, 
-            threshold=self.harminput[chn_name][harm]['threshold'], 
+            self.resonance,
+            sortstr=sortstr,
+            threshold=self.harminput[chn_name][harm]['threshold'],
             prominence=self.harminput[chn_name][harm]['prominence'],
-            distance=config_default['peak_min_distance_Hz'], 
+            distance=config_default['peak_min_distance_Hz'],
             width=config_default['peak_min_width_Hz']
         )
-        
-        logger.info('indices %s', indices) 
+
+        logger.info('indices %s', indices)
         if indices.size == 0:
             self.found_n = 0
             self.update_output(found_n=0)
             return
-        
-        if method == 'derv':
-            # guess phase angle if derivatave method used
-            phi = np.arcsin(self.harminput[chn_name][harm]['G'][0] / np.sqrt(self.harminput[chn_name][harm]['G'][0]**2 + self.harminput[chn_name][harm]['B'][0]**2))
 
-        # # for fixed number of peaks (might be added in future) 
-        # if n > len(indices):
-        #     if n_policy.lower() == 'max':
-        #         n = len(indices) # change n to detected number of peaks
-        #     elif n_policy.lower() == 'fixed':
-        #         # n doesn't need to be changed
-        #         pass
-        # elif n < len(indices):
-        #     # since 'max' and 'fixed' both limited the number not exceeding n, n doesn't need to be changed
-        #     pass
+        if method == 'derv':
+            phi = np.arcsin(self.harminput[chn_name][harm]['G'][0] / np.sqrt(self.harminput[chn_name][harm]['G'][0]**2 + self.harminput[chn_name][harm]['B'][0]**2))
 
         if n_policy == 'max':
             self.found_n = min(len(indices), self.harminput[chn_name][harm]['n'])
         elif n_policy == 'fixed':
             self.found_n = self.harminput[chn_name][harm]['n']
 
-        logger.info(type(self.harminput[chn_name][harm]['n'])) 
-        logger.info(indices) 
-        logger.info(heights) 
-        logger.info(prominences) 
-        logger.info(widths) 
+        logger.info(type(self.harminput[chn_name][harm]['n']))
+        logger.info(indices)
+        logger.info(heights)
+        logger.info(prominences)
+        logger.info(widths)
 
         for i in range(self.found_n):
             if i+1 <= len(indices):
-                logger.info(i) 
+                logger.info(i)
                 self.peak_guess[i] = {
-                    'amp': prominences[i],  # or use heights
-                    'cen': self.x[indices[i]], 
-                    'wid': widths[i] / 2, # use half width 
+                    'amp': prominences[i],
+                    'cen': self.x[indices[i]],
+                    'wid': widths[i] / 2,
                     'phi': phi
                 }
-            else: # for fixed number (n > len(indices))
-                # add some rough guess values
-                # use the min values of each variables
+            else:
                 self.peak_guess[i] = {
-                    'amp': np.amin(prominences),  # or use heights. 
-                    'cen': self.x[randrange(int(len(self.x) * 0.3), int(len(self.x) * 0.6), self.found_n)], 
-                    # devide x range to n parts and randomly choose one. Try to keep the peaks not too close
-                    'wid': np.amin(widths) / 2, 
+                    'amp': np.amin(prominences),
+                    'cen': self.x[randrange(int(len(self.x) * 0.3), int(len(self.x) * 0.6), self.found_n)],
+                    'wid': np.amin(widths) / 2,
                     'phi': phi
                 }
         self.update_output(found_n=self.found_n)
-        logger.info('out found %s', self.harmoutput[chn_name][harm]['found_n']) 
+        logger.info('out found %s', self.harmoutput[chn_name][harm]['found_n'])
 
 
     def prev_guess(self, chn_name=None, harm=None):
@@ -812,10 +836,10 @@ class PeakTracker:
         if (chn_name is None) & (harm is None):
             chn_name = self.active_chn
             harm = self.active_harm
-        
+
         result = self.harmoutput[chn_name][harm].get('result', None)
-        logger.info(result) 
-        if not result: # None or empty
+        logger.info(result)
+        if not result:
             self.peak_guess = {}
             self.found_n = 0
             self.update_output(found_n=0)
@@ -823,11 +847,10 @@ class PeakTracker:
 
         val = result.params.valuesdict()
 
-        logger.info(self.harmoutput[chn_name][harm]['found_n']) 
-        logger.info(self.harminput[chn_name][harm]['n']) 
+        logger.info(self.harmoutput[chn_name][harm]['found_n'])
+        logger.info(self.harminput[chn_name][harm]['n'])
         n_policy = self.harminput[chn_name][harm]['n_policy']
 
-        # set self.found_n and leave self.harmoutput[chn_name][harm]['found_n'] as the peaks found
         if n_policy == 'max':
             self.found_n = min(self.harmoutput[chn_name][harm]['found_n'], self.harminput[chn_name][harm]['n'])
         elif n_policy == 'fixed':
@@ -837,34 +860,25 @@ class PeakTracker:
             if i+1 <= self.harmoutput[chn_name][harm]['found_n']:
                 pre_str = 'p' + str(i) + '_'
                 self.peak_guess[i] = {
-                    'amp': val[pre_str + 'amp'], 
-                    'cen': val[pre_str + 'cen'], 
-                    'wid': val[pre_str + 'wid'], 
-                    'phi': val[pre_str + 'phi'], 
+                    'amp': val[pre_str + 'amp'],
+                    'cen': val[pre_str + 'cen'],
+                    'wid': val[pre_str + 'wid'],
+                    'phi': val[pre_str + 'phi'],
                 }
-            else: # for fixed number (n > len(indices))
-                # add some rough guess values
-                # use the last values of each variables
-                #TODO refine the initial data !!!
+            else:
                 self.peak_guess[i] = {
-                    'amp': self.peak_guess[self.harmoutput[chn_name][harm]['found_n']-1]['amp'] if self.harmoutput[chn_name][harm]['found_n'] > 0 else np.max(self.resonance) - np.min(self.resonance),  
-                    'cen': self.x[randrange(int(len(self.x) * 0.3), int(len(self.x) * 0.6), self.found_n)], 
-                    # devide x range to n parts and randomly choose one. Try to keep the peaks not too close
-                    'wid': self.peak_guess[self.harmoutput[chn_name][harm]['found_n']-1]['wid'] if self.harmoutput[chn_name][harm]['found_n'] > 0 else (np.max(self.x) - np.min(self.x)) / 10, 
+                    'amp': self.peak_guess[self.harmoutput[chn_name][harm]['found_n']-1]['amp'] if self.harmoutput[chn_name][harm]['found_n'] > 0 else np.max(self.resonance) - np.min(self.resonance),
+                    'cen': self.x[randrange(int(len(self.x) * 0.3), int(len(self.x) * 0.6), self.found_n)],
+                    'wid': self.peak_guess[self.harmoutput[chn_name][harm]['found_n']-1]['wid'] if self.harmoutput[chn_name][harm]['found_n'] > 0 else (np.max(self.x) - np.min(self.x)) / 10,
                     'phi': self.peak_guess[self.harmoutput[chn_name][harm]['found_n']-1]['phi'] if self.harmoutput[chn_name][harm]['found_n'] > 0 else 0,
                 }
-        # now update 'found_n in harmoutput
         self.update_output(chn_name, harm, found_n=self.found_n)
 
 
     def auto_guess(self):
         '''
-        auto guess the peak parameters by using the given 
-        method. If method is not give, choose the method 
-        in a loop in case failed.
-        return guessing method used and peak_guess
-        The loop is defined as 
-        method_list = ['gmax', 'bmax', 'derv', 'prev']
+        auto guess the peak parameters by using the given
+        method.
         '''
         if self.harminput[self.active_chn][self.active_harm]['method'] == 'auto':
             method_list = ['gmax', 'bmax', 'derv', 'prev']
@@ -872,26 +886,29 @@ class PeakTracker:
             method_list = [self.harminput[self.active_chn][self.active_harm]['method']]
 
         for method in method_list:
-            logger.info(method) 
+            logger.info(method)
             if method == 'prev':
                 self.prev_guess()
             else:
                 self.params_guess(method=method)
 
-            if self.found_n: # not None and 0
+            if self.found_n:
                 self.update_output(method=method)
-                break 
-        
+                break
+
 
     def set_params(self, chn_name=None, harm=None):
-        ''' set the parameters for fitting '''
+        '''
+        Set the parameters for fitting.
+
+        Builds the parameter dictionary with initial values and bounds
+        for NLSQ curve_fit.
+        '''
         if (chn_name is None) & (harm is None):
             chn_name = self.active_chn
             harm = self.active_harm
 
-        params = Parameters()
-
-        # rough guess
+        # Get data for rough guesses
         f = self.get_input(key='f', chn_name=chn_name, harm=harm)
         G = self.get_input(key='G', chn_name=chn_name, harm=harm)
         B = self.get_input(key='B', chn_name=chn_name, harm=harm)
@@ -900,14 +917,18 @@ class PeakTracker:
         wid_rough = (np.amax(f) - np.amin(f)) / 6
         phi_rough = 0
 
-        logger.info('prek_guess %s', self.peak_guess) 
+        logger.info('peak_guess %s', self.peak_guess)
 
-        if self.found_n == 0: # no peak found by find_peak_py
-            self.found_n = 1 # force it to at least 1 for fitting
-            self.update_output(found_n=1) # force it to at least 1 for fitting
+        if self.found_n == 0:
+            self.found_n = 1
+            self.update_output(found_n=1)
+
+        # Build parameters dictionary for NLSQ
+        params_dict = {}
+        zerophase = self.harminput[chn_name][harm]['zerophase']
 
         for i in np.arange(self.found_n):
-            if not self.peak_guess: 
+            if not self.peak_guess:
                 amp = amp_rough
                 cen = cen_rough
                 wid = wid_rough
@@ -918,149 +939,132 @@ class PeakTracker:
                 wid = self.peak_guess[i].get('wid', wid_rough)
                 phi = self.peak_guess[i].get('phi', phi_rough)
 
-            params.add(
-                'p'+str(i)+'_amp',      # amplitude (G)
-                value=amp,              # init: peak height
-                min=0,                  # lb
-                max=np.inf,             # ub
-            )
-            params.add(
-                'p'+str(i)+'_cen',      # center 
-                value=cen,              # init: average f
-                min=np.amin(f),         # lb: assume peak is in the range of f
-                max=np.amax(f),         # ub: assume peak is in the range of f
-            )
-            params.add(
-                'p'+str(i)+'_wid',                 # width (hwhm)
-                value=wid,                         # init: half range
-                # min= config_default['peak_min_width_Hz'] / 2,         # lb in Hz (this limit sometime makes the peaks to thin)
-                min= wid / 10,         # lb in Hz (limit the width >= 1/10 of the guess value!!)
-                max=(np.amax(f) - np.amin(f)) * 2, # ub in Hz: assume peak is in the range of f
-            )
-            if self.harminput[chn_name][harm]['zerophase']: # fix phase to 0
-                params.add(
-                    'p'+str(i)+'_phi',       # phase shift
-                    value=0,                 # init value: peak height
-                    vary=False,              # fix phi=0
-                    min=-np.pi / 2,          # lb in rad
-                    max=np.pi / 2,           # ub in rad
-                )
-            else: # leave phase vary
-                params.add(
-                    'p'+str(i)+'_phi',       # phase shift
-                    value=phi,               # init value: peak height
-                    min=-np.pi / 2,          # lb in rad
-                    max=np.pi / 2,           # ub in rad
-                )
-        
-        params.add(
-            'g_c',              # initialize G_offset
-            value=np.amin(G),    # init G_offset = mean(G)
-        )        
-        params.add(
-            'b_c',              # initialize B_offset
-            value=np.mean(B),   # init B_offset = mean(B)
-        )
-        self.update_output(params=params)
+            params_dict[i] = {
+                'amp': amp,
+                'amp_min': 0.0,
+                'amp_max': np.inf,
+                'cen': cen,
+                'cen_min': np.amin(f),
+                'cen_max': np.amax(f),
+                'wid': wid,
+                'wid_min': wid / 10,  # limit width >= 1/10 of guess
+                'wid_max': (np.amax(f) - np.amin(f)) * 2,
+                'phi': 0.0 if zerophase else phi,
+                'phi_min': -np.pi / 2,
+                'phi_max': np.pi / 2,
+            }
+
+        # Add baseline offsets
+        params_dict['g_c'] = np.amin(G)
+        params_dict['b_c'] = np.mean(B)
+
+        self.update_output(params=params_dict)
+        self.update_output(n_peaks=self.found_n)
 
 
     ########### fitting ##########################
     def minimize_GB(self):
         '''
-        use leasesq to fit
+        Use NLSQ curve_fit to fit G and B simultaneously.
         '''
         chn_name = self.active_chn
         harm = self.active_harm
-        factor =self.get_input(key='factor')
+        factor = self.get_input(key='factor')
 
-        logger.info('chn: %s, harm: %s', chn_name, harm) 
-        logger.info(self.get_output()) 
-        logger.info('mm factor %s', factor) 
-        logger.info('self n %s', self.found_n) 
-        # set params with data
+        logger.info('chn: %s, harm: %s', chn_name, harm)
+        logger.info(self.get_output())
+        logger.info('mm factor %s', factor)
+        logger.info('self n %s', self.found_n)
+
+        # Guess parameters and set up
         self.auto_guess()
         self.set_params()
 
-        logger.info('self n %s', self.found_n) 
+        logger.info('self n %s', self.found_n)
 
-        # set the models
-        gmod, bmod = make_gbmodel(self.found_n)
-        self.update_output(gmod=gmod)
-        self.update_output(bmod=bmod)
-        
+        n_peaks = self.found_n
+        self.update_output(n_peaks=n_peaks)
 
         f = self.harminput[chn_name][harm]['f']
         G = self.harminput[chn_name][harm]['G']
         B = self.harminput[chn_name][harm]['B']
 
-        val = self.get_output(key='params').valuesdict() # get guessed values
+        params_dict = self.get_output(key='params')
+        zerophase = self.harminput[chn_name][harm]['zerophase']
 
-        # set data for fitting by factor
-        # min_idx = min(min indices)
-        # max_idx = max(max indices)
-        # all the points between will be used for fitting
-        
-        factor_idx_list = [] # for factor_span
-        factor_set_list = [] # for indexing the points for fitting
+        # Set data for fitting by factor
+        factor_idx_list = []
+        factor_set_list = []
         if factor is not None:
-            for i in range(self.found_n): # for loop for each single peak from guessed val
-                # get peak cen and wid
-                cen_i, wid_i = val['p' + str(i) + '_cen'], val['p' + str(i) + '_wid']
-                logger.info('cen_i %s', cen_i) 
-                logger.info('wid_i %s', wid_i) 
+            for i in range(self.found_n):
+                cen_i = params_dict[i]['cen']
+                wid_i = params_dict[i]['wid']
+                logger.info('cen_i %s', cen_i)
+                logger.info('wid_i %s', wid_i)
                 ind_min = np.abs(self.harminput[chn_name][harm]['f'] - (cen_i - wid_i * factor)).argmin()
                 ind_max = np.abs(self.harminput[chn_name][harm]['f'] - (cen_i + wid_i * factor)).argmin()
-                # factor_idx_list.append(ind_min) # add min index 
-                # factor_idx_list.append(ind_max) # add max index 
-                # or use one line
                 factor_idx_list.extend([ind_min, ind_max])
-                # get indices for this peak in form of set
                 factor_set_list.append(set(np.arange(ind_min, ind_max)))
-                
-            # find the union of sets
+
             idx_list = list(set().union(*factor_set_list))
-            # mask of if points used for fitting
             factor_mask = [True if i in idx_list else False for i in np.arange(len(f))]
 
-            # save min_idx and max_idx to 'factor_span'
-            self.update_output(chn_name=chn_name, harm=harm, factor_span=[min(f[factor_idx_list]), max(f[factor_idx_list])]) # span of f used for fitting
+            self.update_output(chn_name=chn_name, harm=harm, factor_span=[min(f[factor_idx_list]), max(f[factor_idx_list])])
 
             f = f[idx_list]
             G = G[idx_list]
             B = B[idx_list]
 
-            logger.info('data len after factor %s', len(f)) 
+            logger.info('data len after factor %s', len(f))
 
-        logger.info('factor\n%s', factor) 
-        # logger.info('cen_guess\n %s', cen_guess) 
-        # logger.info('half_wid_guess\n %s', half_wid_guess) 
-        # logger.info('factor_span\n %s', factor_span) 
-        # minimize with leastsq
-        # mini = Minimizer(residual, params, fcn_args=(f, G, B))
-        # result = mini.leastsq(xtol=1.e-10, ftol=1.e-10)
-        eps = None
-        # eps = pow((G - np.amin(G)*1.001), 1/2) # residual weight
-        # logger.info(f) 
-        # logger.info(G) 
-        # logger.info(B) 
-        logger.info('mm params %s', self.harmoutput[chn_name][harm]['params']) 
+        logger.info('factor\n%s', factor)
+        logger.info('mm params %s', self.harmoutput[chn_name][harm]['params'])
+
         try:
-            result = minimize(
-                res_GB, 
-                self.get_output(key='params'), 
-                method='leastsq', 
-                args=(f, G, B), 
-                kws={'gmod': gmod, 'bmod': bmod, 'eps': eps}, 
-                xtol=config_default['xtol'], ftol=config_default['ftol'],
-                nan_policy='omit', # ('raise' default, 'propagate', 'omit')
-                )
-            print(fit_report(result)) 
-            print('success: ', result.success)
-            print('message: ', result.message)
-            print('lmdif_message: ', result.lmdif_message)
+            # Build p0 and bounds for NLSQ
+            p0, bounds, fixed_mask = build_p0_and_bounds(params_dict, n_peaks, zerophase)
+
+            # Create the composite model
+            model = create_composite_model(n_peaks)
+
+            # Stack x data: [f, f] so it matches length of [G, B]
+            x_stacked = np.concatenate([f, f])
+            y_data = np.concatenate([G, B])
+
+            # Call NLSQ curve_fit
+            popt, pcov = curve_fit(
+                model,
+                x_stacked,  # duplicated frequency array
+                y_data,
+                p0=p0,
+                bounds=bounds,
+                method='trf',  # Trust Region Reflective (handles bounds)
+                ftol=config_default.get('ftol', 1e-18),
+                xtol=config_default.get('xtol', 1e-18),
+            )
+
+            # Calculate residuals and chi-squared
+            y_fit = model(x_stacked, *popt)
+            residuals = y_data - np.array(y_fit)
+            chisqr = np.sum(residuals**2)
+
+            # Create result adapter for backward compatibility
+            result = NLSQResultAdapter(
+                popt=popt,
+                pcov=pcov,
+                n_peaks=n_peaks,
+                success=True,
+                message='Optimization converged.'
+            )
+            result.chisqr = chisqr
+
+            print(f"NLSQ Fit Report:")
+            print(f"  Success: {result.success}")
+            print(f"  Chi-squared: {chisqr:.6g}")
+            print(f"  Parameters: {result.params.valuesdict()}")
+
         except Exception as err:
             result = {}
-            # traceback.print_tb(err.__traceback__)
             logger.exception('fitting error occurred.')
 
         self.update_output(chn_name, harm, result=result)
@@ -1070,41 +1074,36 @@ class PeakTracker:
         '''
         get values from calculated result
         '''
-
         if (chn_name is None) & (harm is None):
             chn_name = self.active_chn
             harm = self.active_harm
-            
+
         p_policy = self.harminput[chn_name][harm]['p_policy']
-        result = self.harmoutput[chn_name][harm]['result'] 
+        result = self.harmoutput[chn_name][harm]['result']
         found_n = self.harmoutput[chn_name][harm]['found_n']
-    
-        # get values of the first peak (index = 0, peaks are ordered by p_policy)
+
         val = {}
         if result:
-            # check peak order by amp and cen
+            # Check peak order by amp and cen
             amp_array = np.array([result.params.get('p' + str(i) + '_amp').value for i in range(found_n)])
             cen_array = np.array([result.params.get('p' + str(i) + '_cen').value for i in range(found_n)])
 
-            logger.info('found_n %s', found_n) 
-            logger.info(result.params) 
-            logger.info('params %s', result.params.valuesdict()) 
-            logger.info(amp_array) 
-            logger.info(cen_array) 
-            # get max amp index
+            logger.info('found_n %s', found_n)
+            logger.info(result.params)
+            logger.info('params %s', result.params.valuesdict())
+            logger.info(amp_array)
+            logger.info(cen_array)
+
             maxamp_idx = np.argmax(amp_array)
-            # get min cen index
             mincen_idx = np.argmin(cen_array)
 
-            # since we are always tracking the peak with maxamp
             p_trk = maxamp_idx
-            # get recording peak key by p_policy
             if p_policy == 'maxamp':
                 p_rec = maxamp_idx
             elif p_policy == 'minf':
                 p_rec = mincen_idx
 
-            # values for tracking peak
+            # Values for tracking peak
             val['amp_trk'] = {
                 'value' : result.params.get('p' + str(p_trk) + '_amp').value,
                 'stderr': result.params.get('p' + str(p_trk) + '_amp').stderr,
@@ -1122,7 +1121,7 @@ class PeakTracker:
                 'stderr': result.params.get('p' + str(p_trk) + '_phi').stderr,
             }
 
-            # values for recording peak
+            # Values for recording peak
             val['amp_rec'] = {
                 'value' : result.params.get('p' + str(p_rec) + '_amp').value,
                 'stderr': result.params.get('p' + str(p_rec) + '_amp').stderr,
@@ -1149,120 +1148,103 @@ class PeakTracker:
                 'stderr': result.params.get('b_c').stderr,
             }
 
-            val['sucess'] = result.success # bool
-            val['chisqr'] = result.chisqr # float
+            val['sucess'] = result.success
+            val['chisqr'] = result.chisqr
 
-            logger.info('params %s', result.params.valuesdict()) 
+            logger.info('params %s', result.params.valuesdict())
         else:
-            # values for tracking peak
-            val['amp_trk'] = {
-                'value' : np.nan,
-                'stderr': np.nan,
-            }
-            val['cen_trk'] = {
-                'value' : np.nan,
-                'stderr': np.nan,
-            }
-            val['wid_trk'] = {
-                'value' : np.nan,
-                'stderr': np.nan,
-            }
-            val['phi_trk'] = {
-                'value' : np.nan,
-                'stderr': np.nan,
-            }
-
-            # values for recording peak
-            val['amp_rec'] = {
-                'value' : np.nan,
-                'stderr': np.nan,
-            }
-            val['cen_rec'] = {
-                'value' : np.nan,
-                'stderr': np.nan,
-            }
-            val['wid_rec'] = {
-                'value' : np.nan,
-                'stderr': np.nan,
-            }
-            val['phi_rec'] = {
-                'value' : np.nan,
-                'stderr': np.nan,
-            }
-
-            val['g_c'] = {
-                'value' : np.nan,
-                'stderr': np.nan,
-            }
-            val['b_c'] = {
-                'value' : np.nan,
-                'stderr': np.nan,
-            }
-
-            val['sucess'] = False # bool
-            val['chisqr'] = np.nan # float
+            # No result - return NaN values
+            val['amp_trk'] = {'value' : np.nan, 'stderr': np.nan}
+            val['cen_trk'] = {'value' : np.nan, 'stderr': np.nan}
+            val['wid_trk'] = {'value' : np.nan, 'stderr': np.nan}
+            val['phi_trk'] = {'value' : np.nan, 'stderr': np.nan}
+            val['amp_rec'] = {'value' : np.nan, 'stderr': np.nan}
+            val['cen_rec'] = {'value' : np.nan, 'stderr': np.nan}
+            val['wid_rec'] = {'value' : np.nan, 'stderr': np.nan}
+            val['phi_rec'] = {'value' : np.nan, 'stderr': np.nan}
+            val['g_c'] = {'value' : np.nan, 'stderr': np.nan}
+            val['b_c'] = {'value' : np.nan, 'stderr': np.nan}
+            val['sucess'] = False
+            val['chisqr'] = np.nan
 
         return val
 
 
     def eval_mod(self, mod_name, chn_name=None, harm=None, components=False):
         '''
-        evaluate gmod or bmod by f
-        return ndarray
+        Evaluate gmod or bmod by f.
+        Returns ndarray.
         '''
         if (chn_name is None) & (harm is None):
             chn_name = self.active_chn
             harm = self.active_harm
 
-        if self.harmoutput[chn_name][harm]['result']:
-            if components is False: # total fitting
-                return self.get_output(key=mod_name, chn_name=chn_name, harm=harm).eval(
-                    self.harmoutput[chn_name][harm]['result'].params, 
-                    x=self.harminput[chn_name][harm]['f']
-                    )
-            else: # return divided peaks
-                # make gmod and bmod for all components
-                gmods, bmods = make_models(n=self.harmoutput[chn_name][harm]['found_n'])
+        result = self.harmoutput[chn_name][harm]['result']
+        f = self.harminput[chn_name][harm]['f']
+
+        if result:
+            n_peaks = self.harmoutput[chn_name][harm].get('n_peaks', 1)
+            popt = result.popt
+
+            if components is False:
+                # Total fitting - evaluate the full model
+                g_c = popt[-2]
+                b_c = popt[-1]
+
                 if mod_name == 'gmod':
-                    g_fit = [] # list of G fit values by peaks
-                    for gmod in gmods:
-                        g_fit.append(
-                            gmod.eval(
-                                self.harmoutput[chn_name][harm]['result'].params, 
-                                x=self.harminput[chn_name][harm]['f'],
-                            )
-                        )
+                    G_total = np.full_like(f, g_c)
+                    for i in range(n_peaks):
+                        idx = i * 4
+                        amp, cen, wid, phi = popt[idx], popt[idx+1], popt[idx+2], popt[idx+3]
+                        G_total = G_total + fun_G_numpy(f, amp, cen, wid, phi)
+                    return G_total
+                elif mod_name == 'bmod':
+                    B_total = np.full_like(f, b_c)
+                    for i in range(n_peaks):
+                        idx = i * 4
+                        amp, cen, wid, phi = popt[idx], popt[idx+1], popt[idx+2], popt[idx+3]
+                        B_total = B_total + fun_B_numpy(f, amp, cen, wid, phi)
+                    return B_total
+                else:
+                    return np.empty(f.shape) * np.nan
+            else:
+                # Return divided peaks (components)
+                g_c = popt[-2]
+                b_c = popt[-1]
+
+                if mod_name == 'gmod':
+                    g_fit = []
+                    for i in range(n_peaks):
+                        idx = i * 4
+                        amp, cen, wid, phi = popt[idx], popt[idx+1], popt[idx+2], popt[idx+3]
+                        g_fit.append(fun_G_numpy(f, amp, cen, wid, phi) + g_c)
                     return g_fit
                 elif mod_name == 'bmod':
-                    b_fit = [] # list of B fit values by peaks
-                    for bmod in bmods:
-                        b_fit.append(
-                            bmod.eval(
-                                self.get_output(key='result', chn_name=chn_name, harm=harm).params, 
-                                x=self.get_input(key='f', chn_name=chn_name, harm=harm)
-                            )
-                        )
+                    b_fit = []
+                    for i in range(n_peaks):
+                        idx = i * 4
+                        amp, cen, wid, phi = popt[idx], popt[idx+1], popt[idx+2], popt[idx+3]
+                        b_fit.append(fun_B_numpy(f, amp, cen, wid, phi) + b_c)
                     return b_fit
-                else: # no mod_name matched
+                else:
                     dummy = []
-                    for _ in range(self.get_output(key='found_n', chn_name=chn_name, harm=harm)):
-                        dummy.append(np.empty(self.harminput[chn_name][harm]['f'].shape) * np.nan)
+                    for _ in range(n_peaks):
+                        dummy.append(np.empty(f.shape) * np.nan)
                     return dummy
-        else: # no result found
-            if components is False: # total fitting
-                return np.empty(self.harminput[chn_name][harm]['f'].shape) * np.nan # array
-            else: # return divided peaks
-                return [np.empty(self.harminput[chn_name][harm]['f'].shape) * np.nan] # array of array
+        else:
+            # No result found
+            if components is False:
+                return np.empty(f.shape) * np.nan
+            else:
+                return [np.empty(f.shape) * np.nan]
 
 
-    ########### warp up functions ################
-    # MAKE SURE: run self.update_input(...) first to import scan data
+    ########### wrap up functions ################
     def peak_track(self, chn_name=None, harm=None):
         '''
         The whole process of peak tracking
         return the predicted span
         '''
-        # change the active chn_name and harm
         if (chn_name is not None) & (harm is not None):
             self.active_chn = chn_name
             self.active_harm = harm
@@ -1275,7 +1257,7 @@ class PeakTracker:
     def peak_fit(self, chn_name=None, harm=None, components=False):
         '''
         The whole process of peak fitting
-        return: 
+        return:
             the dict of values with std errors
             fitted G value
             fitted B value
@@ -1283,46 +1265,40 @@ class PeakTracker:
                 list fitted G values by peaks
                 list fitted B values by peaks
         '''
-        # change the active chn_name and harm
         if (chn_name is not None) & (harm is not None):
             self.active_chn = chn_name
             self.active_harm = harm
-        
+
         self.init_active_val(chn_name=chn_name, harm=harm)
-        logger.info('chn: %s, harm: %s', chn_name, harm) 
-        logger.info('self.chn: %s,self.harm: %s', self.active_chn, self.active_harm) 
+        logger.info('chn: %s, harm: %s', chn_name, harm)
+        logger.info('self.chn: %s,self.harm: %s', self.active_chn, self.active_harm)
 
         self.minimize_GB()
-        
+
         if components is False:
             return {
-                'v_fit': self.get_fit_values(chn_name=chn_name, harm=harm), # fitting factors
-                'fit_g': self.eval_mod('gmod', chn_name=chn_name, harm=harm), # fitted value of G
-                'fit_b': self.eval_mod('bmod', chn_name=chn_name, harm=harm), # fitted value of B
+                'v_fit': self.get_fit_values(chn_name=chn_name, harm=harm),
+                'fit_g': self.eval_mod('gmod', chn_name=chn_name, harm=harm),
+                'fit_b': self.eval_mod('bmod', chn_name=chn_name, harm=harm),
                 'factor_span': self.get_output(key='factor_span', chn_name=chn_name, harm=harm)
-            } 
+            }
         elif components is True:
             return {
                 'v_fit': self.get_fit_values(chn_name=chn_name, harm=harm),
                 'fit_g': self.eval_mod('gmod', chn_name=chn_name, harm=harm),
                 'fit_b': self.eval_mod('bmod', chn_name=chn_name, harm=harm),
-                'comp_g': self.eval_mod('gmod', chn_name=chn_name, harm=harm, components=True), # list of fitted G value of each peak
-                'comp_b': self.eval_mod('bmod', chn_name=chn_name, harm=harm, components=True), # list of fitted B value of each peak
+                'comp_g': self.eval_mod('gmod', chn_name=chn_name, harm=harm, components=True),
+                'comp_b': self.eval_mod('bmod', chn_name=chn_name, harm=harm, components=True),
             }
 
 
     def fit_result_report(self, fit_result=None):
-        # if not fit_result:
-        #     # chn_name = self.active_chn
-        #     # harm = self.active_harm
-        #     fit_result = self.get_output(key='result')
-        # return fit_report(fit_result, show_correl=False, )
-
+        '''
+        Generate a human-readable fit result report.
+        '''
         v_fit = self.get_fit_values()
-        logger.info(v_fit) 
+        logger.info(v_fit)
         keys = {
-            # 'Sucess': 'sucess',
-            # u'\u03A7' + 'sq': 'chisqr',
             'f (Hz)': 'cen_rec',
             u'\u0393' + ' (Hz)': 'wid_rec',
             u'\u03A6' + ' (deg.)': 'phi_rec',
@@ -1335,7 +1311,7 @@ class PeakTracker:
 
         buff.append('Sucess:\t{}'.format(v_fit['sucess']))
         buff.append(u'\u03A7' + 'sq:\t{:.7g}'.format(v_fit['chisqr']))
-        
+
         for txt, key in keys.items():
             txt = '{}:\t'.format(txt)
             if v_fit[key].get('value') is not None:
@@ -1348,106 +1324,64 @@ class PeakTracker:
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
-    try:
-        from AccessMyVNA_dummy import AccessMyVNA
-    except:
-        from Modules.AccessMyVNA_dummy import AccessMyVNA 
 
-    # gbfitting = GBFitting()
-    # # print(gbfitting.gmodel.param_names)
-    # # print(gbfitting.bmodel.param_names)
-    # # print(gbfitting.gpars)
-    # # print(gbfitting.bpars)
+    # Test the JAX model functions
+    print("Testing JAX model functions...")
 
-    # gmod = gbfitting.gmodel
-    # bmod = gbfitting.bmodel
-    accvna = AccessMyVNA()
-    _, f, G = accvna.GetScanData(nWhata=-1, nWhatb=15)
-    _, _, B = accvna.GetScanData(nWhata=-1, nWhatb=16)
+    # Create synthetic test data
+    f = np.linspace(4.99e6, 5.01e6, 200)
+    amp_true = 0.001
+    cen_true = 5.0e6
+    wid_true = 1000.0
+    phi_true = 0.1
 
+    # Generate G and B with noise
+    G_true = fun_G_numpy(f, amp_true, cen_true, wid_true, phi_true) + 1e-5
+    B_true = fun_B_numpy(f, amp_true, cen_true, wid_true, phi_true)
 
-    n = 2
+    noise = np.random.normal(0, 1e-7, len(f))
+    G = G_true + noise
+    B = B_true + noise
 
-    # result = minimize_GB(f, G, B, n, )
-    # params = set_params(f, G, B, n)
-    # result = minimize(res_GB, params, method='leastsq', args=(f, G, B), kws={'eps': pow((G - np.amin(G)*1.001), 1/2), 'n': n}, xtol=1.e-10, ftol=1.e-10)
-    # eixt(0)
-    # print(fit_report(result)) 
-    # print('success', result.success)
-    # print('message', result.message)
-    # print('lmdif_message', result.lmdif_message)
-    print('params', result.params.get('p0_cen').value)
-    print('params', result.params.get('p0_cen').stderr)
-    print('params', result.params.valuesdict())
-    # print(result.params)
-    # print(params['p1_amp'].vary)
+    print(f"  Test data generated: {len(f)} points")
+    print(f"  True parameters: amp={amp_true}, cen={cen_true}, wid={wid_true}, phi={phi_true}")
 
-    # exit(0)
-    gmod, bmod = make_gbmodel(n)
-    gmods, bmods = make_models(n)
-    # gpars = gmod.guess(G, x=f) #guess() not implemented for CompositeModel
-    plt.figure()
-    plt.plot(f, G, 'bo')
-    plt.plot(f, gmod.eval(result.params, x=f), 'k--')
-    if n > 1:
-        for i in range(n):
-            plt.plot(f, gmods[i].eval(result.params, x=f))
-    plt.twinx()
-    plt.plot(f, B, 'go')
-    plt.plot(f, bmod.eval(result.params, x=f), 'k--')
-    if n > 1:
-        for i in range(n):
-            plt.plot(f, bmods[i].eval(result.params, x=f))
+    # Test NLSQ fitting directly
+    print("\nTesting NLSQ curve_fit...")
 
-    plt.figure()
-    plt.plot(G, B, 'bo')
-    plt.plot(gmod.eval(result.params, x=f), bmod.eval(result.params, x=f), 'k--')
-    if n > 1:
-        for i in range(n):
-            plt.plot(gmods[i].eval(result.params, x=f), bmods[i].eval(result.params, x=f))
+    model = create_composite_model(1)
 
-    plt.figure()
-    Y = np.sqrt(np.diff(G)**2 + np.diff(B)**2)
-    Y_fit = np.sqrt(np.diff(gmod.eval(result.params, x=f))**2 + np.diff(bmod.eval(result.params, x=f))**2)
-    print(len(f[0:-1]), len(np.diff(f)))
-    df = f[0:-1] + np.diff(f)
-    plt.plot(df, Y, 'bo')
-    plt.plot(df, Y_fit, 'k--')
-    if n > 1:
-        for i in range(n):
-            Y_fit = np.sqrt(np.diff(gmods[i].eval(result.params, x=f))**2 + np.diff(bmods[i].eval(params, x=f))**2)
-            plt.plot(df, Y)
+    # Stack x and y data
+    x_stacked = np.concatenate([f, f])
+    y_data = np.concatenate([G, B])
 
-    plt.show()
-    exit(0)
+    p0 = [amp_true * 0.9, cen_true, wid_true * 1.1, phi_true, 1e-5, 0.0]
+    bounds = (
+        [0, f.min(), 100, -np.pi/2, -np.inf, -np.inf],
+        [np.inf, f.max(), 10000, np.pi/2, np.inf, np.inf]
+    )
 
-    plot_components = True
-    # plot results
-    fig = plt.figure()
-    plt.plot(f, G, 'bo')
-    if plot_components:
-        # generate components
-        comps = result.eval_components(x=f)
-        plt.plot(f, 10*comps['cg'], 'k--')
-        plt.plot(f, 10*comps['cb'], 'r-')
+    popt, pcov = curve_fit(model, x_stacked, y_data, p0=p0, bounds=bounds)
+
+    print(f"  Fitted parameters:")
+    print(f"    amp = {popt[0]:.6g} (true: {amp_true})")
+    print(f"    cen = {popt[1]:.6g} (true: {cen_true})")
+    print(f"    wid = {popt[2]:.6g} (true: {wid_true})")
+    print(f"    phi = {popt[3]:.6g} (true: {phi_true})")
+
+    # Calculate relative errors
+    rel_err_amp = abs(popt[0] - amp_true) / amp_true * 100
+    rel_err_cen = abs(popt[1] - cen_true) / cen_true * 100
+    rel_err_wid = abs(popt[2] - wid_true) / wid_true * 100
+
+    print(f"\n  Relative errors:")
+    print(f"    amp: {rel_err_amp:.4f}%")
+    print(f"    cen: {rel_err_cen:.4f}%")
+    print(f"    wid: {rel_err_wid:.4f}%")
+
+    if rel_err_cen < 0.1 and rel_err_wid < 0.1:
+        print("\n  SUCCESS: Fitting accuracy within 0.1% tolerance!")
     else:
-        plt.plot(f, result.init_fit, 'k--')
-        plt.plot(f, result.best_fit, 'r-')
+        print("\n  WARNING: Fitting accuracy exceeds 0.1% tolerance")
 
-    result = bmod.fit(B, params=params, x=f)
-    print(result.fit_report())
-    plt.show()
-    exit(1)
-    plot_components = False
-    # plot results
-    fig = plt.figure()
-    plt.plot(f, B, 'bo')
-    if plot_components:
-        # generate components
-        comps = result.eval_components(x=f)
-        plt.plot(f, 10*comps['jump'], 'k--')
-        plt.plot(f, 10*comps['gaussian'], 'r-')
-    else:
-        plt.plot(f, result.init_fit, 'k--')
-        plt.plot(f, result.best_fit, 'r-')
-    plt.show()
+    print("\nMigration test complete.")
