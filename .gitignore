@@ -25,6 +25,10 @@ QCMFuncs/test.pptx
 # myVNA calibration file
 *.myVNA.cal
 
+# Executables and binaries (PyInstaller builds should be in releases)
+*.exe
+*.dll
+
 # Misc other files - some may not even exist anymore
 QCMFuncs/filled_galkyd_runfile.py
 QCMFuncs/legacy_functions.py
