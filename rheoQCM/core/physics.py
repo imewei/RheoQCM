@@ -20,6 +20,11 @@ Constants:
     - f1_default: Default fundamental frequency (5e6 Hz)
     - Electrode, water, and air default properties
 
+NaN/Inf Handling (T018):
+    - check_finite: Check if array contains finite values
+    - propagate_nan: Propagate NaN through calculation conditionally
+    - safe_divide: Division with protection against inf/nan
+
 Note: All functions use jax.numpy exclusively. No scipy or numpy imports.
 
 See Also
@@ -96,6 +101,204 @@ dlam_refh_range: Tuple[float, float] = (0.0, 10.0)
 drho_range: Tuple[float, float] = (0.0, 3e-2)  # kg/m^2
 grho_refh_range: Tuple[float, float] = (1e4, 1e14)  # Pa kg/m^3
 phi_range: Tuple[float, float] = (0.0, jnp.pi / 2)  # radians
+
+
+# =============================================================================
+# NaN/Inf Handling Functions (T018)
+# =============================================================================
+
+
+class PhysicsNaNError(ValueError):
+    """Raised when NaN is encountered in physics calculations and propagation is disabled."""
+
+    pass
+
+
+class PhysicsInfError(ValueError):
+    """Raised when Inf is encountered in physics calculations and propagation is disabled."""
+
+    pass
+
+
+@jax.jit
+def check_finite(x: jnp.ndarray) -> jnp.ndarray:
+    """
+    Check if all values in array are finite (not NaN or Inf).
+
+    Parameters
+    ----------
+    x : array
+        Input array to check.
+
+    Returns
+    -------
+    is_finite : bool
+        True if all values are finite.
+    """
+    return jnp.all(jnp.isfinite(x))
+
+
+@jax.jit
+def propagate_nan(x: jnp.ndarray, condition: jnp.ndarray) -> jnp.ndarray:
+    """
+    Propagate NaN through calculation based on condition.
+
+    Parameters
+    ----------
+    x : array
+        Input array.
+    condition : bool or array
+        If True, replace x with NaN.
+
+    Returns
+    -------
+    result : array
+        x if condition is False, NaN otherwise.
+    """
+    return jnp.where(condition, jnp.nan, x)
+
+
+@jax.jit
+def propagate_nan_complex(x: jnp.ndarray, condition: jnp.ndarray) -> jnp.ndarray:
+    """
+    Propagate complex NaN through calculation based on condition.
+
+    Parameters
+    ----------
+    x : complex array
+        Input array.
+    condition : bool or array
+        If True, replace x with complex NaN.
+
+    Returns
+    -------
+    result : complex array
+        x if condition is False, NaN+1j*NaN otherwise.
+    """
+    nan_complex = jnp.nan + 1j * jnp.nan
+    return jnp.where(condition, nan_complex, x)
+
+
+@jax.jit
+def safe_divide(
+    numerator: jnp.ndarray,
+    denominator: jnp.ndarray,
+    fill_value: float = jnp.nan,
+) -> jnp.ndarray:
+    """
+    Safe division that handles zero denominator.
+
+    Parameters
+    ----------
+    numerator : array
+        Numerator values.
+    denominator : array
+        Denominator values.
+    fill_value : float, optional
+        Value to use when denominator is zero. Default: NaN.
+
+    Returns
+    -------
+    result : array
+        numerator / denominator, with fill_value where denominator is zero.
+    """
+    is_zero = jnp.abs(denominator) < 1e-300
+    safe_denom = jnp.where(is_zero, 1.0, denominator)
+    result = numerator / safe_denom
+    return jnp.where(is_zero, fill_value, result)
+
+
+@jax.jit
+def safe_sqrt(x: jnp.ndarray) -> jnp.ndarray:
+    """
+    Safe square root that returns NaN for negative inputs.
+
+    Parameters
+    ----------
+    x : array
+        Input values.
+
+    Returns
+    -------
+    result : array
+        sqrt(x) for x >= 0, NaN for x < 0.
+    """
+    is_negative = x < 0
+    safe_x = jnp.where(is_negative, 0.0, x)
+    result = jnp.sqrt(safe_x)
+    return jnp.where(is_negative, jnp.nan, result)
+
+
+@jax.jit
+def safe_log(x: jnp.ndarray) -> jnp.ndarray:
+    """
+    Safe logarithm that returns NaN for non-positive inputs.
+
+    Parameters
+    ----------
+    x : array
+        Input values.
+
+    Returns
+    -------
+    result : array
+        log(x) for x > 0, NaN for x <= 0.
+    """
+    is_nonpositive = x <= 0
+    safe_x = jnp.where(is_nonpositive, 1.0, x)
+    result = jnp.log(safe_x)
+    return jnp.where(is_nonpositive, jnp.nan, result)
+
+
+def validate_inputs(
+    *args: jnp.ndarray,
+    raise_on_nan: bool = False,
+    raise_on_inf: bool = False,
+    context: str = "",
+) -> bool:
+    """
+    Validate that inputs are finite (not NaN or Inf).
+
+    Parameters
+    ----------
+    *args : arrays
+        Input arrays to validate.
+    raise_on_nan : bool, optional
+        If True, raise PhysicsNaNError when NaN is found. Default: False.
+    raise_on_inf : bool, optional
+        If True, raise PhysicsInfError when Inf is found. Default: False.
+    context : str, optional
+        Description of the calling function for error messages.
+
+    Returns
+    -------
+    all_finite : bool
+        True if all inputs are finite.
+
+    Raises
+    ------
+    PhysicsNaNError
+        If raise_on_nan=True and NaN is found.
+    PhysicsInfError
+        If raise_on_inf=True and Inf is found.
+    """
+    import numpy as np
+
+    for i, arr in enumerate(args):
+        arr_np = np.asarray(arr)
+        if np.any(np.isnan(arr_np)):
+            if raise_on_nan:
+                raise PhysicsNaNError(
+                    f"NaN detected in input argument {i} of {context or 'physics function'}"
+                )
+            return False
+        if np.any(np.isinf(arr_np)):
+            if raise_on_inf:
+                raise PhysicsInfError(
+                    f"Inf detected in input argument {i} of {context or 'physics function'}"
+                )
+            return False
+    return True
 
 
 # =============================================================================
@@ -1236,6 +1439,16 @@ __all__ = [
     "drho_range",
     "grho_refh_range",
     "phi_range",
+    # NaN/Inf handling (T018)
+    "PhysicsNaNError",
+    "PhysicsInfError",
+    "check_finite",
+    "propagate_nan",
+    "propagate_nan_complex",
+    "safe_divide",
+    "safe_sqrt",
+    "safe_log",
+    "validate_inputs",
     # Sauerbrey equations
     "sauerbreyf",
     "sauerbreym",

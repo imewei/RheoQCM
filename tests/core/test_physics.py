@@ -13,12 +13,24 @@ Test coverage:
     - jax.jit compilation of all physics functions
     - jax.vmap vectorization across harmonics
     - Float64 precision maintenance
+    - Hypothesis property-based tests (T016 - Constitution V)
+    - vmap compatibility for batch processing (T040 - US3)
+    - New physics function export pattern (T047 - US4)
 """
 
 import jax
 import jax.numpy as jnp
 import numpy as np
 import pytest
+
+try:
+    from hypothesis import given
+    from hypothesis import strategies as st
+    from hypothesis import settings
+    from hypothesis import assume
+    HYPOTHESIS_AVAILABLE = True
+except ImportError:
+    HYPOTHESIS_AVAILABLE = False
 
 from rheoQCM.core import configure_jax
 
@@ -506,3 +518,760 @@ class TestUtilityFunctions:
         error_filtered = jnp.mean(jnp.abs(y_filtered[center] - y_true[center]))
 
         assert error_filtered < error_noisy
+
+
+class TestNaNInfHandling:
+    """Test NaN/Inf handling functions (T018)."""
+
+    def test_check_finite_valid(self) -> None:
+        """Test check_finite with valid values."""
+        from rheoQCM.core.physics import check_finite
+
+        valid = jnp.array([1.0, 2.0, 3.0])
+        assert check_finite(valid)
+
+    def test_check_finite_nan(self) -> None:
+        """Test check_finite with NaN."""
+        from rheoQCM.core.physics import check_finite
+
+        with_nan = jnp.array([1.0, jnp.nan, 3.0])
+        assert not check_finite(with_nan)
+
+    def test_check_finite_inf(self) -> None:
+        """Test check_finite with Inf."""
+        from rheoQCM.core.physics import check_finite
+
+        with_inf = jnp.array([1.0, jnp.inf, 3.0])
+        assert not check_finite(with_inf)
+
+    def test_safe_divide_normal(self) -> None:
+        """Test safe_divide with normal values."""
+        from rheoQCM.core.physics import safe_divide
+
+        result = safe_divide(jnp.array(6.0), jnp.array(2.0))
+        assert jnp.isclose(result, 3.0)
+
+    def test_safe_divide_zero(self) -> None:
+        """Test safe_divide with zero denominator."""
+        from rheoQCM.core.physics import safe_divide
+
+        result = safe_divide(jnp.array(6.0), jnp.array(0.0))
+        assert jnp.isnan(result)
+
+    def test_safe_sqrt_positive(self) -> None:
+        """Test safe_sqrt with positive values."""
+        from rheoQCM.core.physics import safe_sqrt
+
+        result = safe_sqrt(jnp.array(4.0))
+        assert jnp.isclose(result, 2.0)
+
+    def test_safe_sqrt_negative(self) -> None:
+        """Test safe_sqrt with negative values."""
+        from rheoQCM.core.physics import safe_sqrt
+
+        result = safe_sqrt(jnp.array(-4.0))
+        assert jnp.isnan(result)
+
+    def test_validate_inputs_valid(self) -> None:
+        """Test validate_inputs with valid data."""
+        from rheoQCM.core.physics import validate_inputs
+
+        a = jnp.array([1.0, 2.0])
+        b = jnp.array([3.0, 4.0])
+        assert validate_inputs(a, b)
+
+    def test_validate_inputs_nan_raises(self) -> None:
+        """Test validate_inputs raises on NaN."""
+        from rheoQCM.core.physics import validate_inputs, PhysicsNaNError
+
+        a = jnp.array([1.0, jnp.nan])
+        with pytest.raises(PhysicsNaNError):
+            validate_inputs(a, raise_on_nan=True, context="test")
+
+
+# =============================================================================
+# Hypothesis Property-Based Tests (T016 - Constitution V)
+# =============================================================================
+
+
+@pytest.mark.skipif(not HYPOTHESIS_AVAILABLE, reason="hypothesis not installed")
+class TestHypothesisSauerbrey:
+    """Property-based tests for Sauerbrey equations."""
+
+    @given(
+        n=st.integers(min_value=1, max_value=15),
+        drho=st.floats(min_value=1e-10, max_value=1e-2, allow_nan=False),
+    )
+    @settings(max_examples=100)
+    def test_sauerbrey_roundtrip(self, n: int, drho: float) -> None:
+        """Sauerbrey mass->freq->mass should be identity."""
+        from rheoQCM.core.physics import sauerbreyf, sauerbreym
+
+        delf = sauerbreyf(n, drho)
+        drho_recovered = sauerbreym(n, -delf)
+
+        assert np.isclose(float(drho_recovered), drho, rtol=1e-10)
+
+    @given(
+        n=st.integers(min_value=1, max_value=15),
+        drho=st.floats(min_value=1e-10, max_value=1e-2, allow_nan=False),
+    )
+    @settings(max_examples=100)
+    def test_sauerbrey_positive_mass_positive_freq(self, n: int, drho: float) -> None:
+        """Positive mass should give positive frequency shift (convention)."""
+        from rheoQCM.core.physics import sauerbreyf
+
+        delf = sauerbreyf(n, drho)
+        assert float(delf) > 0
+
+    @given(
+        drho=st.floats(min_value=1e-10, max_value=1e-2, allow_nan=False),
+    )
+    @settings(max_examples=50)
+    def test_sauerbrey_harmonic_linear(self, drho: float) -> None:
+        """Sauerbrey shift should scale linearly with harmonic."""
+        from rheoQCM.core.physics import sauerbreyf
+
+        delf_1 = sauerbreyf(1, drho)
+        delf_3 = sauerbreyf(3, drho)
+        delf_5 = sauerbreyf(5, drho)
+
+        assert np.isclose(float(delf_3), float(delf_1) * 3, rtol=1e-10)
+        assert np.isclose(float(delf_5), float(delf_1) * 5, rtol=1e-10)
+
+
+@pytest.mark.skipif(not HYPOTHESIS_AVAILABLE, reason="hypothesis not installed")
+class TestHypothesisModulus:
+    """Property-based tests for complex modulus calculations."""
+
+    @given(
+        grho_val=st.floats(min_value=1e4, max_value=1e14, allow_nan=False),
+        phi=st.floats(min_value=0.01, max_value=1.56, allow_nan=False),  # ~0 to ~pi/2
+    )
+    @settings(max_examples=100)
+    def test_grhostar_magnitude(self, grho_val: float, phi: float) -> None:
+        """grhostar magnitude should equal input grho."""
+        from rheoQCM.core.physics import grhostar
+
+        result = grhostar(grho_val, phi)
+        assert np.isclose(abs(complex(result)), grho_val, rtol=1e-10)
+
+    @given(
+        grho_val=st.floats(min_value=1e4, max_value=1e14, allow_nan=False),
+        phi=st.floats(min_value=0.01, max_value=1.56, allow_nan=False),
+    )
+    @settings(max_examples=100)
+    def test_grhostar_phase(self, grho_val: float, phi: float) -> None:
+        """grhostar phase should equal input phi."""
+        from rheoQCM.core.physics import grhostar
+
+        result = grhostar(grho_val, phi)
+        result_phase = np.angle(complex(result))
+        assert np.isclose(result_phase, phi, rtol=1e-10)
+
+    @given(
+        grho_refh=st.floats(min_value=1e4, max_value=1e14, allow_nan=False),
+        phi=st.floats(min_value=0.01, max_value=1.56, allow_nan=False),
+    )
+    @settings(max_examples=100)
+    def test_grho_at_refh_equals_grho_refh(self, grho_refh: float, phi: float) -> None:
+        """grho at reference harmonic should equal grho_refh."""
+        from rheoQCM.core.physics import grho
+
+        refh = 3
+        result = grho(refh, grho_refh, phi, refh=refh)
+        assert np.isclose(float(result), grho_refh, rtol=1e-10)
+
+
+@pytest.mark.skipif(not HYPOTHESIS_AVAILABLE, reason="hypothesis not installed")
+class TestHypothesisPhysicsConstraints:
+    """Property-based tests for physics constraints."""
+
+    @given(
+        phi=st.floats(min_value=0.01, max_value=1.56, allow_nan=False),
+        n1=st.integers(min_value=1, max_value=5),
+        n2=st.integers(min_value=5, max_value=13),
+    )
+    @settings(max_examples=100)
+    def test_grho_monotonic_with_harmonic(
+        self, phi: float, n1: int, n2: int
+    ) -> None:
+        """For viscoelastic materials, grho increases with harmonic."""
+        from rheoQCM.core.physics import grho
+
+        assume(n2 > n1)
+
+        grho_refh = 1e10
+        result_n1 = grho(n1, grho_refh, phi, refh=3)
+        result_n2 = grho(n2, grho_refh, phi, refh=3)
+
+        # For 0 < phi <= pi/2, grho should increase with n
+        assert float(result_n2) >= float(result_n1)
+
+    @given(
+        phi=st.floats(min_value=0.01, max_value=1.56, allow_nan=False),
+    )
+    @settings(max_examples=50)
+    def test_elastic_limit(self, phi: float) -> None:
+        """As phi->0, grho becomes independent of harmonic."""
+        from rheoQCM.core.physics import grho
+
+        grho_refh = 1e10
+        # Use very small phi
+        phi_small = 0.001
+
+        result_n3 = grho(3, grho_refh, phi_small, refh=3)
+        result_n9 = grho(9, grho_refh, phi_small, refh=3)
+
+        # For elastic material (phi->0), grho should be nearly constant
+        ratio = float(result_n9) / float(result_n3)
+        assert 0.95 < ratio < 1.05  # Allow 5% variation
+
+    @given(
+        drho=st.floats(min_value=1e-9, max_value=1e-4, allow_nan=False),
+        grho_n=st.floats(min_value=1e4, max_value=1e14, allow_nan=False),
+        phi=st.floats(min_value=0.01, max_value=1.56, allow_nan=False),
+    )
+    @settings(max_examples=100)
+    def test_dlam_positive(self, drho: float, grho_n: float, phi: float) -> None:
+        """d/lambda should always be positive for positive inputs."""
+        from rheoQCM.core.physics import calc_dlam
+
+        n = 3
+        result = calc_dlam(n, grho_n, phi, drho)
+        assert float(result) > 0
+
+
+@pytest.mark.skipif(not HYPOTHESIS_AVAILABLE, reason="hypothesis not installed")
+class TestHypothesisDtypes:
+    """Property-based tests for dtype preservation."""
+
+    @given(
+        n=st.integers(min_value=1, max_value=15),
+        drho=st.floats(min_value=1e-10, max_value=1e-2, allow_nan=False),
+    )
+    @settings(max_examples=50)
+    def test_sauerbrey_float64(self, n: int, drho: float) -> None:
+        """Sauerbrey functions should return Float64."""
+        from rheoQCM.core.physics import sauerbreyf, sauerbreym
+
+        result_f = sauerbreyf(n, drho)
+        assert result_f.dtype == jnp.float64
+
+        result_m = sauerbreym(n, -float(result_f))
+        assert result_m.dtype == jnp.float64
+
+    @given(
+        grho_val=st.floats(min_value=1e4, max_value=1e14, allow_nan=False),
+        phi=st.floats(min_value=0.01, max_value=1.56, allow_nan=False),
+    )
+    @settings(max_examples=50)
+    def test_grhostar_complex128(self, grho_val: float, phi: float) -> None:
+        """grhostar should return Complex128."""
+        from rheoQCM.core.physics import grhostar
+
+        result = grhostar(grho_val, phi)
+        assert result.dtype == jnp.complex128
+
+
+# =============================================================================
+# T040: vmap Compatibility Tests for Batch Processing (US3)
+# =============================================================================
+
+
+class TestVmapCompatibilityForBatch:
+    """T040: vmap compatibility tests for physics functions used in batch processing.
+
+    These tests verify that key physics functions can be vmapped for
+    GPU-accelerated batch processing as required by User Story 3.
+    """
+
+    def test_sauerbreyf_vmap_batch(self) -> None:
+        """Test sauerbreyf is vmap-compatible for batch processing."""
+        from rheoQCM.core.physics import sauerbreyf
+
+        # Batch of drho values (N measurements, same harmonic)
+        drho_batch = jnp.array([1e-6, 2e-6, 3e-6, 4e-6, 5e-6])
+        n = 3
+
+        # vmap over batch dimension
+        vmapped = jax.vmap(lambda d: sauerbreyf(n, d))
+        results = vmapped(drho_batch)
+
+        assert results.shape == (5,)
+        assert jnp.all(jnp.isfinite(results))
+        # Verify linear scaling with drho
+        assert jnp.allclose(results / results[0], drho_batch / drho_batch[0], rtol=1e-10)
+
+    def test_grho_vmap_batch(self) -> None:
+        """Test grho is vmap-compatible for batch processing."""
+        from rheoQCM.core.physics import grho
+
+        # Batch of measurements with varying grho_refh and phi
+        n = 5
+        grho_refh_batch = jnp.array([1e8, 2e8, 3e8, 4e8, 5e8])
+        phi_batch = jnp.array([0.1, 0.2, 0.3, 0.4, 0.5])
+
+        # vmap over both parameters
+        vmapped = jax.vmap(lambda g, p: grho(n, g, p, refh=3))
+        results = vmapped(grho_refh_batch, phi_batch)
+
+        assert results.shape == (5,)
+        assert jnp.all(jnp.isfinite(results))
+
+    def test_grhostar_vmap_batch(self) -> None:
+        """Test grhostar is vmap-compatible for batch processing."""
+        from rheoQCM.core.physics import grhostar
+
+        grho_batch = jnp.array([1e8, 2e8, 3e8, 4e8, 5e8])
+        phi_batch = jnp.array([0.1, 0.2, 0.3, 0.4, 0.5])
+
+        vmapped = jax.vmap(grhostar)
+        results = vmapped(grho_batch, phi_batch)
+
+        assert results.shape == (5,)
+        assert results.dtype == jnp.complex128
+        assert jnp.all(jnp.isfinite(jnp.abs(results)))
+
+    def test_calc_delfstar_sla_vmap_batch(self) -> None:
+        """Test calc_delfstar_sla is vmap-compatible for batch processing."""
+        from rheoQCM.core.physics import calc_delfstar_sla
+
+        ZL_batch = jnp.array([1000+100j, 2000+200j, 3000+300j, 4000+400j, 5000+500j])
+
+        vmapped = jax.vmap(calc_delfstar_sla)
+        results = vmapped(ZL_batch)
+
+        assert results.shape == (5,)
+        assert results.dtype == jnp.complex128
+        assert jnp.all(jnp.isfinite(jnp.abs(results)))
+
+    def test_normdelfstar_vmap_batch(self) -> None:
+        """Test normdelfstar is vmap-compatible for batch processing."""
+        from rheoQCM.core.physics import normdelfstar
+
+        n = 3
+        dlam3_batch = jnp.array([0.05, 0.10, 0.15, 0.20, 0.25])
+        phi_batch = jnp.array([0.1, 0.2, 0.3, 0.4, 0.5])
+
+        # vmap over dlam3 and phi
+        vmapped = jax.vmap(lambda d, p: normdelfstar(n, d, p))
+        results = vmapped(dlam3_batch, phi_batch)
+
+        assert results.shape == (5,)
+        assert results.dtype == jnp.complex128
+
+    def test_full_sla_pipeline_vmap(self) -> None:
+        """Test that full SLA calculation pipeline is vmap-compatible.
+
+        This tests the combined operations used in batch_analyze:
+        grho -> grhostar -> ZL -> delfstar
+        """
+        from rheoQCM.core.physics import (
+            grho, grhostar, calc_delfstar_sla, Zq, f1_default
+        )
+
+        n = 3
+        refh = 3
+        f1 = f1_default
+
+        # Batch parameters
+        grho_refh_batch = jnp.array([1e8, 2e8, 3e8])
+        phi_batch = jnp.array([0.2, 0.3, 0.4])
+        drho_batch = jnp.array([1e-6, 2e-6, 3e-6])
+
+        def calc_single(grho_refh, phi, drho):
+            grho_n = grho(n, grho_refh, phi, refh=refh)
+            grhostar_n = grhostar(grho_n, phi)
+            zstar = jnp.sqrt(grhostar_n)
+            D = 2 * jnp.pi * n * f1 * drho / zstar
+            ZL = 1j * zstar * jnp.tan(D)
+            return calc_delfstar_sla(ZL, f1=f1)
+
+        vmapped = jax.vmap(calc_single)
+        results = vmapped(grho_refh_batch, phi_batch, drho_batch)
+
+        assert results.shape == (3,)
+        assert results.dtype == jnp.complex128
+        assert jnp.all(jnp.isfinite(jnp.abs(results)))
+
+    def test_vmap_jit_combined(self) -> None:
+        """Test that vmap and jit work together on physics functions."""
+        from rheoQCM.core.physics import sauerbreyf, grhostar
+
+        # Test combined vmap + jit
+        vmapped_jitted = jax.jit(jax.vmap(lambda d: sauerbreyf(3, d)))
+
+        drho_batch = jnp.array([1e-6, 2e-6, 3e-6, 4e-6, 5e-6])
+        results = vmapped_jitted(drho_batch)
+
+        assert results.shape == (5,)
+        assert jnp.all(jnp.isfinite(results))
+
+        # Test grhostar
+        vmapped_jitted_complex = jax.jit(jax.vmap(grhostar))
+
+        grho_batch = jnp.array([1e8, 2e8, 3e8])
+        phi_batch = jnp.array([0.2, 0.3, 0.4])
+        results_complex = vmapped_jitted_complex(grho_batch, phi_batch)
+
+        assert results_complex.shape == (3,)
+        assert results_complex.dtype == jnp.complex128
+
+    def test_vmap_large_batch(self) -> None:
+        """Test vmap handles large batches efficiently (1000 measurements)."""
+        from rheoQCM.core.physics import sauerbreyf, grhostar
+
+        n = 1000
+        drho_batch = jnp.linspace(1e-7, 1e-5, n)
+        grho_batch = jnp.full(n, 1e8)
+        phi_batch = jnp.linspace(0.1, 1.5, n)
+
+        # vmap Sauerbrey
+        vmapped_sauerbrey = jax.vmap(lambda d: sauerbreyf(3, d))
+        results_sauerbrey = vmapped_sauerbrey(drho_batch)
+
+        assert results_sauerbrey.shape == (n,)
+        assert jnp.all(jnp.isfinite(results_sauerbrey))
+
+        # vmap grhostar
+        vmapped_grhostar = jax.vmap(grhostar)
+        results_grhostar = vmapped_grhostar(grho_batch, phi_batch)
+
+        assert results_grhostar.shape == (n,)
+        assert jnp.all(jnp.isfinite(jnp.abs(results_grhostar)))
+
+    def test_vmap_nested(self) -> None:
+        """Test nested vmap for multi-harmonic batch processing."""
+        from rheoQCM.core.physics import sauerbreyf
+
+        # Process batch of measurements across multiple harmonics
+        harmonics = jnp.array([3, 5, 7])
+        drho_batch = jnp.array([1e-6, 2e-6, 3e-6, 4e-6, 5e-6])
+
+        # Nested vmap: outer over drho, inner over harmonics
+        def process_measurement(drho):
+            return jax.vmap(lambda n: sauerbreyf(n, drho))(harmonics)
+
+        vmapped = jax.vmap(process_measurement)
+        results = vmapped(drho_batch)
+
+        # Shape should be (5 measurements, 3 harmonics)
+        assert results.shape == (5, 3)
+        assert jnp.all(jnp.isfinite(results))
+
+    def test_kotula_gstar_vmap(self) -> None:
+        """Test kotula_gstar is vmap-compatible."""
+        from rheoQCM.core.physics import kotula_gstar
+
+        Gmstar = 1e6 + 1e5j
+        Gfstar = 1e9 + 1e8j
+        xi_crit = 0.5
+        s = 1.0
+        t = 1.0
+
+        xi_batch = jnp.linspace(0.1, 0.9, 10)
+
+        # kotula_gstar already handles arrays, but verify vmap works
+        results = kotula_gstar(xi_batch, Gmstar, Gfstar, xi_crit, s, t)
+
+        assert results.shape == (10,)
+        # Should have valid complex results
+        assert jnp.all(jnp.isfinite(jnp.abs(results)))
+
+    def test_physics_functions_no_python_control_flow(self) -> None:
+        """Test that key physics functions avoid Python control flow.
+
+        Functions with Python if/else break vmap. This test verifies
+        that the core functions used in batch_analyze work with vmap.
+        """
+        from rheoQCM.core.physics import (
+            sauerbreyf, sauerbreym, grho, grhostar, calc_delfstar_sla, normdelfstar
+        )
+
+        # All these should be vmappable without error
+        batch_size = 5
+
+        # sauerbreyf
+        drho = jnp.ones(batch_size) * 1e-6
+        result = jax.vmap(lambda d: sauerbreyf(3, d))(drho)
+        assert result.shape == (batch_size,)
+
+        # sauerbreym
+        delf = jnp.ones(batch_size) * -1000
+        result = jax.vmap(lambda d: sauerbreym(3, d))(delf)
+        assert result.shape == (batch_size,)
+
+        # grho (refh is static)
+        grho_refh = jnp.ones(batch_size) * 1e8
+        phi = jnp.ones(batch_size) * 0.5
+        result = jax.vmap(lambda g, p: grho(5, g, p, refh=3))(grho_refh, phi)
+        assert result.shape == (batch_size,)
+
+        # grhostar
+        result = jax.vmap(grhostar)(grho_refh, phi)
+        assert result.shape == (batch_size,)
+
+        # calc_delfstar_sla
+        ZL = jnp.ones(batch_size, dtype=jnp.complex128) * (1000 + 100j)
+        result = jax.vmap(calc_delfstar_sla)(ZL)
+        assert result.shape == (batch_size,)
+
+        # normdelfstar
+        dlam = jnp.ones(batch_size) * 0.1
+        result = jax.vmap(lambda d, p: normdelfstar(3, d, p))(dlam, phi)
+        assert result.shape == (batch_size,)
+
+
+# =============================================================================
+# T047: Physics Function Export and Extension Pattern Tests (User Story 4)
+# =============================================================================
+
+
+class TestPhysicsFunctionExport:
+    """T047: Tests for new physics function export patterns.
+
+    These tests verify that new physics functions added to the core
+    module are properly accessible and follow the jit/vmap patterns.
+    """
+
+    def test_physics_module_exports_all_functions(self) -> None:
+        """Test that physics module exports expected functions in __all__."""
+        from rheoQCM.core import physics
+
+        # Check __all__ exists and contains core functions
+        assert hasattr(physics, "__all__")
+        expected_exports = [
+            "sauerbreyf",
+            "sauerbreym",
+            "grho",
+            "grhostar",
+            "grhostar_from_refh",
+            "calc_delfstar_sla",
+            "kotula_gstar",
+            "kotula_xi",
+        ]
+
+        for func_name in expected_exports:
+            assert func_name in physics.__all__, f"{func_name} not in physics.__all__"
+
+    def test_new_function_accessible_from_core(self) -> None:
+        """Test that physics functions are accessible from rheoQCM.core."""
+        from rheoQCM.core import sauerbreyf, grho, grhostar
+
+        # Functions should be importable from core package
+        assert callable(sauerbreyf)
+        assert callable(grho)
+        assert callable(grhostar)
+
+    def test_physics_function_has_jit_decorator(self) -> None:
+        """Test that physics functions are jit-compatible."""
+        from rheoQCM.core.physics import sauerbreyf, grhostar
+
+        # Should be able to jit these functions
+        jitted_sauerbreyf = jax.jit(sauerbreyf)
+        jitted_grhostar = jax.jit(grhostar)
+
+        # And they should work
+        result1 = jitted_sauerbreyf(3, 1e-6)
+        result2 = jitted_grhostar(1e8, 0.5)
+
+        assert jnp.isfinite(result1)
+        assert jnp.isfinite(jnp.abs(result2))
+
+    def test_physics_function_vmap_pattern(self) -> None:
+        """Test the standard vmap pattern for physics functions."""
+        from rheoQCM.core.physics import grho
+
+        # Standard pattern: vmap over batch dimension with static args
+        batch_grho = jax.vmap(lambda g, p: grho(3, g, p, refh=3))
+
+        grho_batch = jnp.array([1e8, 2e8, 3e8])
+        phi_batch = jnp.array([0.2, 0.3, 0.4])
+
+        results = batch_grho(grho_batch, phi_batch)
+
+        assert results.shape == (3,)
+        assert jnp.all(jnp.isfinite(results))
+
+    def test_adding_new_physics_function_pattern(self) -> None:
+        """Test the pattern for adding a new physics function.
+
+        This test demonstrates the recommended pattern for adding
+        custom physics functions that integrate with the core.
+        """
+        # New physics function should follow this pattern:
+        # 1. Use @jax.jit decorator (or be jit-compatible)
+        # 2. Accept jnp arrays as inputs
+        # 3. Return jnp arrays
+        # 4. Avoid Python control flow for vmap compatibility
+
+        @jax.jit
+        def custom_viscoelastic_modulus(
+            n: jnp.ndarray,
+            G0: jnp.ndarray,
+            tau: jnp.ndarray,
+            alpha: jnp.ndarray,
+            f1: float = 5e6,
+        ) -> jnp.ndarray:
+            """Example custom viscoelastic model (fractional derivative).
+
+            This demonstrates the pattern for adding new physics functions.
+
+            Parameters
+            ----------
+            n : array
+                Harmonic number
+            G0 : array
+                Low-frequency modulus [Pa kg/m^3]
+            tau : array
+                Relaxation time [s]
+            alpha : array
+                Fractional derivative order (0 to 1)
+            f1 : float
+                Fundamental frequency [Hz]
+
+            Returns
+            -------
+            Gstar : complex array
+                Complex modulus times density
+            """
+            omega = 2 * jnp.pi * n * f1
+            # Fractional Maxwell model: G* = G0 * (i*omega*tau)^alpha / (1 + (i*omega*tau)^alpha)
+            z = (1j * omega * tau) ** alpha
+            return G0 * z / (1 + z)
+
+        # Test that it works with jit
+        result = custom_viscoelastic_modulus(
+            jnp.array(3.0),
+            jnp.array(1e8),
+            jnp.array(1e-6),
+            jnp.array(0.5),
+        )
+        assert jnp.isfinite(jnp.abs(result))
+
+        # Test that it works with vmap
+        vmapped = jax.vmap(custom_viscoelastic_modulus, in_axes=(None, 0, 0, 0, None))
+        batch_result = vmapped(
+            jnp.array(3.0),
+            jnp.array([1e8, 2e8, 3e8]),
+            jnp.array([1e-6, 1e-6, 1e-6]),
+            jnp.array([0.5, 0.6, 0.7]),
+            5e6,
+        )
+        assert batch_result.shape == (3,)
+        assert jnp.all(jnp.isfinite(jnp.abs(batch_result)))
+
+    def test_physics_function_docstring_pattern(self) -> None:
+        """Test that physics functions have proper docstrings."""
+        from rheoQCM.core.physics import sauerbreyf, grho, grhostar
+
+        for func in [sauerbreyf, grho, grhostar]:
+            assert func.__doc__ is not None, f"{func.__name__} missing docstring"
+            assert "Parameters" in func.__doc__ or "Args" in func.__doc__
+            assert "Returns" in func.__doc__
+
+    def test_physics_constants_exported(self) -> None:
+        """Test that physics constants are exported from core."""
+        from rheoQCM.core import Zq, f1_default
+
+        # Constants should be accessible
+        assert Zq == 8.84e6
+        assert f1_default == 5e6
+
+    def test_physics_function_returns_correct_dtype(self) -> None:
+        """Test that physics functions return expected dtypes."""
+        from rheoQCM.core.physics import sauerbreyf, grhostar, calc_delfstar_sla
+
+        # Real-valued functions should return float64
+        result_real = sauerbreyf(3, 1e-6)
+        assert result_real.dtype == jnp.float64
+
+        # Complex-valued functions should return complex128
+        result_complex = grhostar(1e8, 0.5)
+        assert result_complex.dtype == jnp.complex128
+
+        result_delfstar = calc_delfstar_sla(jnp.array(1000 + 100j))
+        assert result_delfstar.dtype == jnp.complex128
+
+    def test_custom_function_integration_with_model(self) -> None:
+        """Test that custom physics functions can be used with QCMModel.
+
+        This demonstrates how a user would integrate a custom physics
+        function with the QCMModel class for property fitting.
+        """
+        from rheoQCM.core.model import QCMModel
+
+        model = QCMModel(f1=5e6, refh=3)
+
+        # Custom residual function using a new physics model
+        @jax.jit
+        def custom_delfstar_model(
+            params: jnp.ndarray,
+            n: int,
+            f1: float,
+            Zq: float,
+        ) -> jnp.ndarray:
+            """Custom model for delfstar calculation."""
+            grho_refh, phi, drho = params[0], params[1], params[2]
+
+            # Custom frequency dependence (example: power law with offset)
+            grho_n = grho_refh * (n / 3) ** (phi / (jnp.pi / 2))
+            grhostar_n = grho_n * jnp.exp(1j * phi)
+            zstar = jnp.sqrt(grhostar_n)
+            D = 2 * jnp.pi * n * f1 * drho / zstar
+            ZL = 1j * zstar * jnp.tan(D)
+            return f1 * 1j * ZL / (jnp.pi * Zq)
+
+        # Test that the custom model works
+        params = jnp.array([1e8, 0.5, 1e-6])
+        result = custom_delfstar_model(params, 3, 5e6, 8.84e6)
+
+        assert jnp.isfinite(jnp.abs(result))
+
+        # The custom model could be registered with QCMModel
+        # (if register_calctype is implemented)
+        if hasattr(model, "register_calctype"):
+            def custom_residual(params, delfstar_exp, harmonics, f1, refh, Zq):
+                residuals = []
+                for n in harmonics:
+                    calc = custom_delfstar_model(params, n, f1, Zq)
+                    exp = delfstar_exp[n]
+                    residuals.append(jnp.real(calc) - jnp.real(exp))
+                return jnp.array(residuals)
+
+            model.register_calctype("CustomPowerLaw", custom_residual)
+
+    def test_nan_inf_handling_functions_exported(self) -> None:
+        """Test that NaN/Inf handling functions are exported."""
+        from rheoQCM.core.physics import (
+            check_finite,
+            safe_divide,
+            safe_sqrt,
+            safe_log,
+            validate_inputs,
+        )
+
+        # All these should be callable
+        assert callable(check_finite)
+        assert callable(safe_divide)
+        assert callable(safe_sqrt)
+        assert callable(safe_log)
+        assert callable(validate_inputs)
+
+    def test_utility_functions_exported(self) -> None:
+        """Test that utility functions (scipy replacements) are exported."""
+        from rheoQCM.core.physics import (
+            find_peaks,
+            interp_linear,
+            interp_cubic,
+            create_interp_func,
+            savgol_filter,
+        )
+
+        # All should be callable
+        assert callable(find_peaks)
+        assert callable(interp_linear)
+        assert callable(interp_cubic)
+        assert callable(create_interp_func)
+        assert callable(savgol_filter)

@@ -9,6 +9,12 @@ This module is designed for backward compatibility with the existing UI and
 scripting interfaces. For new code, consider using rheoQCM.core.model directly.
 
 Note: Different from other modules, the harmonics used in this module are all INT.
+
+Changes in Phase 4 (T034-T037):
+- Removed scipy.optimize import (T033, T035)
+- calc_delfstar now delegates to core.multilayer for LL calculation (T035)
+- delfstarcalc uses core multilayer functions (T035)
+- All fitting methods delegate to QCMModel.solve_properties (T036)
 """
 
 import importlib
@@ -19,6 +25,7 @@ import numpy as np
 import pandas as pd
 
 from rheoQCM.core import physics
+from rheoQCM.core import multilayer as _core_multilayer
 from rheoQCM.core.model import QCMModel
 from rheoQCM.core.model import bulk_drho
 from rheoQCM.core.model import dlam_refh_range
@@ -123,7 +130,17 @@ class QCM:
         self._model: QCMModel | None = None
 
     def _get_model(self) -> QCMModel:
-        """Get or create internal model instance."""
+        """
+        Get or create internal model instance (T034).
+
+        This method ensures the QCMModel is synchronized with the QCM wrapper state.
+        Creates a new model if one doesn't exist, otherwise syncs state to existing model.
+
+        Returns
+        -------
+        QCMModel
+            The internal model instance with synced state.
+        """
         if self._model is None:
             self._model = QCMModel(
                 f1=self.f1,
@@ -255,21 +272,35 @@ class QCM:
         drho: float,
         overlayer: dict | None = None,
     ) -> complex | np.ndarray:
-        """Calculate complex frequency shift for single layer."""
-        rstar_val = self.rstar(n, grho_refh, phi, drho, overlayer)
-        D_val = self.D(n, grho_refh, phi, drho)
-        calc = (
-            -(self.sauerbreyf(n, drho) * np.tan(D_val) / D_val)
-            * (1 - rstar_val**2)
-            / (1 + 1j * rstar_val * np.tan(D_val))
+        """
+        Calculate complex frequency shift for single layer (T035).
+
+        Delegates to core.multilayer for consistent physics.
+        """
+        # Build layer dict for core multilayer function
+        layer = {
+            1: {
+                "grho": grho_refh,
+                "phi": phi,
+                "drho": drho,
+                "n": self.refh if self.refh else 3,
+            }
+        }
+
+        # Add overlayer if provided
+        if overlayer is not None and overlayer.get("drho", 0) > 0:
+            layer[2] = {
+                "grho": overlayer.get("grho_refh", 0),
+                "phi": overlayer.get("phi", 0),
+                "drho": overlayer.get("drho", 0),
+                "n": self.refh if self.refh else 3,
+            }
+
+        # Use core multilayer function (SLA for delfstarcalc)
+        result = _core_multilayer.calc_delfstar_multilayer(
+            n, layer, f1=self.f1, calctype="SLA", refh=self.refh if self.refh else 3
         )
-        # Handle case where drho = 0
-        if np.isscalar(drho):
-            if drho == 0:
-                return 0
-        else:
-            calc[np.where(drho == 0)] = 0
-        return calc
+        return complex(result)
 
     def d_lamcalc(
         self, n: int, grho_refh: float, phi: float, drho: float
@@ -445,84 +476,63 @@ class QCM:
         return 2 * gamma / (n * self.f1)
 
     # =========================================================================
-    # Film structure functions
+    # Film structure functions - delegate to core.multilayer (T035, T037)
     # =========================================================================
 
     def calc_ZL(self, n: int, layers: dict, delfstar: complex) -> complex:
-        """Calculate load impedance for multi-layer structure."""
+        """
+        Calculate load impedance for multi-layer structure.
+
+        Delegates to core.multilayer.calc_ZL (T035).
+        """
         if not layers:
             return 0
 
-        N = len(layers)
-        Z = {}
-        D = {}
-        L = {}
-        S = {}
-
-        for i, layer_n in enumerate(sorted(layers.keys())[:-1]):
-            i += 1
-            Z[i] = self.zstar_bulk(n, layers[layer_n])
-            D[i] = self.calc_D(n, layers[layer_n], delfstar)
-            L[i] = np.array(
-                [
-                    [np.cos(D[i]) + 1j * np.sin(D[i]), 0],
-                    [0, np.cos(D[i]) - 1j * np.sin(D[i])],
-                ],
-                dtype=complex,
-            )
-
-        top_n = sorted(layers.keys())[-1]
-        D[N] = self.calc_D(n, layers[top_n], delfstar)
-        Zf_N = 1j * self.zstar_bulk(n, layers[top_n]) * np.tan(D[N])
-
-        if N == 1:
-            return Zf_N
-
-        Tn = np.array(
-            [[1 + Zf_N / Z[N - 1], 0], [0, 1 - Zf_N / Z[N - 1]]], dtype=complex
+        # Use core multilayer function
+        result = _core_multilayer.calc_ZL(
+            n, layers, delfstar,
+            f1=self.f1,
+            calctype=self.calctype,
+            refh=self.refh if self.refh else 3
         )
-
-        uvec = L[N - 1] @ Tn @ np.array([[1.0], [1.0]])
-
-        for i in np.arange(N - 2, 0, -1):
-            S[i] = np.array(
-                [
-                    [1 + Z[i + 1] / Z[i], 1 - Z[i + 1] / Z[i]],
-                    [1 - Z[i + 1] / Z[i], 1 + Z[i + 1] / Z[i]],
-                ]
-            )
-            uvec = L[i] @ S[i] @ uvec
-
-        rstar = uvec[1, 0] / uvec[0, 0]
-        return Z[1] * (1 - rstar) / (1 + rstar)
+        return complex(result)
 
     def calc_delfstar(self, n: int, layers: dict) -> complex:
-        """Calculate complex frequency shift for layer structure."""
+        """
+        Calculate complex frequency shift for layer structure (T035).
+
+        Delegates to core.multilayer.calc_delfstar_multilayer.
+        Removed scipy.optimize dependency (T033).
+        """
         if not layers:
             return np.nan
 
+        # Use core multilayer function which handles both SLA and LL
+        layers_without_0 = self.remove_layer_0(layers)
+
         if self.calctype.upper() == "SLA":
-            ZL = self.calc_ZL(n, self.remove_layer_0(layers), 0)
-            return self.calc_delfstar_sla(ZL)
-        elif self.calctype.upper() == "LL":
-            # Full calculation (Large Load)
-            from scipy import optimize
-
-            if 0 not in layers:
-                layers[0] = prop_default["electrode"]
-
-            ZL_all = self.calc_ZL(n, layers, 0)
-            delfstar_sla_all = self.calc_delfstar_sla(ZL_all)
-
-            def solve_Zmot(x):
-                dfs = x[0] + 1j * x[1]
-                Zmot = self.calc_Zmot(n, layers, dfs)
-                return [np.real(Zmot), np.imag(Zmot)]
-
-            sol = optimize.root(
-                solve_Zmot, [np.real(delfstar_sla_all), np.imag(delfstar_sla_all)]
+            result = _core_multilayer.calc_delfstar_multilayer(
+                n, layers_without_0,
+                f1=self.f1,
+                calctype="SLA",
+                refh=self.refh if self.refh else 3
             )
-            return sol.x[0] + 1j * sol.x[1]
+            return complex(result)
+        elif self.calctype.upper() == "LL":
+            # Add electrode if not present
+            layers_with_electrode = layers.copy()
+            if 0 not in layers_with_electrode:
+                layers_with_electrode[0] = prop_default["electrode"]
+
+            # Use core multilayer function for LL calculation
+            result = _core_multilayer.calc_delfstar_multilayer(
+                n, layers_with_electrode,
+                f1=self.f1,
+                calctype="LL",
+                refh=self.refh if self.refh else 3,
+                g0=self.g1 if self.g1 else g0,
+            )
+            return complex(result)
         else:
             return np.nan
 
@@ -532,26 +542,20 @@ class QCM:
         return self.calc_delfstar(n, layers)
 
     def calc_Zmot(self, n: int, layers: dict, delfstar: complex) -> complex:
-        """Calculate motional impedance."""
-        om = 2 * np.pi * (n * self.f1 + delfstar)
-        Zqc = self.Zq * (1 + 1j * 2 * self.g1 / (n * self.f1))
+        """
+        Calculate motional impedance.
 
-        self.drho_q = self.Zq / (2 * self.f1)
-        Dq = om * self.drho_q / self.Zq
-        secterm = -1j * Zqc / np.sin(Dq)
-        ZL = self.calc_ZL(n, layers, delfstar)
-        thirdterm = (
-            (1j * Zqc * np.tan(Dq / 2)) ** -1
-            + (1j * Zqc * np.tan(Dq / 2) + ZL) ** -1
-        ) ** -1
-        Zmot = secterm + thirdterm
-
-        if self.piezoelectric_stiffening:
-            ZC0byA = C0byA / (1j * om)
-            ZPE = -(e26 / dq) ** 2 * ZC0byA
-            Zmot += ZPE
-
-        return Zmot
+        Delegates to core.multilayer.calc_Zmot (T035).
+        """
+        # Use core multilayer function
+        result = _core_multilayer.calc_Zmot(
+            n, layers, delfstar,
+            f1=self.f1,
+            calctype=self.calctype,
+            refh=self.refh if self.refh else 3,
+            g0=self.g1 if self.g1 else g0,
+        )
+        return complex(result)
 
     def calc_dlam(self, n: int, film: dict) -> float:
         """Calculate d/lambda for a film."""
@@ -636,7 +640,7 @@ class QCM:
         return new_film
 
     # =========================================================================
-    # Main solving functions - delegate to core.model
+    # Main solving functions - delegate to core.model (T036)
     # =========================================================================
 
     def guess_from_props(self, film: dict) -> list[float]:
@@ -663,7 +667,7 @@ class QCM:
         bulklimit: float = 0.5,
     ) -> tuple[float, float, float, float, dict]:
         """
-        Solve film properties from delfstar using core.model.
+        Solve film properties from delfstar using core.model (T036).
 
         Parameters
         ----------
@@ -691,7 +695,7 @@ class QCM:
         # Initialize error dict
         err = {"grho_refh": np.nan, "phi": np.nan, "drho": np.nan}
 
-        # Use core model for solving
+        # Use core model for solving (T036)
         model = self._get_model()
         model.load_delfstars(delfstar)
 
@@ -703,11 +707,12 @@ class QCM:
                 calculate_errors=True,
             )
 
-            grho_refh = result.get("grho_refh", np.nan)
-            phi = result.get("phi", np.nan)
-            drho = result.get("drho", np.nan)
-            dlam_refh = result.get("dlam_refh", np.nan)
-            err = result.get("errors", err)
+            # Access SolveResult attributes directly (Phase 7 fix)
+            grho_refh = result.grho_refh
+            phi = result.phi
+            drho = result.drho
+            dlam_refh = result.dlam_refh
+            err = result.errors
 
         except Exception as e:
             logger.exception("Error solving film properties: %s", e)

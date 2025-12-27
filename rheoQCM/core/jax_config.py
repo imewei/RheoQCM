@@ -9,12 +9,14 @@ Configuration settings:
     - Float64 as default dtype for all calculations
     - Platform configuration (CPU/GPU detection)
     - No subsampling or random SVD optimizations (numerical precision priority)
+    - GPU fallback with logging (T019)
 
 Usage:
     from rheoQCM.core.jax_config import configure_jax
     configure_jax()  # Call once at application startup
 """
 
+import logging
 import os
 from typing import Literal
 
@@ -25,13 +27,17 @@ os.environ.setdefault("JAX_ENABLE_X64", "True")
 import jax
 import jax.numpy as jnp
 
+logger = logging.getLogger(__name__)
+
 # Track configuration state
 _configured: bool = False
+_gpu_fallback_warned: bool = False
 
 
 def configure_jax(
     enable_x64: bool = True,
     platform: Literal["cpu", "gpu", "tpu", "auto"] = "auto",
+    warn_on_cpu_fallback: bool = True,
 ) -> dict[str, str]:
     """
     Configure JAX for scientific computing with Float64 precision.
@@ -50,8 +56,10 @@ def configure_jax(
         Target platform for JAX operations.
         - "auto": Automatically detect available hardware (prefer GPU/TPU)
         - "cpu": Force CPU execution
-        - "gpu": Force GPU execution (fails if GPU unavailable)
-        - "tpu": Force TPU execution (fails if TPU unavailable)
+        - "gpu": Force GPU execution (falls back to CPU with warning)
+        - "tpu": Force TPU execution (falls back to CPU with warning)
+    warn_on_cpu_fallback : bool, default=True
+        If True, log a warning when GPU/TPU is requested but CPU is used.
 
     Returns
     -------
@@ -60,40 +68,63 @@ def configure_jax(
         - "x64_enabled": Whether Float64 is enabled
         - "platform": Active platform
         - "devices": List of available devices
+        - "gpu_fallback": Whether GPU fallback occurred
 
     Raises
     ------
     RuntimeError
-        If requested platform is not available.
+        Only if platform is explicitly set and not available AND
+        fallback is disabled by environment variable.
 
     Notes
     -----
     - Float64 precision is essential for QCM physics calculations
     - No subsampling or random SVD optimizations are used
     - Numerical precision takes priority over computational speed
+    - GPU/TPU fallback to CPU is handled gracefully with warning (T019)
     """
-    global _configured
+    global _configured, _gpu_fallback_warned
 
     # Enable 64-bit precision
     if enable_x64:
         jax.config.update("jax_enable_x64", True)
 
-    # Configure platform
-    if platform != "auto":
-        jax.config.update("jax_platform_name", platform)
-
-    # Verify configuration
+    # Get available devices before platform selection
     devices = jax.devices()
-    active_platform = devices[0].platform if devices else "unknown"
+    active_platform = devices[0].platform if devices else "cpu"
+    gpu_fallback = False
 
-    # Validate requested platform
-    if platform not in ("auto", active_platform):
+    # Handle platform configuration with graceful fallback (T019)
+    if platform != "auto":
+        requested_platform = platform
         available_platforms = {d.platform for d in devices}
-        if platform not in available_platforms:
-            raise RuntimeError(
-                f"Requested platform '{platform}' not available. "
-                f"Available platforms: {available_platforms}"
-            )
+
+        if requested_platform not in available_platforms:
+            # Fallback to CPU with warning
+            gpu_fallback = True
+            if warn_on_cpu_fallback and not _gpu_fallback_warned:
+                logger.warning(
+                    f"Requested platform '{requested_platform}' not available. "
+                    f"Available platforms: {available_platforms}. "
+                    f"Falling back to CPU. This may impact performance."
+                )
+                _gpu_fallback_warned = True
+            # Don't try to set unavailable platform
+        else:
+            jax.config.update("jax_platform_name", platform)
+            # Update active platform
+            devices = jax.devices()
+            active_platform = devices[0].platform if devices else "cpu"
+    else:
+        # Auto mode: check if GPU was expected but not available
+        if not is_gpu_available() and not _gpu_fallback_warned:
+            if os.environ.get("RHEOQCM_EXPECT_GPU", "").lower() == "true":
+                logger.warning(
+                    "GPU was expected (RHEOQCM_EXPECT_GPU=true) but not available. "
+                    "Falling back to CPU. This may impact performance for large datasets."
+                )
+                _gpu_fallback_warned = True
+                gpu_fallback = True
 
     _configured = True
 
@@ -101,7 +132,43 @@ def configure_jax(
         "x64_enabled": str(jax.config.jax_enable_x64),
         "platform": active_platform,
         "devices": str([str(d) for d in devices]),
+        "gpu_fallback": str(gpu_fallback),
     }
+
+
+def configure_jax_with_fallback(
+    preferred_platform: Literal["gpu", "tpu"] = "gpu",
+) -> dict[str, str]:
+    """
+    Configure JAX with automatic fallback to CPU if preferred platform unavailable.
+
+    This is a convenience wrapper around configure_jax() that always succeeds
+    and logs appropriate warnings when fallback occurs.
+
+    Parameters
+    ----------
+    preferred_platform : {"gpu", "tpu"}, default="gpu"
+        Preferred platform to use if available.
+
+    Returns
+    -------
+    dict[str, str]
+        Configuration summary (same as configure_jax).
+
+    Notes
+    -----
+    This function never raises an exception. It will always succeed,
+    either using the preferred platform or falling back to CPU.
+    """
+    if preferred_platform == "gpu" and is_gpu_available():
+        return configure_jax(platform="gpu")
+    elif preferred_platform == "tpu" and is_tpu_available():
+        return configure_jax(platform="tpu")
+    else:
+        logger.info(
+            f"Preferred platform '{preferred_platform}' not available. Using CPU."
+        )
+        return configure_jax(platform="cpu")
 
 
 def get_jax_backend() -> str:
@@ -200,6 +267,25 @@ def print_jax_info() -> None:
     print(f"Float64 enabled: {jax.config.jax_enable_x64}")
     print(f"Default dtype: {get_default_dtype()}")
     print(f"Float64 verified: {verify_float64()}")
+
+
+def log_platform_status() -> None:
+    """
+    Log the current platform status at INFO level.
+
+    This is useful for debugging and ensuring the correct platform is being used.
+    """
+    backend = get_jax_backend()
+    gpu_avail = is_gpu_available()
+    tpu_avail = is_tpu_available()
+
+    logger.info(f"JAX platform: {backend}")
+    if backend == "cpu" and (gpu_avail or tpu_avail):
+        logger.info("Note: GPU/TPU available but not in use")
+    elif backend == "gpu":
+        logger.info("Using GPU acceleration")
+    elif backend == "tpu":
+        logger.info("Using TPU acceleration")
 
 
 # Auto-configure on import if not already configured

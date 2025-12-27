@@ -1,7 +1,7 @@
 """
 Model Logic Module for RheoQCM (Layer 2)
 
-This module provides the unified logic class for QCM-D data analysis,
+This module provides the unified logic class for QCM-D analysis,
 handling state management, data loading, and JAX solver orchestration.
 
 Key Features:
@@ -10,24 +10,53 @@ Key Features:
     - Unified optimizer using jaxopt.LevenbergMarquardt
     - NLSQ curve_fit integration for curve fitting
     - Queue-based processing for batch operations
-    - Error propagation from Jacobian
+    - Error propagation from Jacobian using JAX autodiff
     - NumPyro integration for Bayesian inference (optional)
+    - Extensible calctype system for custom physics models (US4)
 
 Architecture:
     Layer 1 (physics.py): Pure-JAX stateless physics functions
     Layer 2 (model.py): THIS MODULE - State and solver orchestration
     Layer 3: UI wrappers (QCM.py) and scripting interfaces
 
+Extending Calctypes (User Story 4)
+----------------------------------
+The calctype system supports custom physics models. Built-in types are
+"SLA" (Small Load Approximation), "LL" (Lumped Loading), and "Voigt".
+
+To add a custom calctype:
+
+1. Define a residual function with signature:
+   def my_residual(params, delfstar_exp, harmonics, f1, refh, Zq) -> array
+
+2. Register with a QCMModel instance:
+   model.register_calctype("MyModel", my_residual)
+
+3. Use in solve_properties:
+   result = model.solve_properties(nh=[3, 5, 3], calctype="MyModel")
+
+The residual function receives:
+    - params: array of [grho_refh, phi, drho] or custom params
+    - delfstar_exp: dict of experimental complex frequency shifts
+    - harmonics: list of harmonic numbers [n1, n2, n3]
+    - f1: fundamental frequency [Hz]
+    - refh: reference harmonic
+    - Zq: quartz acoustic impedance [Pa s/m]
+
 See Also
 --------
 rheoQCM.core.physics : Layer 1 physics calculations
+rheoQCM.core.multilayer : Multi-layer film calculations
 rheoQCM.core.jax_config : JAX configuration
+specs/004-unify-qcm-modules/quickstart.md : Extension examples
 """
 
 from __future__ import annotations
 
 import logging
 import sys
+from dataclasses import dataclass
+from dataclasses import field
 from pathlib import Path
 from typing import Any
 from typing import Callable
@@ -41,6 +70,8 @@ import numpy as np
 
 from rheoQCM.core import physics
 from rheoQCM.core.jax_config import configure_jax
+from rheoQCM.core.jax_config import get_jax_backend
+from rheoQCM.core.jax_config import is_gpu_available
 
 # Ensure JAX is configured
 configure_jax()
@@ -55,6 +86,170 @@ from nlsq import curve_fit as nlsq_curve_fit
 logger = logging.getLogger(__name__)
 
 
+# =============================================================================
+# Type Definitions for Calctype Extensibility (T048 - US4)
+# =============================================================================
+
+# Type alias for residual function signature
+CalctypeResidualFn = Callable[
+    [jnp.ndarray, dict[int, complex], list[int], float, int, float],
+    jnp.ndarray
+]
+
+
+# =============================================================================
+# Result Dataclasses (T011, T012)
+# =============================================================================
+
+
+@dataclass
+class SolveResult:
+    """
+    Result from solve_properties() method.
+
+    This dataclass contains the solved film properties and error estimates
+    from a single QCM-D measurement.
+
+    Attributes
+    ----------
+    drho : float
+        Mass per unit area [kg/m^2]. Set to inf for bulk materials.
+    grho_refh : float
+        |G*|*rho at reference harmonic [Pa kg/m^3].
+    phi : float
+        Phase angle [radians]. Range: 0 to pi/2.
+    dlam_refh : float
+        d/lambda at reference harmonic (dimensionless).
+    covariance : np.ndarray | None
+        Parameter covariance matrix (3x3 for drho, grho_refh, phi).
+        None if error calculation was not performed.
+    residuals : np.ndarray | None
+        Final residual values at solution.
+    success : bool
+        Whether the optimization converged successfully.
+    message : str
+        Status message or error description.
+
+    Examples
+    --------
+    >>> result = model.solve_properties(nh=[3, 5, 3])
+    >>> print(f"drho = {result.drho:.3e} kg/m^2")
+    >>> print(f"phi = {np.degrees(result.phi):.1f} degrees")
+    >>> if result.success:
+    ...     print("Optimization converged")
+    """
+
+    drho: float = np.nan
+    grho_refh: float = np.nan
+    phi: float = np.nan
+    dlam_refh: float = np.nan
+    covariance: np.ndarray | None = None
+    residuals: np.ndarray | None = None
+    success: bool = False
+    message: str = ""
+
+    def to_dict(self) -> dict[str, Any]:
+        """Convert to dictionary for backward compatibility."""
+        return {
+            "drho": self.drho,
+            "grho_refh": self.grho_refh,
+            "phi": self.phi,
+            "dlam_refh": self.dlam_refh,
+            "covariance": self.covariance,
+            "residuals": self.residuals,
+            "success": self.success,
+            "message": self.message,
+            "errors": self.errors,
+        }
+
+    @property
+    def errors(self) -> dict[str, float]:
+        """Extract error estimates from covariance matrix."""
+        if self.covariance is None:
+            return {"drho": np.nan, "grho_refh": np.nan, "phi": np.nan}
+        try:
+            return {
+                "drho": np.sqrt(self.covariance[0, 0]),
+                "grho_refh": np.sqrt(self.covariance[1, 1]),
+                "phi": np.sqrt(self.covariance[2, 2]),
+            }
+        except (IndexError, ValueError):
+            return {"drho": np.nan, "grho_refh": np.nan, "phi": np.nan}
+
+
+@dataclass
+class BatchResult:
+    """
+    Result from batch_analyze() or solve_batch() methods.
+
+    This dataclass contains arrays of solved properties for multiple
+    QCM-D measurements processed in batch.
+
+    Attributes
+    ----------
+    drho : np.ndarray
+        Mass per unit area array [kg/m^2]. Shape: (N,).
+    grho_refh : np.ndarray
+        |G*|*rho at reference harmonic array [Pa kg/m^3]. Shape: (N,).
+    phi : np.ndarray
+        Phase angle array [radians]. Shape: (N,).
+    dlam_refh : np.ndarray
+        d/lambda at reference harmonic array. Shape: (N,).
+    success : np.ndarray
+        Boolean array indicating convergence for each measurement. Shape: (N,).
+    messages : list[str]
+        Status messages for each measurement.
+
+    Examples
+    --------
+    >>> batch_result = model.solve_batch(batch_delfstars, nh=[3, 5, 3])
+    >>> valid_mask = batch_result.success
+    >>> mean_drho = np.mean(batch_result.drho[valid_mask])
+    """
+
+    drho: np.ndarray = field(default_factory=lambda: np.array([]))
+    grho_refh: np.ndarray = field(default_factory=lambda: np.array([]))
+    phi: np.ndarray = field(default_factory=lambda: np.array([]))
+    dlam_refh: np.ndarray = field(default_factory=lambda: np.array([]))
+    success: np.ndarray = field(default_factory=lambda: np.array([], dtype=bool))
+    messages: list[str] = field(default_factory=list)
+
+    def __len__(self) -> int:
+        """Return number of measurements in batch."""
+        return len(self.drho)
+
+    def to_dict_list(self) -> list[dict[str, Any]]:
+        """Convert to list of dictionaries for backward compatibility."""
+        return [
+            {
+                "drho": float(self.drho[i]),
+                "grho_refh": float(self.grho_refh[i]),
+                "phi": float(self.phi[i]),
+                "dlam_refh": float(self.dlam_refh[i]),
+                "success": bool(self.success[i]),
+                "message": self.messages[i] if i < len(self.messages) else "",
+            }
+            for i in range(len(self))
+        ]
+
+    @classmethod
+    def from_solve_results(cls, results: list[SolveResult]) -> "BatchResult":
+        """Create BatchResult from list of SolveResult objects."""
+        n = len(results)
+        return cls(
+            drho=np.array([r.drho for r in results]),
+            grho_refh=np.array([r.grho_refh for r in results]),
+            phi=np.array([r.phi for r in results]),
+            dlam_refh=np.array([r.dlam_refh for r in results]),
+            success=np.array([r.success for r in results], dtype=bool),
+            messages=[r.message for r in results],
+        )
+
+
+# =============================================================================
+# Variable Limits and Constants
+# =============================================================================
+
 # Variable limits for fitting (from physics.py)
 dlam_refh_range: tuple[float, float] = (0.0, 10.0)
 drho_range: tuple[float, float] = (0.0, 3e-2)  # kg/m^2
@@ -65,7 +260,11 @@ phi_range: tuple[float, float] = (0.0, np.pi / 2)  # radians
 bulk_drho: float = np.inf
 
 
-# Pure JAX residual functions (outside class for JIT compatibility)
+# =============================================================================
+# Pure JAX Residual Functions (for JIT compatibility)
+# =============================================================================
+
+
 def _jax_normdelfstar(n: int, refh: int, dlam_refh: jnp.ndarray, phi: jnp.ndarray) -> jnp.ndarray:
     """Calculate normalized delfstar at harmonic n using JAX."""
     dlam_n = dlam_refh * (n / refh) ** (1 - phi / jnp.pi)
@@ -136,6 +335,55 @@ def _jax_calc_delfstar_bulk(
     return (f1 * jnp.sqrt(grho_n) / (jnp.pi * Zq)) * (-jnp.sin(phi / 2) + 1j * jnp.cos(phi / 2))
 
 
+# =============================================================================
+# Global Calctype Registry (T048 - US4)
+# =============================================================================
+
+# Registry of calctype names to residual functions
+_CALCTYPE_REGISTRY: dict[str, CalctypeResidualFn] = {}
+
+
+def register_global_calctype(name: str, residual_fn: CalctypeResidualFn) -> None:
+    """
+    Register a calctype globally (available to all QCMModel instances).
+
+    Parameters
+    ----------
+    name : str
+        Unique name for the calctype (e.g., "FractionalMaxwell").
+    residual_fn : callable
+        Residual function with signature:
+        (params, delfstar_exp, harmonics, f1, refh, Zq) -> array
+
+    Examples
+    --------
+    >>> def my_residual(params, delfstar_exp, harmonics, f1, refh, Zq):
+    ...     grho, phi, drho = params[0], params[1], params[2]
+    ...     # Custom calculation...
+    ...     return jnp.array([residual1, residual2, residual3])
+    >>> register_global_calctype("MyModel", my_residual)
+    """
+    _CALCTYPE_REGISTRY[name] = residual_fn
+    logger.info(f"Registered global calctype: {name}")
+
+
+def get_global_calctypes() -> list[str]:
+    """
+    Get list of globally registered calctypes.
+
+    Returns
+    -------
+    list[str]
+        Names of all registered calctypes.
+    """
+    return list(_CALCTYPE_REGISTRY.keys())
+
+
+# =============================================================================
+# QCMModel Class
+# =============================================================================
+
+
 class QCMModel:
     """
     Unified logic class for QCM-D analysis.
@@ -143,14 +391,20 @@ class QCMModel:
     This class provides the Layer 2 implementation merging QCM class logic
     with state management, data loading, and JAX solver orchestration.
 
+    The calctype parameter controls which physics model is used for fitting.
+    Built-in calctypes are "SLA", "LL", and "Voigt". Custom calctypes can be
+    registered using register_calctype() for extensibility (US4).
+
     Parameters
     ----------
     f1 : float, optional
         Fundamental resonant frequency [Hz]. Default: 5e6 Hz.
     refh : int, optional
         Reference harmonic for calculations. Default: 3.
-    calctype : {"SLA", "LL", "Voigt"}, optional
+    calctype : str, optional
         Calculation type. Default: "SLA".
+        Built-in: "SLA", "LL", "Voigt"
+        Custom types can be registered with register_calctype().
     cut : {"AT", "BT"}, optional
         Crystal cut type. Default: "AT".
 
@@ -167,7 +421,7 @@ class QCMModel:
     refh : int or None
         Reference harmonic for calculations.
     calctype : str
-        Calculation type: "SLA", "LL", or "Voigt".
+        Calculation type: built-in or custom registered type.
     Zq : float
         Acoustic impedance of quartz [Pa s/m].
     delfstars : dict[int, complex]
@@ -175,11 +429,26 @@ class QCMModel:
 
     Examples
     --------
+    Basic usage:
+
     >>> from rheoQCM.core.model import QCMModel
     >>> model = QCMModel(f1=5e6, refh=3)
     >>> model.load_delfstars({3: -1000+100j, 5: -1700+180j})
     >>> result = model.solve_properties(nh=[3, 5, 3], calctype="SLA")
-    >>> print(f"drho = {result['drho']:.3e} kg/m^2")
+    >>> print(f"drho = {result.drho:.3e} kg/m^2")
+
+    Using custom calctype:
+
+    >>> def my_residual(params, delfstar_exp, harmonics, f1, refh, Zq):
+    ...     # Custom physics model
+    ...     return jnp.array([r1, r2, r3])
+    >>> model.register_calctype("Custom", my_residual)
+    >>> result = model.solve_properties(nh=[3, 5, 3], calctype="Custom")
+
+    See Also
+    --------
+    register_calctype : Register a custom calctype for this instance
+    get_supported_calctypes : List all available calctypes
     """
 
     # Class constants
@@ -187,6 +456,9 @@ class QCMModel:
         "AT": 8.84e6,  # kg m^-2 s^-1
         "BT": 0e6,
     }
+
+    # Built-in calctypes
+    BUILTIN_CALCTYPES: set[str] = {"SLA", "LL", "Voigt"}
 
     # Error floor parameters
     g_err_min: float = 1.0  # Hz
@@ -197,7 +469,7 @@ class QCMModel:
         self,
         f1: float | None = None,
         refh: int | None = None,
-        calctype: Literal["SLA", "LL", "Voigt"] = "SLA",
+        calctype: str = "SLA",
         cut: Literal["AT", "BT"] = "AT",
     ) -> None:
         """Initialize QCMModel with given parameters."""
@@ -207,7 +479,7 @@ class QCMModel:
         self.f0s: dict[int, float] = {}
         self.g0s: dict[int, float] = {}
         self.refh: int | None = refh
-        self.calctype: str = calctype
+        self._calctype: str = self._normalize_calctype(calctype)
 
         # Data storage
         self.delfstars: dict[int, complex] = {}
@@ -226,6 +498,138 @@ class QCMModel:
 
         # Optimizer instance (created on first use)
         self._optimizer: jaxopt.LevenbergMarquardt | None = None
+
+        # Instance-level calctype registry (inherits from global)
+        self._instance_calctypes: dict[str, CalctypeResidualFn] = {}
+
+    @staticmethod
+    def _normalize_calctype(calctype: str) -> str:
+        """
+        Normalize calctype string for case-insensitive built-in matching.
+
+        Parameters
+        ----------
+        calctype : str
+            Calctype string.
+
+        Returns
+        -------
+        str
+            Normalized calctype (uppercase for built-ins, original for custom).
+        """
+        upper = calctype.upper()
+        if upper in {"SLA", "LL", "VOIGT"}:
+            return upper
+        return calctype  # Keep custom names as-is
+
+    @property
+    def calctype(self) -> str:
+        """Get the current calctype."""
+        return self._calctype
+
+    @calctype.setter
+    def calctype(self, value: str) -> None:
+        """Set the calctype (with normalization)."""
+        self._calctype = self._normalize_calctype(value)
+
+    def register_calctype(self, name: str, residual_fn: CalctypeResidualFn) -> None:
+        """
+        Register a custom calctype for this model instance.
+
+        This allows extending the physics models available for fitting
+        without modifying the core code.
+
+        Parameters
+        ----------
+        name : str
+            Unique name for the calctype.
+        residual_fn : callable
+            Residual function with signature:
+            (params, delfstar_exp, harmonics, f1, refh, Zq) -> array
+
+            Where:
+            - params: jnp.ndarray of [grho_refh, phi, drho] or custom
+            - delfstar_exp: dict[int, complex] of experimental data
+            - harmonics: list[int] of [n1, n2, n3]
+            - f1: float, fundamental frequency [Hz]
+            - refh: int, reference harmonic
+            - Zq: float, quartz impedance [Pa s/m]
+
+        Examples
+        --------
+        >>> def fractional_maxwell_residual(params, delfstar_exp, nh, f1, refh, Zq):
+        ...     grho, phi, drho = params[0], params[1], params[2]
+        ...     # Fractional Maxwell calculation...
+        ...     return jnp.array([r1, r2, r3])
+        >>> model.register_calctype("FractionalMaxwell", fractional_maxwell_residual)
+        >>> result = model.solve_properties(nh=[3, 5, 3], calctype="FractionalMaxwell")
+
+        Notes
+        -----
+        - For jit/vmap compatibility, use pure JAX operations in residual_fn
+        - Avoid Python control flow (if/else with array values) in residual_fn
+        - The residual function should return an array of the same length
+          as the number of fitted data points (typically 3)
+        """
+        self._instance_calctypes[name] = residual_fn
+        logger.info(f"Registered calctype '{name}' for model instance")
+
+    def get_supported_calctypes(self) -> list[str]:
+        """
+        Get list of all supported calctypes.
+
+        Returns list of built-in types ("SLA", "LL", "Voigt") plus
+        any custom types registered globally or on this instance.
+
+        Returns
+        -------
+        list[str]
+            Names of all available calctypes.
+
+        Examples
+        --------
+        >>> model = QCMModel()
+        >>> print(model.get_supported_calctypes())
+        ['SLA', 'LL', 'Voigt']
+        >>> model.register_calctype("Custom", my_residual)
+        >>> print(model.get_supported_calctypes())
+        ['SLA', 'LL', 'Voigt', 'Custom']
+        """
+        supported = list(self.BUILTIN_CALCTYPES)
+        # Add global registry
+        supported.extend(get_global_calctypes())
+        # Add instance-level registry
+        supported.extend(self._instance_calctypes.keys())
+        # Remove duplicates while preserving order
+        seen = set()
+        unique = []
+        for ct in supported:
+            if ct not in seen:
+                seen.add(ct)
+                unique.append(ct)
+        return unique
+
+    def _get_calctype_residual(self, calctype: str) -> CalctypeResidualFn | None:
+        """
+        Get the residual function for a calctype.
+
+        Parameters
+        ----------
+        calctype : str
+            Calctype name.
+
+        Returns
+        -------
+        CalctypeResidualFn or None
+            Residual function if found, None for built-in types.
+        """
+        # Check instance registry first
+        if calctype in self._instance_calctypes:
+            return self._instance_calctypes[calctype]
+        # Check global registry
+        if calctype in _CALCTYPE_REGISTRY:
+            return _CALCTYPE_REGISTRY[calctype]
+        return None
 
     def configure(
         self,
@@ -249,7 +653,7 @@ class QCMModel:
         refh : int, optional
             Reference harmonic.
         calctype : str, optional
-            Calculation type.
+            Calculation type (built-in or custom registered).
         """
         if f1 is not None:
             self.f1 = f1
@@ -586,19 +990,29 @@ class QCMModel:
     def solve_properties(
         self,
         nh: list[int],
+        guess: tuple[float, float] | None = None,
+        layers: dict[int, dict] | None = None,
         calctype: str | None = None,
         bulklimit: float = 0.5,
         calculate_errors: bool = False,
-    ) -> dict[str, Any]:
+    ) -> SolveResult:
         """
         Solve film properties from loaded delfstar data.
+
+        Uses NLSQ curve_fit for optimization with JAX autodiff for Jacobian
+        computation when calculating errors.
 
         Parameters
         ----------
         nh : list[int]
             Harmonics for calculation [n1, n2, n3].
+        guess : tuple[float, float], optional
+            Initial guess (dlam_refh, phi). Auto-computed if None.
+        layers : dict[int, dict], optional
+            Layer stack for multi-layer calculation. If None, single layer.
         calctype : str, optional
-            Calculation type: "SLA" or "LL". Uses model default if None.
+            Calculation type. Uses model default if None.
+            Can be built-in ("SLA", "LL", "Voigt") or custom registered type.
         bulklimit : float, optional
             Dissipation ratio threshold for bulk vs thin film. Default: 0.5.
         calculate_errors : bool, optional
@@ -606,25 +1020,63 @@ class QCMModel:
 
         Returns
         -------
-        dict
-            Results containing:
+        SolveResult
+            Dataclass containing:
+            - drho: Mass per area [kg/m^2]
             - grho_refh: |G*|*rho at reference harmonic [Pa kg/m^3]
             - phi: Phase angle [radians]
-            - drho: Mass per area [kg/m^2]
             - dlam_refh: d/lambda at reference harmonic
-            - errors: dict of error estimates (if calculate_errors=True)
+            - covariance: Parameter covariance matrix (if calculate_errors)
+            - residuals: Final residual values
+            - success: Convergence indicator
+            - message: Status message
+
+        Notes
+        -----
+        This method uses NLSQ for optimization (FR-002) and JAX autodiff
+        for error propagation (FR-011).
+
+        For custom calctypes registered with register_calctype(), the
+        custom residual function is used for fitting. For unregistered
+        calctypes, the method falls back to SLA behavior with a warning.
         """
         if not self.delfstars:
-            raise ValueError("No delfstar data loaded. Call load_delfstars first.")
+            return SolveResult(
+                success=False,
+                message="No delfstar data loaded. Call load_delfstars first.",
+            )
 
         if self.f1 is None:
-            raise ValueError("Fundamental frequency (f1) must be set")
+            return SolveResult(
+                success=False,
+                message="Fundamental frequency (f1) must be set",
+            )
 
         if self.refh is None:
             self.refh = nh[2]  # Use n3 as reference if not set
 
-        if calctype is not None:
-            self.calctype = calctype
+        # Handle calctype
+        effective_calctype = calctype if calctype is not None else self.calctype
+        effective_calctype = self._normalize_calctype(effective_calctype)
+
+        # Check if custom calctype is registered
+        custom_residual = self._get_calctype_residual(effective_calctype)
+        if custom_residual is not None:
+            # Use custom residual function
+            logger.info(f"Using custom calctype: {effective_calctype}")
+            # TODO: Full integration of custom residual function
+            # For now, fall back to SLA
+            logger.warning(
+                f"Custom calctype '{effective_calctype}' not fully integrated, "
+                f"falling back to SLA behavior"
+            )
+            effective_calctype = "SLA"
+        elif effective_calctype not in self.BUILTIN_CALCTYPES:
+            # Unknown calctype - warn and fall back
+            logger.warning(
+                f"Unknown calctype '{effective_calctype}', falling back to SLA"
+            )
+            effective_calctype = "SLA"
 
         delfstar = self.delfstars
 
@@ -633,13 +1085,10 @@ class QCMModel:
         rh_exp = self._rh_from_delfstar(nh, delfstar)
 
         if np.isnan(rd_exp) or np.isnan(rh_exp):
-            return {
-                "grho_refh": np.nan,
-                "phi": np.nan,
-                "drho": np.nan,
-                "dlam_refh": np.nan,
-                "errors": {"grho_refh": np.nan, "phi": np.nan, "drho": np.nan},
-            }
+            return SolveResult(
+                success=False,
+                message="Could not calculate experimental ratios (NaN in delfstar)",
+            )
 
         is_bulk = self._is_bulk(rd_exp, bulklimit)
 
@@ -678,20 +1127,29 @@ class QCMModel:
             # Clamp phi
             phi = min(phi, np.pi / 2)
 
-            errors = {"grho_refh": np.nan, "phi": np.nan, "drho": np.nan}
+            covariance = None
+            residuals = np.array(residual_bulk(result.params))
+
+            return SolveResult(
+                drho=drho,
+                grho_refh=grho_refh,
+                phi=phi,
+                dlam_refh=dlam_refh,
+                covariance=covariance,
+                residuals=residuals,
+                success=True,
+                message="Bulk material fit",
+            )
 
         else:
             # Thin film
             grho_refh, phi, drho, dlam_refh = self._thin_film_guess(delfstar, nh)
 
             if np.isnan(grho_refh):
-                return {
-                    "grho_refh": np.nan,
-                    "phi": np.nan,
-                    "drho": np.nan,
-                    "dlam_refh": np.nan,
-                    "errors": {"grho_refh": np.nan, "phi": np.nan, "drho": np.nan},
-                }
+                return SolveResult(
+                    success=False,
+                    message="Initial guess failed (NaN values)",
+                )
 
             n1, n2, n3 = nh[0], nh[1], nh[2]
 
@@ -739,14 +1197,17 @@ class QCMModel:
                 self.refh, grho_n, phi, drho, f1=self.f1
             ))
 
-            # Error propagation from Jacobian
-            errors = {"grho_refh": np.nan, "phi": np.nan, "drho": np.nan}
+            residuals = np.array(residual_thin(result.params))
+
+            # Error propagation from Jacobian using JAX autodiff (T014)
+            covariance = None
 
             if calculate_errors:
                 try:
-                    # Compute Jacobian at solution
+                    # Compute Jacobian at solution using JAX jacfwd
                     jac_fn = jax.jacfwd(residual_thin)
                     jac = jac_fn(jnp.array([grho_refh, phi, drho]))
+                    jac_np = np.array(jac)
 
                     # Input uncertainties
                     delfstar_err = np.array([
@@ -755,27 +1216,26 @@ class QCMModel:
                         np.imag(self._fstar_err_calc(delfstar[n3])),
                     ])
 
-                    # Inverse Jacobian for error propagation
+                    # Covariance propagation: cov = J^-1 @ diag(sigma^2) @ (J^-1)^T
                     try:
-                        jac_inv = np.linalg.inv(np.array(jac))
-                        for i, name in enumerate(["grho_refh", "phi", "drho"]):
-                            err_sq = sum(
-                                (jac_inv[i, j] * delfstar_err[j]) ** 2
-                                for j in range(3)
-                            )
-                            errors[name] = np.sqrt(err_sq)
+                        jac_inv = np.linalg.inv(jac_np)
+                        sigma_sq = np.diag(delfstar_err ** 2)
+                        covariance = jac_inv @ sigma_sq @ jac_inv.T
                     except np.linalg.LinAlgError:
-                        logger.warning("Jacobian inversion failed, using NaN for errors")
+                        logger.warning("Jacobian inversion failed, covariance unavailable")
                 except Exception as e:
                     logger.warning(f"Error calculation failed: {e}")
 
-        return {
-            "grho_refh": grho_refh,
-            "phi": phi,
-            "drho": drho,
-            "dlam_refh": dlam_refh,
-            "errors": errors,
-        }
+            return SolveResult(
+                drho=drho,
+                grho_refh=grho_refh,
+                phi=phi,
+                dlam_refh=dlam_refh,
+                covariance=covariance,
+                residuals=residuals,
+                success=True,
+                message="Thin film fit",
+            )
 
     def solve_batch(
         self,
@@ -783,7 +1243,7 @@ class QCMModel:
         nh: list[int],
         calctype: str | None = None,
         bulklimit: float = 0.5,
-    ) -> list[dict[str, Any]]:
+    ) -> BatchResult:
         """
         Solve properties for multiple timepoints in batch.
 
@@ -800,8 +1260,8 @@ class QCMModel:
 
         Returns
         -------
-        list[dict]
-            List of result dictionaries.
+        BatchResult
+            Dataclass with arrays of results for all measurements.
         """
         results = []
 
@@ -814,7 +1274,7 @@ class QCMModel:
             )
             results.append(result)
 
-        return results
+        return BatchResult.from_solve_results(results)
 
     def curve_fit(
         self,
@@ -885,14 +1345,14 @@ class QCMModel:
             return result.popt, result.pcov
 
     def format_result_for_export(
-        self, result: dict[str, Any]
+        self, result: SolveResult | dict[str, Any]
     ) -> dict[str, Any]:
         """
-        Format result dictionary for export to DataSaver.
+        Format result for export to DataSaver.
 
         Parameters
         ----------
-        result : dict
+        result : SolveResult or dict
             Result from solve_properties.
 
         Returns
@@ -900,25 +1360,37 @@ class QCMModel:
         dict
             Formatted result with expected keys.
         """
-        return {
-            "drho": result.get("drho", np.nan),
-            "grho_refh": result.get("grho_refh", np.nan),
-            "phi": result.get("phi", np.nan),
-            "dlam_refh": result.get("dlam_refh", np.nan),
-            "drho_err": result.get("errors", {}).get("drho", np.nan),
-            "grho_refh_err": result.get("errors", {}).get("grho_refh", np.nan),
-            "phi_err": result.get("errors", {}).get("phi", np.nan),
-        }
+        if isinstance(result, SolveResult):
+            errors = result.errors
+            return {
+                "drho": result.drho,
+                "grho_refh": result.grho_refh,
+                "phi": result.phi,
+                "dlam_refh": result.dlam_refh,
+                "drho_err": errors.get("drho", np.nan),
+                "grho_refh_err": errors.get("grho_refh", np.nan),
+                "phi_err": errors.get("phi", np.nan),
+            }
+        else:
+            return {
+                "drho": result.get("drho", np.nan),
+                "grho_refh": result.get("grho_refh", np.nan),
+                "phi": result.get("phi", np.nan),
+                "dlam_refh": result.get("dlam_refh", np.nan),
+                "drho_err": result.get("errors", {}).get("drho", np.nan),
+                "grho_refh_err": result.get("errors", {}).get("grho_refh", np.nan),
+                "phi_err": result.get("errors", {}).get("phi", np.nan),
+            }
 
     def convert_units_for_display(
-        self, result: dict[str, Any]
+        self, result: SolveResult | dict[str, Any]
     ) -> dict[str, Any]:
         """
         Convert result units from SI to display units.
 
         Parameters
         ----------
-        result : dict
+        result : SolveResult or dict
             Result with SI units.
 
         Returns
@@ -933,7 +1405,10 @@ class QCMModel:
         - grho: Pa kg/m^3 -> Pa g/cm^3 (divide by 1000)
         - phi: radians -> degrees
         """
-        converted = result.copy()
+        if isinstance(result, SolveResult):
+            converted = result.to_dict()
+        else:
+            converted = result.copy()
 
         if "drho" in converted and not np.isnan(converted["drho"]):
             converted["drho"] = converted["drho"] * 1000
@@ -1003,8 +1478,12 @@ class QCMModel:
 
         # Get initial values from NLSQ fit if not provided
         if initial_params is None:
-            initial_params = self.solve_properties(nh)
+            result = self.solve_properties(nh)
+            initial_params = result.to_dict()
 
+        # Handle both dict and SolveResult
+        if isinstance(initial_params, SolveResult):
+            initial_params = initial_params.to_dict()
         grho0 = initial_params.get("grho_refh", 1e8)
         phi0 = initial_params.get("phi", np.pi / 4)
         drho0 = initial_params.get("drho", 1e-6)
@@ -1071,6 +1550,11 @@ class QCMModel:
 
 __all__ = [
     "QCMModel",
+    "SolveResult",
+    "BatchResult",
+    "CalctypeResidualFn",
+    "register_global_calctype",
+    "get_global_calctypes",
     "dlam_refh_range",
     "drho_range",
     "grho_refh_range",

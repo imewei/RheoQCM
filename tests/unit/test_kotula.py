@@ -290,7 +290,7 @@ class TestKotulaCPUGPUEquivalence:
 
 
 class TestKotulaFallback:
-    """T028-T029: Tests for mpmath fallback behavior."""
+    """T028-T029: Tests for QCMFuncs wrapper behavior."""
 
     def test_qcmfuncs_kotula_matches_core(self, kotula_params):
         """T028: QCMFuncs.kotula_gstar produces same results as core JAX impl."""
@@ -343,15 +343,21 @@ class TestKotulaFallback:
         assert result.shape == xi.shape
         assert np.all(np.isfinite(result))
 
-    def test_importerror_message_informative(self):
-        """T029: ImportError message is informative when dependencies missing."""
-        # This test verifies the error message format without actually
-        # triggering the ImportError (since JAX is available in test env)
-        from QCMFuncs.QCM_functions import _CORE_AVAILABLE
+    def test_core_physics_is_required(self):
+        """T029 (Phase 7 update): Core physics module is required (JAX-only).
 
-        # In our test environment, core should be available
-        assert _CORE_AVAILABLE, "Core physics module should be available in test env"
+        After the QCM module unification (spec 004), the core JAX implementation
+        is required and there is no fallback to mpmath. This test verifies
+        that the core physics module is properly importable.
+        """
+        # Verify core physics module is importable
+        from rheoQCM.core import physics
 
-        # The actual ImportError is raised only when BOTH JAX and mpmath
-        # are unavailable. We can verify the message is defined correctly
-        # by checking the source code structure (already done via grep)
+        # Verify key functions exist
+        assert hasattr(physics, 'kotula_gstar')
+        assert hasattr(physics, 'kotula_xi')
+        assert hasattr(physics, '_kotula_equation')
+
+        # Verify functions are callable
+        assert callable(physics.kotula_gstar)
+        assert callable(physics.kotula_xi)

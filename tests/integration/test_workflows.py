@@ -65,17 +65,17 @@ class TestCompleteAnalysisWorkflow:
         # Analyze
         result = analyzer.analyze(nh=[3, 5, 3], calctype="SLA")
 
-        # Validate complete result structure
-        assert "grho_refh" in result
-        assert "phi" in result
-        assert "drho" in result
-        assert "dlam_refh" in result
-        assert "errors" in result
+        # Validate complete result structure using attribute access (Phase 7 fix)
+        assert hasattr(result, "grho_refh")
+        assert hasattr(result, "phi")
+        assert hasattr(result, "drho")
+        assert hasattr(result, "dlam_refh")
+        assert hasattr(result, "errors")
 
         # Validate result values are physically reasonable
-        assert result["grho_refh"] > 0, "grho_refh should be positive"
-        assert 0 <= result["phi"] <= np.pi / 2, "phi should be between 0 and pi/2"
-        assert result["drho"] > 0, "drho should be positive for thin film"
+        assert result.grho_refh > 0, "grho_refh should be positive"
+        assert 0 <= result.phi <= np.pi / 2, "phi should be between 0 and pi/2"
+        assert result.drho > 0, "drho should be positive for thin film"
 
         # Verify results are stored
         assert len(analyzer.results) == 1
@@ -98,8 +98,8 @@ class TestCompleteAnalysisWorkflow:
         result = analyzer.analyze(nh=[3, 5, 3], calctype="SLA", bulklimit=0.5)
 
         # For bulk material, phi should be close to pi/2
-        assert result["phi"] > np.pi / 4, "Bulk material should have high phi"
-        assert result["grho_refh"] > 0
+        assert result.phi > np.pi / 4, "Bulk material should have high phi"
+        assert result.grho_refh > 0
 
 
 class TestUITriggeredAnalysis:
@@ -182,8 +182,9 @@ class TestScriptingWorkflow:
 
         result = analyze_delfstar(delfstars, nh=[3, 5, 3])
 
-        assert "grho_refh" in result
-        assert "drho" in result
+        # Use attribute access for SolveResult (Phase 7 fix)
+        assert hasattr(result, "grho_refh")
+        assert hasattr(result, "drho")
 
     def test_batch_processing_script(self) -> None:
         """Test batch processing workflow for scripting."""
@@ -209,10 +210,12 @@ class TestScriptingWorkflow:
             refh=3,
         )
 
+        # BatchResult is a dataclass, not a list (Phase 7 fix)
         assert len(results) == n_timepoints
-        for result in results:
-            assert "grho_refh" in result
-            assert "drho" in result
+        # Access as arrays from BatchResult
+        assert hasattr(results, "grho_refh")
+        assert hasattr(results, "drho")
+        assert len(results.grho_refh) == n_timepoints
 
 
 class TestHDF5RoundtripWithNewPhysics:
@@ -261,8 +264,8 @@ class TestHDF5RoundtripWithNewPhysics:
             drho_saub = float(physics.sauerbreym(1, delf[0], f1=model.f1))
             assert drho_saub > 0
 
-            # Result should be consistent with physics core
-            assert np.isfinite(result["grho_refh"]) or np.isnan(result["grho_refh"])
+            # Result should be consistent with physics core (use attribute access)
+            assert np.isfinite(result.grho_refh) or np.isnan(result.grho_refh)
 
         finally:
             filepath.unlink(missing_ok=True)
@@ -402,17 +405,18 @@ class TestFloat64PrecisionEndToEnd:
             results.append(result)
 
         # All runs should produce identical results (deterministic)
+        # Use attribute access for SolveResult (Phase 7 fix)
         for i in range(1, len(results)):
-            if not np.isnan(results[0]["grho_refh"]):
+            if not np.isnan(results[0].grho_refh):
                 np.testing.assert_allclose(
-                    results[0]["grho_refh"],
-                    results[i]["grho_refh"],
+                    results[0].grho_refh,
+                    results[i].grho_refh,
                     rtol=1e-12,
                 )
-            if not np.isnan(results[0]["phi"]):
+            if not np.isnan(results[0].phi):
                 np.testing.assert_allclose(
-                    results[0]["phi"],
-                    results[i]["phi"],
+                    results[0].phi,
+                    results[i].phi,
                     rtol=1e-12,
                 )
 
@@ -455,9 +459,10 @@ class TestCoreToUIDataFlow:
 
         # Results should be consistent
         # Note: May have small differences due to different solver paths
-        if not np.isnan(result_core["grho_refh"]) and not np.isnan(grho_ui):
+        # Use attribute access for SolveResult (Phase 7 fix)
+        if not np.isnan(result_core.grho_refh) and not np.isnan(grho_ui):
             # Check same order of magnitude
-            ratio = result_core["grho_refh"] / grho_ui
+            ratio = result_core.grho_refh / grho_ui
             assert 0.1 < ratio < 10, "Results should be same order of magnitude"
 
 

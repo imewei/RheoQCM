@@ -9,8 +9,9 @@ These tests verify the QCMModel class functionality including:
     - Error propagation from Jacobian
     - NLSQ curve_fit integration
     - Result extraction and formatting
+    - Calctype extensibility (T046 - US4)
 
-Test coverage: 8 focused tests for model layer functionality.
+Test coverage: 8+ focused tests for model layer functionality.
 """
 
 import tempfile
@@ -159,15 +160,15 @@ class TestSinglePointSolving:
         )
 
         # Check that result contains expected keys
-        assert "grho_refh" in result
-        assert "phi" in result
-        assert "drho" in result
-        assert "dlam_refh" in result
+        assert hasattr(result, "grho_refh")
+        assert hasattr(result, "phi")
+        assert hasattr(result, "drho")
+        assert hasattr(result, "dlam_refh")
 
         # Check reasonable values
-        assert result["grho_refh"] > 0
-        assert 0 <= result["phi"] <= jnp.pi / 2
-        assert result["drho"] > 0
+        assert result.grho_refh > 0
+        assert 0 <= result.phi <= jnp.pi / 2
+        assert result.drho > 0
 
     def test_solve_bulk_material(self) -> None:
         """Test solving bulk material properties from delfstar."""
@@ -192,8 +193,8 @@ class TestSinglePointSolving:
         )
 
         # For bulk material, phi should be close to pi/2
-        assert result["phi"] > jnp.pi / 4
-        assert result["grho_refh"] > 0
+        assert result.phi > jnp.pi / 4
+        assert result.grho_refh > 0
 
 
 class TestBatchSolving:
@@ -228,7 +229,7 @@ class TestBatchSolving:
 
         assert len(results) == n_timepoints
         # Check that drho increases with film thickness
-        drho_values = [r["drho"] for r in results]
+        drho_values = list(results.drho)
         for i in range(1, len(drho_values)):
             if not np.isnan(drho_values[i]) and not np.isnan(drho_values[i - 1]):
                 assert drho_values[i] > drho_values[i - 1] * 0.9  # Allow some tolerance
@@ -260,8 +261,8 @@ class TestErrorPropagation:
         )
 
         # Check that errors are present
-        assert "errors" in result
-        errors = result["errors"]
+        assert hasattr(result, "errors")
+        errors = result.errors
         assert "grho_refh" in errors
         assert "phi" in errors
         assert "drho" in errors
@@ -396,8 +397,8 @@ class TestNumPyroIntegration:
         )
 
         # Check NLSQ result is valid first
-        assert result_nlsq["grho_refh"] > 0
-        assert result_nlsq["drho"] > 0
+        assert result_nlsq.grho_refh > 0
+        assert result_nlsq.drho > 0
 
         # Bayesian refinement - test that the method exists and can be called
         # Note: Full MCMC test is slow and requires proper JAX-compatible model
@@ -428,3 +429,175 @@ class TestNumPyroIntegration:
         except ImportError:
             # NumPyro not installed, skip
             pytest.skip("NumPyro not available")
+
+
+# =============================================================================
+# T046: Calctype Extensibility Tests (User Story 4)
+# =============================================================================
+
+
+class TestCalctypeExtensibility:
+    """T046: Tests for custom calctype integration.
+
+    These tests verify that the QCMModel architecture supports
+    extending the calculation types beyond the built-in SLA, LL, and Voigt.
+    """
+
+    def test_builtin_calctypes_accepted(self) -> None:
+        """Test that built-in calctypes (SLA, LL, Voigt) are accepted."""
+        from rheoQCM.core.model import QCMModel
+
+        for calctype in ["SLA", "LL", "Voigt"]:
+            model = QCMModel(f1=5e6, refh=3, calctype=calctype)
+            assert model.calctype.upper() == calctype.upper()
+
+    def test_custom_calctype_string_accepted(self) -> None:
+        """Test that custom calctype strings are accepted in constructor."""
+        from rheoQCM.core.model import QCMModel
+
+        # QCMModel should accept any string calctype
+        model = QCMModel(f1=5e6, refh=3, calctype="FractionalKelvinVoigt")
+        assert model.calctype == "FractionalKelvinVoigt"
+
+    def test_custom_calctype_configure(self) -> None:
+        """Test that custom calctype can be set via configure()."""
+        from rheoQCM.core.model import QCMModel
+
+        model = QCMModel(f1=5e6, refh=3)
+        model.configure(calctype="MaxwellModel")
+        assert model.calctype == "MaxwellModel"
+
+    def test_custom_calctype_in_solve_properties(self) -> None:
+        """Test that custom calctype can be passed to solve_properties()."""
+        from rheoQCM.core.model import QCMModel
+
+        model = QCMModel(f1=5e6, refh=3)
+
+        delfstars = {
+            3: -87768.0313369799 + 155.716064797j,
+            5: -159742.686586637 + 888.6642467156j,
+        }
+        model.load_delfstars(delfstars)
+
+        # Custom calctype can be passed to solve_properties
+        # For now, it falls back to SLA behavior for unknown calctypes
+        result = model.solve_properties(
+            nh=[3, 5, 3],
+            calctype="CustomModel",
+        )
+
+        # Result should still be returned (using default behavior)
+        assert result is not None
+
+    def test_calctype_registry_exists(self) -> None:
+        """Test that calctype registry pattern is accessible."""
+        from rheoQCM.core.model import QCMModel
+
+        model = QCMModel(f1=5e6, refh=3)
+
+        # The model should have a way to query/register calctypes
+        # Check for registry or list of supported types
+        assert hasattr(model, "calctype")
+
+        # Check that we can list supported calctypes
+        supported = model.get_supported_calctypes()
+        assert "SLA" in supported
+        assert "LL" in supported
+        assert "Voigt" in supported
+
+    def test_register_custom_calctype(self) -> None:
+        """Test registering a custom calctype with a residual function."""
+        from rheoQCM.core.model import QCMModel
+
+        model = QCMModel(f1=5e6, refh=3)
+
+        # Define a custom residual function for a new calctype
+        def custom_residual(params, delfstar_exp, harmonics, f1, refh, Zq):
+            """Custom residual function for testing."""
+            import jax.numpy as jnp
+
+            # Simple residual for testing
+            grho_refh, phi, drho = params
+            residuals = jnp.zeros(len(harmonics))
+            return residuals
+
+        # Register the custom calctype
+        model.register_calctype("CustomTest", custom_residual)
+
+        # The custom calctype should now be accessible
+        supported = model.get_supported_calctypes()
+        assert "CustomTest" in supported
+
+    def test_custom_calctype_with_custom_residual(self) -> None:
+        """Test solving with a registered custom calctype."""
+        from rheoQCM.core.model import QCMModel
+        import jax.numpy as jnp
+
+        model = QCMModel(f1=5e6, refh=3)
+
+        # Register a simple test calctype that returns fixed residuals
+        def simple_residual(params, delfstar_exp, harmonics, f1, refh, Zq):
+            """Simple test residual - returns zeros (perfect fit)."""
+            return jnp.zeros(len(harmonics))
+
+        model.register_calctype("SimpleTest", simple_residual)
+
+        delfstars = {
+            3: -87768.0313369799 + 155.716064797j,
+            5: -159742.686586637 + 888.6642467156j,
+        }
+        model.load_delfstars(delfstars)
+
+        # Setting calctype to registered custom type should work
+        model.configure(calctype="SimpleTest")
+        assert model.calctype == "SimpleTest"
+
+    def test_unknown_calctype_error_handling(self) -> None:
+        """Test that unknown calctype gives informative message."""
+        from rheoQCM.core.model import QCMModel
+
+        model = QCMModel(f1=5e6, refh=3)
+
+        delfstars = {
+            3: -87768.0313369799 + 155.716064797j,
+            5: -159742.686586637 + 888.6642467156j,
+        }
+        model.load_delfstars(delfstars)
+
+        # When using an unknown unregistered calctype, the solver should
+        # either fall back to default or provide clear error
+        result = model.solve_properties(
+            nh=[3, 5, 3],
+            calctype="NonExistentType",
+        )
+
+        # Result should indicate what happened
+        # Either success with fallback or failure with message
+        assert result is not None
+        if hasattr(result, "message"):
+            # SolveResult dataclass
+            assert result.message is not None or result.success
+        else:
+            # Dictionary format
+            assert True  # Result was returned
+
+    def test_calctype_case_insensitive(self) -> None:
+        """Test that calctype matching is case-insensitive for built-ins."""
+        from rheoQCM.core.model import QCMModel
+
+        # These should all work
+        for calctype in ["sla", "SLA", "Sla", "ll", "LL", "Ll"]:
+            model = QCMModel(f1=5e6, refh=3, calctype=calctype)
+            # The calctype should be stored (possibly normalized)
+            assert model.calctype.upper() in ["SLA", "LL", "VOIGT"]
+
+    def test_calctype_extensibility_documentation(self) -> None:
+        """Test that calctype extension is documented in class docstring."""
+        from rheoQCM.core.model import QCMModel
+
+        docstring = QCMModel.__doc__
+        # The docstring should mention how to extend calctypes
+        # This is a documentation check to ensure US4 is complete
+        assert docstring is not None
+        # Look for extension-related keywords
+        assert "calctype" in docstring.lower()

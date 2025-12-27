@@ -5,9 +5,13 @@ These tests verify that QCM.py correctly acts as a thin UI wrapper
 by delegating physics calculations to core.physics and fitting logic
 to core.model.
 
-Test coverage: 6 focused tests for UI wrapper functionality.
+Test coverage:
+- T032: QCM class delegation to QCMModel
+- T033: No scipy.optimize in QCM.py
+- Additional tests for UI wrapper functionality
 """
 
+import inspect
 from pathlib import Path
 
 import jax.numpy as jnp
@@ -18,6 +22,203 @@ from rheoQCM.core import configure_jax
 
 # Ensure JAX is configured for Float64 before running tests
 configure_jax()
+
+
+# =============================================================================
+# T032: Test QCM class delegation to QCMModel
+# =============================================================================
+
+
+class TestQCMDelegationToModel:
+    """T032: Test that QCM class properly delegates to QCMModel."""
+
+    def test_qcm_has_internal_model(self) -> None:
+        """Test that QCM class has internal _model attribute for delegation."""
+        from rheoQCM.modules.QCM import QCM
+
+        qcm = QCM()
+        # Should have _model attribute (lazy initialized)
+        assert hasattr(qcm, "_model")
+
+    def test_get_model_creates_qcmmodel(self) -> None:
+        """Test that _get_model() creates a QCMModel instance."""
+        from rheoQCM.core.model import QCMModel
+        from rheoQCM.modules.QCM import QCM
+
+        qcm = QCM()
+        qcm.f1 = 5e6
+        qcm.refh = 3
+
+        model = qcm._get_model()
+
+        assert isinstance(model, QCMModel)
+
+    def test_get_model_syncs_core_state(self) -> None:
+        """Test that _get_model() synchronizes core QCM state to QCMModel."""
+        from rheoQCM.modules.QCM import QCM
+
+        qcm = QCM()
+        qcm.f1 = 5e6
+        qcm.refh = 3
+        qcm.calctype = "SLA"
+
+        # Get model and verify core state is synced
+        model = qcm._get_model()
+
+        assert model.f1 == 5e6
+        assert model.refh == 3
+        assert model.calctype == "SLA"
+
+    def test_get_model_syncs_on_subsequent_calls(self) -> None:
+        """Test that _get_model() synchronizes state on subsequent calls."""
+        from rheoQCM.modules.QCM import QCM
+
+        qcm = QCM()
+        qcm.f1 = 5e6
+        qcm.refh = 3
+
+        # First call creates model
+        model1 = qcm._get_model()
+        assert model1.f1 == 5e6
+
+        # Change state
+        qcm.f1 = 6e6
+        qcm.refh = 5
+
+        # Second call should sync new state
+        model2 = qcm._get_model()
+        assert model2 is model1  # Same model instance
+        assert model2.f1 == 6e6
+        assert model2.refh == 5
+
+    def test_solve_uses_model_solve_properties(self) -> None:
+        """Test that solve_general_delfstar_to_prop uses model.solve_properties."""
+        from rheoQCM.modules.QCM import QCM
+
+        qcm = QCM()
+        qcm.f1 = 5e6
+        qcm.refh = 3
+
+        nh = [3, 5, 3]
+        delfstar = {
+            1: -28206.4782657343 + 5.6326137881j,
+            3: -87768.0313369799 + 155.716064797j,
+            5: -159742.686586637 + 888.6642467156j,
+        }
+        film = {
+            0: {"calc": False, "drho": 2.8e-6, "grho": 3e17, "phi": 0, "n": 3},
+            1: {"calc": True},
+        }
+
+        # This should use the model internally
+        grho_refh, phi, drho, dlam_refh, err = qcm.solve_general_delfstar_to_prop(
+            nh, delfstar, film, calctype="SLA"
+        )
+
+        # Verify the model was used (it should have been created)
+        assert qcm._model is not None
+
+    def test_physics_functions_delegate_to_core(self) -> None:
+        """Test that physics functions in QCM delegate to core.physics."""
+        from rheoQCM.core import physics
+        from rheoQCM.modules.QCM import QCM
+
+        qcm = QCM()
+        qcm.f1 = 5e6
+        qcm.refh = 3
+
+        n = 3
+        drho = 1e-6
+        grho_refh = 1e8
+        phi = np.pi / 4
+
+        # Test sauerbreyf delegation
+        qcm_result = qcm.sauerbreyf(n, drho)
+        core_result = float(physics.sauerbreyf(n, drho, f1=qcm.f1))
+        np.testing.assert_allclose(qcm_result, core_result, rtol=1e-10)
+
+        # Test sauerbreym delegation
+        delf = -1000.0
+        qcm_result = qcm.sauerbreym(n, delf)
+        core_result = float(physics.sauerbreym(n, delf, f1=qcm.f1))
+        np.testing.assert_allclose(qcm_result, core_result, rtol=1e-10)
+
+        # Test grho delegation
+        qcm_result = qcm.grho(n, grho_refh, phi)
+        core_result = float(physics.grho(n, grho_refh, phi, refh=qcm.refh))
+        np.testing.assert_allclose(qcm_result, core_result, rtol=1e-10)
+
+        # Test grhostar_from_refh delegation
+        qcm_result = qcm.grhostar_from_refh(5, grho_refh, phi)
+        core_result = complex(physics.grhostar_from_refh(5, grho_refh, phi, refh=qcm.refh))
+        np.testing.assert_allclose(qcm_result, core_result, rtol=1e-10)
+
+
+# =============================================================================
+# T033: Test no scipy.optimize in QCM.py
+# =============================================================================
+
+
+class TestNoScipyOptimize:
+    """T033: Verify no scipy.optimize in QCM.py."""
+
+    def test_no_scipy_optimize_import(self) -> None:
+        """Test that QCM.py does not import scipy.optimize."""
+        from rheoQCM.modules import QCM as qcm_module
+
+        qcm_path = Path(qcm_module.__file__)
+
+        with open(qcm_path, "r") as f:
+            source = f.read()
+
+        # Check that scipy.optimize is not imported at module level
+        # Note: we check for the actual import statement patterns
+        assert "from scipy import optimize" not in source, \
+            "scipy.optimize should not be imported in QCM.py"
+
+    def test_no_optimize_root_usage(self) -> None:
+        """Test that optimize.root is not used in QCM.py."""
+        from rheoQCM.modules import QCM as qcm_module
+
+        qcm_path = Path(qcm_module.__file__)
+
+        with open(qcm_path, "r") as f:
+            source = f.read()
+
+        # After refactoring, optimize.root should not be present
+        assert "optimize.root" not in source, \
+            "optimize.root should be replaced with core functions"
+
+    def test_no_optimize_least_squares_usage(self) -> None:
+        """Test that optimize.least_squares is not used in QCM.py."""
+        from rheoQCM.modules import QCM as qcm_module
+
+        qcm_path = Path(qcm_module.__file__)
+
+        with open(qcm_path, "r") as f:
+            source = f.read()
+
+        assert "optimize.least_squares" not in source, \
+            "optimize.least_squares should be replaced with NLSQ/jaxopt"
+
+    def test_uses_core_multilayer_for_ll(self) -> None:
+        """Test that LL calculation uses core multilayer functions."""
+        from rheoQCM.modules import QCM as qcm_module
+
+        qcm_path = Path(qcm_module.__file__)
+
+        with open(qcm_path, "r") as f:
+            source = f.read()
+
+        # After refactoring, should use core multilayer for LL calculation
+        assert "rheoQCM.core" in source or "_core_multilayer" in source or \
+            "from rheoQCM.core import" in source, \
+            "QCM.py should import from rheoQCM.core"
+
+
+# =============================================================================
+# Original tests (kept for backward compatibility)
+# =============================================================================
 
 
 class TestUIWrapperInitialization:

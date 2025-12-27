@@ -30,7 +30,8 @@ See rheoQCM.core.analysis for the modern API.
 import numpy as np
 import sys
 import os
-import scipy.optimize as optimize
+# scipy.optimize removed for NLSQ (T030)
+# NLSQ imports will be done on-demand to avoid import-time overhead
 import matplotlib.pyplot as plt
 from glob import glob
 import time
@@ -62,46 +63,37 @@ if not _SUPPRESS_DEPRECATION:
     )
 
 # =============================================================================
-# Import from rheoQCM.core for JAX-accelerated physics (with fallback)
+# Import from rheoQCM.core for JAX-accelerated physics (T023: core is now required)
 # =============================================================================
-try:
-    from rheoQCM.core import physics as _core_physics
-    from rheoQCM.core.model import QCMModel as _CoreModel
+from rheoQCM.core import physics as _core_physics
+from rheoQCM.core.model import QCMModel as _CoreModel
+from rheoQCM.core import multilayer as _core_multilayer
 
-    # Constants from core
-    Zq = _core_physics.Zq
-    f1_default = _core_physics.f1_default
-    e26 = _core_physics.e26
-    g0_default = _core_physics.g0_default
+# Constants from core
+Zq = _core_physics.Zq
+f1_default = _core_physics.f1_default
+e26 = _core_physics.e26
+g0_default = _core_physics.g0_default
 
-    # Physics functions from core (used for delegation)
-    _core_sauerbreyf = _core_physics.sauerbreyf
-    _core_sauerbreym = _core_physics.sauerbreym
-    _core_grho = _core_physics.grho
-    _core_grhostar = _core_physics.grhostar
-    _core_grhostar_from_refh = _core_physics.grhostar_from_refh
-    _core_grho_from_dlam = _core_physics.grho_from_dlam
-    _core_calc_dlam = _core_physics.calc_dlam
-    _core_calc_lamrho = _core_physics.calc_lamrho
-    _core_calc_deltarho = _core_physics.calc_deltarho
-    _core_etarho = _core_physics.etarho
-    _core_zstar_bulk = _core_physics.zstar_bulk
-    _core_calc_delfstar_sla = _core_physics.calc_delfstar_sla
-    _core_calc_D = _core_physics.calc_D
-    _core_normdelfstar = _core_physics.normdelfstar
-    _core_bulk_props = _core_physics.bulk_props
-    _core_deltarho_bulk = _core_physics.deltarho_bulk
-    _core_kotula_gstar = _core_physics.kotula_gstar
-    _core_kotula_xi = _core_physics.kotula_xi
-
-    _CORE_AVAILABLE = True
-except ImportError:
-    # Fallback: define constants locally if core is not available
-    Zq = 8.84e6  # shear acoustic impedance of at cut quartz
-    f1_default = 5e6  # fundamental resonant frequency
-    e26 = 9.65e-2
-    g0_default = 50  # Half bandwidth of unloaded resonator
-    _CORE_AVAILABLE = False
+# Physics functions from core (used for delegation)
+_core_sauerbreyf = _core_physics.sauerbreyf
+_core_sauerbreym = _core_physics.sauerbreym
+_core_grho = _core_physics.grho
+_core_grhostar = _core_physics.grhostar
+_core_grhostar_from_refh = _core_physics.grhostar_from_refh
+_core_grho_from_dlam = _core_physics.grho_from_dlam
+_core_calc_dlam = _core_physics.calc_dlam
+_core_calc_lamrho = _core_physics.calc_lamrho
+_core_calc_deltarho = _core_physics.calc_deltarho
+_core_etarho = _core_physics.etarho
+_core_zstar_bulk = _core_physics.zstar_bulk
+_core_calc_delfstar_sla = _core_physics.calc_delfstar_sla
+_core_calc_D = _core_physics.calc_D
+_core_normdelfstar = _core_physics.normdelfstar
+_core_bulk_props = _core_physics.bulk_props
+_core_deltarho_bulk = _core_physics.deltarho_bulk
+_core_kotula_gstar = _core_physics.kotula_gstar
+_core_kotula_xi = _core_physics.kotula_xi
 
 
 # =============================================================================
@@ -123,6 +115,56 @@ def _to_numpy(x):
         # Scalar JAX array - convert to Python scalar
         return complex(x) if np.iscomplexobj(x) else float(x)
     return np.asarray(x)
+
+
+def _convert_layers_to_core(layers_legacy):
+    """
+    Convert legacy layer format (grho3, phi in degrees) to core format (grho, phi in radians).
+    
+    Legacy format: {'grho3': val, 'phi': degrees, 'drho': val}
+    Core format: {'grho': val, 'phi': radians, 'drho': val, 'n': 3}
+    """
+    if not layers_legacy:
+        return {}
+    
+    layers_core = {}
+    for layer_num, layer_props in layers_legacy.items():
+        core_props = {
+            'grho': layer_props.get('grho3', layer_props.get('grho', 1e10)),
+            'phi': _deg2rad(layer_props.get('phi', 0)),
+            'drho': layer_props['drho'],
+            'n': 3,  # Reference harmonic
+        }
+        # Copy optional fields
+        if 'AF' in layer_props:
+            core_props['AF'] = layer_props['AF']
+        if 'Zf' in layer_props:
+            core_props['Zf'] = layer_props['Zf']
+        layers_core[layer_num] = core_props
+    return layers_core
+
+
+def _convert_layers_from_core(layers_core):
+    """
+    Convert core layer format (grho, phi in radians) to legacy format (grho3, phi in degrees).
+    """
+    if not layers_core:
+        return {}
+    
+    layers_legacy = {}
+    for layer_num, layer_props in layers_core.items():
+        legacy_props = {
+            'grho3': layer_props.get('grho', layer_props.get('grho3', 1e10)),
+            'phi': _rad2deg(layer_props.get('phi', 0)),
+            'drho': layer_props['drho'],
+        }
+        # Copy optional fields
+        if 'AF' in layer_props:
+            legacy_props['AF'] = layer_props['AF']
+        if 'Zf' in layer_props:
+            legacy_props['Zf'] = layer_props['Zf']
+        layers_legacy[layer_num] = legacy_props
+    return layers_legacy
 
 # Suppress the specific warning when working with All-nan arrays
 warnings.filterwarnings("ignore", message="All-NaN slice encountered")
@@ -414,10 +456,7 @@ def sauerbreyf(n, drho, **kwargs):
         Calculated Sauerbrey frequency shift [Hz].
     """
     f1 = kwargs.get('f1', f1_default)
-    if _CORE_AVAILABLE:
-        return _to_numpy(_core_sauerbreyf(n, drho, f1))
-    # Fallback if core not available
-    return 2 * n * f1 ** 2 * drho / Zq
+    return _to_numpy(_core_sauerbreyf(n, drho, f1))
 
 
 def sauerbreym(n, delf, **kwargs):
@@ -439,10 +478,7 @@ def sauerbreym(n, delf, **kwargs):
         Sauerbrey mass [kg/m^2].
     """
     f1 = kwargs.get('f1', f1_default)
-    if _CORE_AVAILABLE:
-        return _to_numpy(_core_sauerbreym(n, delf, f1))
-    # Fallback if core not available
-    return -delf * Zq / (2 * n * f1 ** 2)
+    return _to_numpy(_core_sauerbreym(n, delf, f1))
 
 
 def etarho(n, props, **kwargs):
@@ -502,11 +538,9 @@ def grho(n, props):
     """
     grho3 = props['grho3']
     phi_deg = props['phi']
-    if _CORE_AVAILABLE:
-        phi_rad = _deg2rad(phi_deg)
-        return _to_numpy(_core_grho(n, grho3, phi_rad, refh=3))
-    # Fallback if core not available
-    return grho3 * (n / 3) ** (phi_deg / 90)
+    # Convert degrees to radians for core (T025)
+    phi_rad = _deg2rad(phi_deg)
+    return _to_numpy(_core_grho(n, grho3, phi_rad, refh=3))
 
 
 def calc_grho3(n, grhostar):
@@ -708,7 +742,10 @@ def calc_delfstar_sla(ZL, **kwargs):
 def calc_ZL(n, layers, delfstar, **kwargs):
     """
     Calculate complex load impendance for stack of layers of known props.
-    Layers are assumed to be laterally homogeneous
+    
+    Delegates to rheoQCM.core.multilayer.calc_ZL for JAX-accelerated computation.
+    Layers are assumed to be laterally homogeneous.
+    
     args:
         n (int):
             Harmonic of interest.
@@ -718,7 +755,7 @@ def calc_ZL(n, layers, delfstar, **kwargs):
             each layer. These dictionaries are labeled by integers from 
             Layer_min to Layer_max, with Layer_min
             being the layer in contact with the QCM.  Each material dictionary must
-            include values for 'grho3, 'phi' and 'drho'. The dictionary for
+            include values for 'grho3, 'phi' (degrees) and 'drho'. The dictionary for
             Layer_max can include the film impedance, Zf.
 
         delfstar (complex):
@@ -734,57 +771,19 @@ def calc_ZL(n, layers, delfstar, **kwargs):
         ZL (complex):
             Complex load impedance (stress over velocity) in SI units
     """
-
-    N = len(layers)
-    Z = {}; D = {}; L = {}; S = {}
-    layer_nums = layers.keys()
-    layer_min = min(layer_nums)
-    layer_max = max(layer_nums)
-    calctype = kwargs.get('calctype', 'SLA')
-
-    # we use the matrix formalism to avoid typos and simplify the extension
-    # to large N.
-    for i in np.arange(layer_min, layer_max):
-        Z[i] = zstar_bulk(n, layers[i], calctype)
-        D[i] = calc_D(n, layers[i], delfstar, **kwargs)
-        L[i] = np.array([[np.cos(D[i])+1j*np.sin(D[i]), 0],
-                 [0, np.cos(D[i])-1j*np.sin(D[i])]])
-
-    # get the terminal matrix from the properties of the last layer
-    if 'Zf' in layers[layer_max].keys():
-        Zf_max = layers[layer_max]['Zf'][n]
-    else:
-        D[layer_max] = calc_D(n, layers[layer_max], delfstar, 
-                              **kwargs)
-        Zf_max = 1j*zstar_bulk(n, layers[layer_max], 
-                               calctype)*np.tan(D[layer_max])
-
-    # if there is only one layer, we're already done
-    if N == 1:
-        return Zf_max
-
-    Tn = np.array([[1+Zf_max/Z[layer_max-1], 0],
-          [0, 1-Zf_max/Z[layer_max-1]]])
-
-    uvec = L[layer_max-1]@Tn@np.array([[1.], [1.]])
-
-    for i in np.arange(layer_max-2, 0, -1):
-        S[i] = np.array([[1+Z[i+1]/Z[i], 1-Z[i+1]/Z[i]],
-          [1-Z[i+1]/Z[i], 1+Z[i+1]/Z[i]]])
-        uvec = L[i]@S[i]@uvec
-
-    rstar = uvec[1, 0]/uvec[0, 0]
-    ZL = Z[layer_min]*(1-rstar)/(1+rstar)
+    if not layers:
+        return 0.0 + 0.0j
     
-    # account for the possibility of a fractional layer
-    # only one of the layers can have fractional coverage
-    for i in np.arange(layer_min, layer_max):
-        if 'AF' in layers[i].keys():
-            AF = layers[i]['AF']
-            layers_ref = delete_layer(layers, 1)
-            ZL_ref = calc_ZL(n, layers_ref, 0, **kwargs)
-            ZL = AF*ZL+(1-AF)*ZL_ref
-    return ZL
+    f1 = kwargs.get('f1', f1_default)
+    calctype = kwargs.get('calctype', 'SLA')
+    refh = kwargs.get('refh', 3)
+    
+    # Convert legacy layers (grho3, phi in degrees) to core format (grho, phi in radians)
+    layers_core = _convert_layers_to_core(layers)
+    
+    # Delegate to core.multilayer (T027)
+    result = _core_multilayer.calc_ZL(n, layers_core, delfstar, f1, calctype, refh)
+    return _to_numpy(result)
 
 def delete_layer(old_layers, num):
     # removes l layer, shifting all the higher levels down 1
@@ -808,6 +807,10 @@ def delete_layer(old_layers, num):
 def calc_delfstar(n, layers_in, **kwargs):
     """
     Calculate complex frequency shift for stack of layers.
+    
+    Delegates to rheoQCM.core.multilayer.calc_delfstar_multilayer for JAX-accelerated 
+    computation including Newton-Raphson iteration for the Lu-Lewis calculation.
+    
     args:
         n (int):
             Harmonic of interest.
@@ -818,7 +821,7 @@ def calc_delfstar(n, layers_in, **kwargs):
             it contains dictionaries
             labeled from 1 to N, with 1
             being the layer in contact with the QCM.  Each dictionary must
-            include values for 'grho3, 'phi' and 'drho'.
+            include values for 'grho3, 'phi' (degrees) and 'drho'.
             layer 0 is the electrode itself.
 
 
@@ -839,69 +842,29 @@ def calc_delfstar(n, layers_in, **kwargs):
         delfstar (complex):
             Complex frequency shift (Hz).
     """
-
-    calctype = kwargs.get('calctype', 'SLA')
-    reftype = kwargs.get('reftype', 'bare')
     if not layers_in:  # if layers is empty {}
         return np.nan
-    layers = deepcopy(layers_in)
     
-    # run quick check to make sure we don't have an infinite layer 
-    # not at the top
-    for layernum in np.arange(min(layers.keys()), max(layers.keys())):
-        if layers[layernum]['drho'] == np.inf:
-            print('only outermost layer can have infinite thickness')
-
-    ZL = calc_ZL(n, layers, 0, **kwargs)
-    if (reftype=='overlayer') and (2 in layers.keys()):
-        layers_ref = delete_layer(layers, 1)
-        ZL_ref = calc_ZL(n, layers_ref, 0, **kwargs)
-    else:
-        ZL_ref = 0
+    calctype = kwargs.get('calctype', 'SLA')
+    reftype = kwargs.get('reftype', 'bare')
+    f1 = kwargs.get('f1', f1_default)
+    g0 = kwargs.get('g0', g0_default)
+    refh = kwargs.get('refh', 3)
     
-    del_ZL = ZL-ZL_ref
+    # Convert legacy layers (grho3, phi in degrees) to core format (grho, phi in radians)
+    layers_core = _convert_layers_to_core(layers_in)
     
-    if calctype != 'LL':
-        # use the small load approximation in all cases where calctype
-        # is not explicitly set to 'LL'
-        return calc_delfstar_sla(del_ZL, **kwargs)
-
-    else:
-        # this is the most general calculation
-        # use default electrode if it's not specified
-
-        if 0 not in layers:
-            layers[0] = electrode_default
-        
-        layers_all = deepcopy(layers)
-        if reftype == 'overlayer':
-            layers_ref = delete_layer(deepcopy(layers), 1)
-        else:
-            layers_ref = {0:layers[0]}
-
-        ZL_all = calc_ZL(n, layers_all, 0, **kwargs)
-        delfstar_sla_all = calc_delfstar_sla(ZL_all, **kwargs)
-        ZL_ref = calc_ZL(n, layers_ref, 0, **kwargs)
-        delfstar_sla_ref = calc_delfstar_sla(ZL_ref, **kwargs)
-
-        def solve_Zmot(x):
-            delfstar = x[0] + 1j*x[1]
-            Zmot = calc_Zmot(n,  layers_all, delfstar, calctype)
-            return [Zmot.real, Zmot.imag]
-
-        sol = optimize.root(solve_Zmot, [delfstar_sla_all.real,
-                                         delfstar_sla_all.imag])
-        dfc = sol.x[0] + 1j * sol.x[1]
-
-        def solve_Zmot_ref(x):
-            delfstar = x[0] + 1j*x[1]
-            Zmot = calc_Zmot(n,  layers_ref, delfstar, calctype)
-            return [Zmot.real, Zmot.imag]
-
-        sol = optimize.root(solve_Zmot_ref, [delfstar_sla_ref.real,
-                                             delfstar_sla_ref.imag])
-        dfc_ref = sol.x[0] + 1j * sol.x[1]
-        return dfc-dfc_ref
+    # Handle electrode for LL calculation
+    electrode_core = None
+    if 0 in layers_core:
+        electrode_core = layers_core[0]
+    
+    # Delegate to core.multilayer (T028)
+    # The core module handles LL calculation with Newton-Raphson (no scipy.optimize needed)
+    result = _core_multilayer.calc_delfstar_multilayer(
+        n, layers_core, f1, calctype, reftype, refh, g0, electrode_core
+    )
+    return _to_numpy(result)
 
 
 def calc_Zmot(n, layers, delfstar, **kwargs):
@@ -1003,14 +966,11 @@ def calc_lamrho(n, grho3, phi, **kwargs):
         Shear wavelength times density in SI units.
     """
     f1 = kwargs.get('f1', f1_default)
-    if _CORE_AVAILABLE:
-        phi_rad = _deg2rad(phi)
-        # First compute grho at harmonic n using power law
-        grho_n = _core_grho(n, grho3, phi_rad, refh=3)
-        return _to_numpy(_core_calc_lamrho(n, grho_n, phi_rad, f1))
-    # Fallback if core not available
-    grho_val = grho3 * (n / 3) ** (phi / 90)
-    return np.sqrt(grho_val) / (n * f1 * np.cos(np.deg2rad(phi / 2)))
+    # Convert degrees to radians for core (T025)
+    phi_rad = _deg2rad(phi)
+    # First compute grho at harmonic n using power law
+    grho_n = _core_grho(n, grho3, phi_rad, refh=3)
+    return _to_numpy(_core_calc_lamrho(n, grho_n, phi_rad, f1))
 
 
 def calc_deltarho(n, grho3, phi, **kwargs):
@@ -1034,13 +994,11 @@ def calc_deltarho(n, grho3, phi, **kwargs):
         Decay length times density in SI units.
     """
     f1 = kwargs.get('f1', f1_default)
-    if _CORE_AVAILABLE:
-        phi_rad = _deg2rad(phi)
-        # First compute grho at harmonic n using power law
-        grho_n = _core_grho(n, grho3, phi_rad, refh=3)
-        return _to_numpy(_core_calc_deltarho(n, grho_n, phi_rad, f1))
-    # Fallback if core not available
-    return calc_lamrho(n, grho3, phi) / (2 * np.pi * np.tan(np.radians(phi / 2)))
+    # Convert degrees to radians for core (T025)
+    phi_rad = _deg2rad(phi)
+    # First compute grho at harmonic n using power law
+    grho_n = _core_grho(n, grho3, phi_rad, refh=3)
+    return _to_numpy(_core_calc_deltarho(n, grho_n, phi_rad, f1))
 
 
 def phi_from_grho3_sadman(grho3):
@@ -1097,13 +1055,9 @@ def normdelfstar(n, dlam3, phi):
     complex
         delfstar normalized by Sauerbrey value.
     """
-    if _CORE_AVAILABLE:
-        phi_rad = _deg2rad(phi)
-        return _to_numpy(_core_normdelfstar(n, dlam3, phi_rad))
-    # Fallback if core not available
-    D = 2 * np.pi * dlam(n, dlam3, phi) * (1 - 1j * np.tan(np.deg2rad(phi / 2)))
-    return -np.sinc(D / np.pi) / np.cos(D)
-    # note:  sinc(x)=sin(pi*x)/(pi*x)
+    # Convert degrees to radians for core (T025)
+    phi_rad = _deg2rad(phi)
+    return _to_numpy(_core_normdelfstar(n, dlam3, phi_rad))
             
 def normdelfstar_liq(n, dlamval, phi, drho, overlayer):
     """
@@ -1285,13 +1239,9 @@ def bulk_props(delfstar, **kwargs):
         Phase angle in degrees, at harmonic where delfstar was measured.
     """
     f1 = kwargs.get('f1', f1_default)
-    if _CORE_AVAILABLE:
-        grho_val, phi_rad = _core_bulk_props(delfstar, f1)
-        return _to_numpy(grho_val), min(_to_numpy(_rad2deg(phi_rad)), 90)
-    # Fallback if core not available
-    grho_val = (np.pi * Zq * abs(delfstar) / f1) ** 2
-    phi_val = -np.degrees(2 * np.arctan(delfstar.real / delfstar.imag))
-    return grho_val, min(phi_val, 90)
+    grho_val, phi_rad = _core_bulk_props(delfstar, f1)
+    # Convert radians to degrees for legacy output (T026)
+    return _to_numpy(grho_val), min(_to_numpy(_rad2deg(phi_rad)), 90)
 
 
 def nvals_from_calc(calc):
@@ -1795,9 +1745,12 @@ def solve_for_props(delfstar, calc, props_calc_in, layers_in, **kwargs):
                                      calctype=calctype, reftype=reftype)
         
         try:
-            soln = optimize.least_squares(ftosolve, guess, bounds=(lb, ub))
-        except:
-            print(f'error at index {row.Index}')
+            # Use NLSQ LeastSquares instead of scipy.optimize (T030)
+            from nlsq import LeastSquares
+            ls = LeastSquares()
+            soln = ls.least_squares(ftosolve, guess, bounds=(lb, ub))
+        except Exception as e:
+            print(f'error at index {row.Index}: {e}')
             continue
             
         # make sure sufficienty accurate solutions was found
@@ -1999,9 +1952,12 @@ def err_fn_correlated_df(df_soln_in, fn_err):
                                      calctype=row.calctype, 
                                      reftype=row.reftype)
         try:
-            soln = optimize.least_squares(ftosolve, guess)
-        except:
-            print(f'error at index {row.Index}')
+            # Use NLSQ LeastSquares instead of scipy.optimize (T030)
+            from nlsq import LeastSquares
+            ls = LeastSquares()
+            soln = ls.least_squares(ftosolve, guess)
+        except Exception as e:
+            print(f'error at index {row.Index}: {e}')
             continue
         
         for i, prop in enumerate(row.props_calc):
@@ -2052,9 +2008,12 @@ def err_fn_correlated_row(row_in, fn_err):
                                  calctype=row.calctype, 
                                  reftype=row.reftype)
     try:
-        soln = optimize.least_squares(ftosolve, guess)
-    except:
-        print(f'error at index {row.Index} during fn_err calc)')
+        # Use NLSQ LeastSquares instead of scipy.optimize (T030)
+        from nlsq import LeastSquares
+        ls = LeastSquares()
+        soln = ls.least_squares(ftosolve, guess)
+    except Exception as e:
+        print(f'error at index {row.Index} during fn_err calc): {e}')
         return
     
     for i, prop in enumerate(row.props_calc):
@@ -4169,35 +4128,12 @@ def kotula_gstar(xi, Gmstar, Gfstar, xi_crit, s, t):
     complex or array
         Complex modulus at given filler fraction.
     """
-    if _CORE_AVAILABLE:
-        import jax.numpy as jnp
-        xi_arr = jnp.atleast_1d(jnp.asarray(xi))
-        result = _core_kotula_gstar(xi_arr, Gmstar, Gfstar, xi_crit, s, t)
-        if np.isscalar(xi):
-            return complex(_to_numpy(result[0]))
-        return _to_numpy(result)
-    # Fallback using mpmath (requires mpmath package)
-    try:
-        from mpmath import findroot
-    except ImportError:
-        raise ImportError(
-            "kotula_gstar requires JAX or mpmath. Neither is available.\n"
-            "\nTo fix, install one of:\n"
-            "  - JAX (recommended, 100x+ faster): pip install jax jaxlib\n"
-            "  - mpmath (fallback): pip install mpmath\n"
-            "\nFor GPU acceleration (Linux only):\n"
-            "  pip install 'jax[cuda12-local]>=0.6.0'"
-        )
-    gstar = np.full_like(xi, 1, dtype=complex)
-    for i, xival in np.ndenumerate(xi):
-        def ftosolve(gstar_val):
-            A = (1 - xi_crit) / xi_crit
-            func = ((1 - xival) * (Gmstar**(1/s) - gstar_val**(1/s)) / (Gmstar**(1/s) +
-                     A * gstar_val**(1/s)) + xival * (Gfstar**(1/t) - gstar_val**(1/t)) /
-                     (Gfstar**(1/t) + A * gstar_val**(1/t)))
-            return func
-        gstar[i] = findroot(ftosolve, Gmstar)
-    return gstar
+    import jax.numpy as jnp
+    xi_arr = jnp.atleast_1d(jnp.asarray(xi))
+    result = _core_kotula_gstar(xi_arr, Gmstar, Gfstar, xi_crit, s, t)
+    if np.isscalar(xi):
+        return complex(_to_numpy(result[0]))
+    return _to_numpy(result)
 
 
 def kotula_xi(gstar, Gmstar, Gfstar, xi_crit, s, t):
@@ -4225,15 +4161,7 @@ def kotula_xi(gstar, Gmstar, Gfstar, xi_crit, s, t):
     float or array
         Filler volume fraction.
     """
-    if _CORE_AVAILABLE:
-        return _to_numpy(_core_kotula_xi(gstar, Gmstar, Gfstar, xi_crit, s, t))
-    # Fallback
-    A = (1 - xi_crit) / xi_crit
-    xi = (-A * Gmstar**(1/s) * gstar**(1/t) + A * gstar**((s + t)/(s * t)) -
-            Gfstar**(1/t) * Gmstar**(1/s) + Gfstar**(1/t) * gstar**(1/s)) / (A *
-            Gfstar**(1/t) * gstar**(1/s) - A * Gmstar**(1/s) * gstar**(1/t) +
-            Gfstar**(1/t) * gstar**(1/s) - Gmstar**(1/s) * gstar**(1/t))
-    return xi
+    return _to_numpy(_core_kotula_xi(gstar, Gmstar, Gfstar, xi_crit, s, t))
 
 
 def abs_kotula(xi, Gmstar, Gfstar, xi_crit, s, t):

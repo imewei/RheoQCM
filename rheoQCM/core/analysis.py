@@ -23,13 +23,20 @@ Basic analysis workflow:
 >>> analyzer = QCMAnalyzer(f1=5e6)
 >>> analyzer.load_data({3: -1000+100j, 5: -1700+180j})
 >>> result = analyzer.analyze(nh=[3, 5, 3])
->>> print(f"drho = {result['drho']:.3e} kg/m^2")
+>>> print(f"drho = {result.drho:.3e} kg/m^2")
 
 Using legacy function names:
 
 >>> from rheoQCM.core.analysis import sauerbreyf, sauerbreym
 >>> delf = sauerbreyf(3, 1e-6)  # 3rd harmonic, 1 ug/cm^2
 >>> drho = sauerbreym(3, -1000)  # Calculate mass from frequency shift
+
+Batch processing with GPU acceleration (US3):
+
+>>> from rheoQCM.core.analysis import batch_analyze_vmap
+>>> delfstars = jnp.array([[-1000+100j, -1700+180j], ...])  # (N, 2) array
+>>> result = batch_analyze_vmap(delfstars, harmonics=[3, 5], nhcalc="35")
+>>> print(f"Processed {len(result)} measurements on {get_jax_backend()}")
 
 See Also
 --------
@@ -39,12 +46,14 @@ rheoQCM.core.model : Layer 2 model logic
 
 from __future__ import annotations
 
+import logging
 import warnings
 from pathlib import Path
 from typing import Any
 from typing import Callable
 from typing import Sequence
 
+import jax
 import jax.numpy as jnp
 import numpy as np
 
@@ -54,6 +63,8 @@ from rheoQCM.core.jax_config import is_gpu_available
 
 # Ensure JAX is configured
 configure_jax()
+
+logger = logging.getLogger(__name__)
 
 # =============================================================================
 # Import all physics functions from Layer 1
@@ -113,6 +124,8 @@ from rheoQCM.core.physics import (
 
 from rheoQCM.core.model import (
     QCMModel,
+    BatchResult,
+    SolveResult,
     bulk_drho,
 )
 
@@ -142,7 +155,7 @@ class QCMAnalyzer:
     ----------
     model : QCMModel
         Underlying model instance.
-    results : list[dict]
+    results : list
         List of analysis results from previous runs.
 
     Examples
@@ -161,7 +174,7 @@ class QCMAnalyzer:
     ) -> None:
         """Initialize QCMAnalyzer with specified parameters."""
         self._model = QCMModel(f1=f1, refh=refh, calctype=calctype)
-        self._results: list[dict[str, Any]] = []
+        self._results: list[Any] = []
 
     @property
     def model(self) -> QCMModel:
@@ -169,7 +182,7 @@ class QCMAnalyzer:
         return self._model
 
     @property
-    def results(self) -> list[dict[str, Any]]:
+    def results(self) -> list[Any]:
         """Access list of previous analysis results."""
         return self._results
 
@@ -233,7 +246,7 @@ class QCMAnalyzer:
         bulklimit: float = 0.5,
         calculate_errors: bool = False,
         store_result: bool = True,
-    ) -> dict[str, Any]:
+    ) -> SolveResult:
         """
         Analyze loaded data to extract film properties.
 
@@ -252,13 +265,13 @@ class QCMAnalyzer:
 
         Returns
         -------
-        dict
+        SolveResult
             Results containing:
             - grho_refh: |G*|*rho at reference harmonic [Pa kg/m^3]
             - phi: Phase angle [radians]
             - drho: Mass per area [kg/m^2]
             - dlam_refh: d/lambda at reference harmonic
-            - errors: dict of error estimates (if calculate_errors=True)
+            - covariance: Error estimates (if calculate_errors=True)
         """
         result = self._model.solve_properties(
             nh=nh,
@@ -278,7 +291,7 @@ class QCMAnalyzer:
         nh: list[int],
         calctype: str | None = None,
         bulklimit: float = 0.5,
-    ) -> list[dict[str, Any]]:
+    ) -> BatchResult:
         """
         Analyze multiple timepoints in batch.
 
@@ -295,17 +308,18 @@ class QCMAnalyzer:
 
         Returns
         -------
-        list[dict]
-            List of result dictionaries.
+        BatchResult
+            Dataclass with arrays of results for all measurements.
         """
-        results = self._model.solve_batch(
+        result = self._model.solve_batch(
             batch_delfstars=batch_delfstars,
             nh=nh,
             calctype=calctype,
             bulklimit=bulklimit,
         )
-        self._results.extend(results)
-        return results
+        # Note: BatchResult is not iterable, so we don't extend _results
+        # Store as a single entry if needed
+        return result
 
     def curve_fit(
         self,
@@ -396,14 +410,14 @@ class QCMAnalyzer:
         )
 
     def format_result(
-        self, result: dict[str, Any] | None = None
+        self, result: Any | None = None
     ) -> dict[str, Any]:
         """
         Format result for export.
 
         Parameters
         ----------
-        result : dict, optional
+        result : SolveResult, optional
             Result to format. Uses last result if None.
 
         Returns
@@ -418,14 +432,14 @@ class QCMAnalyzer:
         return self._model.format_result_for_export(result)
 
     def convert_to_display_units(
-        self, result: dict[str, Any] | None = None
+        self, result: Any | None = None
     ) -> dict[str, Any]:
         """
         Convert result units from SI to display units.
 
         Parameters
         ----------
-        result : dict, optional
+        result : SolveResult, optional
             Result to convert. Uses last result if None.
 
         Returns
@@ -456,7 +470,7 @@ def analyze_delfstar(
     refh: int = 3,
     calctype: str = "SLA",
     bulklimit: float = 0.5,
-) -> dict[str, Any]:
+) -> SolveResult:
     """
     One-shot analysis of delfstar data.
 
@@ -479,7 +493,7 @@ def analyze_delfstar(
 
     Returns
     -------
-    dict
+    SolveResult
         Analysis results.
 
     Examples
@@ -509,7 +523,7 @@ def batch_analyze(
     refh: int = 3,
     calctype: str = "SLA",
     bulklimit: float = 0.5,
-) -> list[dict[str, Any]]:
+) -> BatchResult:
     """
     Analyze multiple timepoints in batch.
 
@@ -532,8 +546,8 @@ def batch_analyze(
 
     Returns
     -------
-    list[dict]
-        List of result dictionaries.
+    BatchResult
+        Dataclass with arrays of results for all measurements.
     """
     analyzer = QCMAnalyzer(f1=f1, refh=refh, calctype=calctype)
     return analyzer.analyze_batch(
@@ -541,6 +555,342 @@ def batch_analyze(
         nh=nh,
         calctype=calctype,
         bulklimit=bulklimit,
+    )
+
+
+# =============================================================================
+# T042, T043: vmap-enabled batch_analyze with GPU acceleration (US3)
+# =============================================================================
+
+
+def _log_backend_info() -> str:
+    """
+    Log GPU/CPU backend information for batch processing.
+
+    T043: Add GPU backend detection and logging.
+
+    Returns
+    -------
+    str
+        The active backend ("cpu", "gpu", "tpu", or "unknown").
+    """
+    backend = get_jax_backend()
+    gpu_available = is_gpu_available()
+
+    if backend == "gpu":
+        logger.info("batch_analyze_vmap: Using GPU acceleration")
+    elif backend == "tpu":
+        logger.info("batch_analyze_vmap: Using TPU acceleration")
+    elif gpu_available:
+        logger.info(
+            "batch_analyze_vmap: GPU available but running on CPU. "
+            "Consider using GPU for larger batches."
+        )
+    else:
+        logger.info("batch_analyze_vmap: Running on CPU (no GPU available)")
+
+    return backend
+
+
+# Pure JAX functions for vmap-compatible batch processing
+@jax.jit
+def _vmap_normdelfstar(
+    n: jnp.ndarray,
+    dlam_refh: jnp.ndarray,
+    phi: jnp.ndarray,
+    refh: int,
+) -> jnp.ndarray:
+    """Calculate normalized delfstar (vmap-compatible)."""
+    dlam_n = dlam_refh * (n / refh) ** (1 - phi / jnp.pi)
+    D = 2 * jnp.pi * dlam_n * (1 - 1j * jnp.tan(phi / 2))
+    return -jnp.sin(D) / D / jnp.cos(D)
+
+
+@jax.jit
+def _vmap_rhcalc(
+    n1: int,
+    n2: int,
+    dlam_refh: jnp.ndarray,
+    phi: jnp.ndarray,
+    refh: int,
+) -> jnp.ndarray:
+    """Calculate harmonic ratio (vmap-compatible)."""
+    nds1 = _vmap_normdelfstar(n1, dlam_refh, phi, refh)
+    nds2 = _vmap_normdelfstar(n2, dlam_refh, phi, refh)
+    return jnp.real(nds1) / jnp.real(nds2)
+
+
+@jax.jit
+def _vmap_rdcalc(
+    n3: int,
+    dlam_refh: jnp.ndarray,
+    phi: jnp.ndarray,
+    refh: int,
+) -> jnp.ndarray:
+    """Calculate dissipation ratio (vmap-compatible)."""
+    nds = _vmap_normdelfstar(n3, dlam_refh, phi, refh)
+    return -jnp.imag(nds) / jnp.real(nds)
+
+
+def _parse_nhcalc(nhcalc: str) -> tuple[int, int, int]:
+    """Parse nhcalc string to get harmonic numbers."""
+    if len(nhcalc) == 2:
+        return int(nhcalc[0]), int(nhcalc[1]), int(nhcalc[0])
+    elif len(nhcalc) == 3:
+        return int(nhcalc[0]), int(nhcalc[1]), int(nhcalc[2])
+    else:
+        raise ValueError(f"Invalid nhcalc format: {nhcalc}")
+
+
+def _solve_single_measurement(
+    delfstar_n1: jnp.ndarray,
+    delfstar_n2: jnp.ndarray,
+    delfstar_n3: jnp.ndarray,
+    n1: int,
+    n2: int,
+    n3: int,
+    f1: float,
+    refh: int,
+    bulklimit: float,
+) -> tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray]:
+    """
+    Solve for film properties from a single measurement (vmap-compatible).
+
+    Uses jax.lax.cond for vmap-compatible control flow instead of Python if/else.
+
+    Returns
+    -------
+    tuple
+        (drho, grho_refh, phi, success)
+    """
+    # Calculate experimental ratios
+    rd_exp = -jnp.imag(delfstar_n3) / jnp.real(delfstar_n3)
+    rh_exp = (n2 / n1) * jnp.real(delfstar_n1) / jnp.real(delfstar_n2)
+
+    # Determine if bulk (using lax.cond for vmap compatibility)
+    is_bulk = rd_exp >= bulklimit
+
+    # Bulk solution
+    def bulk_solution(inputs):
+        delfstar_refh = inputs[0]
+        grho_refh = (jnp.pi * Zq * jnp.abs(delfstar_refh) / f1) ** 2
+        phi = jnp.minimum(
+            jnp.pi / 2,
+            -2 * jnp.arctan(jnp.real(delfstar_refh) / jnp.imag(delfstar_refh)),
+        )
+        drho = jnp.inf
+        return drho, grho_refh, phi, jnp.array(True)
+
+    # Thin film solution
+    def thin_film_solution(inputs):
+        delfstar_n1_local = inputs[1]
+        delfstar_n2_local = inputs[2]
+        delfstar_n3_local = inputs[3]
+        rd_exp_local = inputs[4]
+        rh_exp_local = inputs[5]
+
+        # Initial guess
+        dlam_refh = jnp.array(0.05)
+        phi = jnp.array(0.1)
+
+        # Simple iterative refinement (vmap-compatible fixed iterations)
+        def body_fn(carry, _):
+            dlam_r, phi_r = carry
+            rh_calc = _vmap_rhcalc(n1, n2, dlam_r, phi_r, refh)
+            rd_calc = _vmap_rdcalc(n3, dlam_r, phi_r, refh)
+
+            # Gradient-based update (simple Newton step approximation)
+            # Use small perturbations for numerical gradient
+            eps = 1e-6
+            drh_ddlam = (_vmap_rhcalc(n1, n2, dlam_r + eps, phi_r, refh) - rh_calc) / eps
+            drh_dphi = (_vmap_rhcalc(n1, n2, dlam_r, phi_r + eps, refh) - rh_calc) / eps
+            drd_ddlam = (_vmap_rdcalc(n3, dlam_r + eps, phi_r, refh) - rd_calc) / eps
+            drd_dphi = (_vmap_rdcalc(n3, dlam_r, phi_r + eps, refh) - rd_calc) / eps
+
+            # Jacobian
+            det = drh_ddlam * drd_dphi - drh_dphi * drd_ddlam
+            det_safe = jnp.where(jnp.abs(det) < 1e-20, 1e-20, det)
+
+            # Residuals
+            r_rh = rh_exp_local - rh_calc
+            r_rd = rd_exp_local - rd_calc
+
+            # Newton step
+            d_dlam = (drd_dphi * r_rh - drh_dphi * r_rd) / det_safe
+            d_phi = (-drd_ddlam * r_rh + drh_ddlam * r_rd) / det_safe
+
+            # Damped update
+            damping = 0.5
+            dlam_new = dlam_r + damping * d_dlam
+            phi_new = phi_r + damping * d_phi
+
+            # Clamp to valid ranges
+            dlam_new = jnp.clip(dlam_new, 1e-6, 10.0)
+            phi_new = jnp.clip(phi_new, 1e-6, jnp.pi / 2 - 1e-6)
+
+            return (dlam_new, phi_new), None
+
+        # Run fixed number of iterations (vmap-compatible)
+        (dlam_refh_final, phi_final), _ = jax.lax.scan(
+            body_fn, (dlam_refh, phi), None, length=20
+        )
+
+        # Calculate drho from Sauerbrey
+        nds = _vmap_normdelfstar(n1, dlam_refh_final, phi_final, refh)
+        delf_saub = jnp.real(delfstar_n1_local) / jnp.real(nds)
+        drho = delf_saub * Zq / (2 * n1 * f1**2)
+
+        # Calculate grho from dlam
+        grho_refh = (drho * refh * f1 * jnp.cos(phi_final / 2) / dlam_refh_final) ** 2
+
+        # Check convergence
+        rh_final = _vmap_rhcalc(n1, n2, dlam_refh_final, phi_final, refh)
+        rd_final = _vmap_rdcalc(n3, dlam_refh_final, phi_final, refh)
+        rh_err = jnp.abs(rh_final - rh_exp_local)
+        rd_err = jnp.abs(rd_final - rd_exp_local)
+        success = (rh_err < 0.01) & (rd_err < 0.01) & jnp.isfinite(drho)
+
+        return drho, grho_refh, phi_final, success
+
+    # Select reference harmonic delfstar based on refh
+    delfstar_refh = jax.lax.switch(
+        jnp.int32((refh == n1) + 2 * (refh == n2) + 3 * (refh == n3)),
+        [
+            lambda: delfstar_n1,  # default/fallback
+            lambda: delfstar_n1,  # refh == n1
+            lambda: delfstar_n2,  # refh == n2
+            lambda: delfstar_n3,  # refh == n3
+        ]
+    )
+
+    inputs = (delfstar_refh, delfstar_n1, delfstar_n2, delfstar_n3, rd_exp, rh_exp)
+
+    drho, grho_refh, phi, success = jax.lax.cond(
+        is_bulk,
+        bulk_solution,
+        thin_film_solution,
+        inputs,
+    )
+
+    return drho, grho_refh, phi, success
+
+
+def batch_analyze_vmap(
+    delfstars: jnp.ndarray,
+    harmonics: list[int],
+    nhcalc: str = "35",
+    f1: float = f1_default,
+    refh: int = 3,
+    bulklimit: float = 0.5,
+) -> BatchResult:
+    """
+    Batch analyze multiple measurements using vmap for GPU acceleration.
+
+    T042: Implement batch_analyze using vmap.
+    T043: Add GPU backend detection and logging.
+
+    This function uses JAX's vmap to process multiple QCM-D measurements
+    in parallel, enabling GPU acceleration for large datasets.
+
+    Parameters
+    ----------
+    delfstars : jnp.ndarray
+        Complex frequency shifts array, shape (N, H) where N is number of
+        measurements and H is number of harmonics. The columns correspond
+        to the harmonics specified in the `harmonics` parameter.
+    harmonics : list[int]
+        List of harmonic numbers corresponding to columns in delfstars.
+        Must contain at least 2 harmonics.
+    nhcalc : str, optional
+        String specifying harmonics for rh and rd calculation.
+        E.g., "35" means use harmonics 3 and 5. Default: "35".
+    f1 : float, optional
+        Fundamental frequency [Hz]. Default: 5e6 Hz.
+    refh : int, optional
+        Reference harmonic for grho scaling. Default: 3.
+    bulklimit : float, optional
+        Dissipation ratio threshold for bulk detection. Default: 0.5.
+
+    Returns
+    -------
+    BatchResult
+        Dataclass containing arrays of:
+        - drho: Mass per area [kg/m^2], shape (N,)
+        - grho_refh: |G*|*rho at reference harmonic [Pa kg/m^3], shape (N,)
+        - phi: Phase angle [radians], shape (N,)
+        - dlam_refh: d/lambda at reference harmonic, shape (N,)
+        - success: Boolean convergence indicators, shape (N,)
+
+    Notes
+    -----
+    This function uses vmap for parallelization (FR-006) and runs on GPU
+    if available (logged at INFO level).
+
+    Examples
+    --------
+    >>> delfstars = jnp.array([
+    ...     [-87768.0 + 155.7j, -159742.7 + 888.7j],
+    ...     [-90000.0 + 160.0j, -165000.0 + 920.0j],
+    ... ])
+    >>> result = batch_analyze_vmap(delfstars, harmonics=[3, 5], nhcalc="35")
+    >>> print(f"Processed {len(result)} measurements")
+    """
+    # Log backend information (T043)
+    backend = _log_backend_info()
+    logger.info(f"batch_analyze_vmap: Processing {len(delfstars)} measurements")
+
+    # Parse nhcalc
+    n1, n2, n3 = _parse_nhcalc(nhcalc)
+
+    # Validate harmonics
+    if len(harmonics) < 2:
+        raise ValueError("Need at least 2 harmonics for analysis")
+
+    # Map harmonic numbers to column indices
+    h_to_idx = {h: i for i, h in enumerate(harmonics)}
+
+    if n1 not in h_to_idx or n2 not in h_to_idx:
+        raise ValueError(
+            f"nhcalc harmonics {n1}, {n2} not found in provided harmonics {harmonics}"
+        )
+
+    # Get indices for each needed harmonic
+    idx1 = h_to_idx[n1]
+    idx2 = h_to_idx[n2]
+    # n3 might be same as n1 or n2
+    idx3 = h_to_idx.get(n3, idx1)
+
+    # Extract columns for each harmonic
+    delfstar_n1 = delfstars[:, idx1]
+    delfstar_n2 = delfstars[:, idx2]
+    delfstar_n3 = delfstars[:, idx3]
+
+    # Create vmapped solver
+    @jax.jit
+    def solve_batch(ds_n1, ds_n2, ds_n3):
+        return jax.vmap(
+            lambda d1, d2, d3: _solve_single_measurement(
+                d1, d2, d3, n1, n2, n3, f1, refh, bulklimit
+            )
+        )(ds_n1, ds_n2, ds_n3)
+
+    # Run vectorized computation
+    drho, grho_refh, phi, success = solve_batch(
+        delfstar_n1, delfstar_n2, delfstar_n3
+    )
+
+    # Calculate dlam_refh from results
+    grho_n_refh = grho_refh  # At refh, grho_n = grho_refh
+    dlam_refh = drho * refh * f1 * jnp.cos(phi / 2) / jnp.sqrt(grho_n_refh)
+
+    # Convert to numpy for BatchResult
+    return BatchResult(
+        drho=np.asarray(drho),
+        grho_refh=np.asarray(grho_refh),
+        phi=np.asarray(phi),
+        dlam_refh=np.asarray(dlam_refh),
+        success=np.asarray(success, dtype=bool),
+        messages=[f"Processed on {backend}" for _ in range(len(delfstars))],
     )
 
 
@@ -691,12 +1041,15 @@ __all__ = [
     "QCMAnalyzer",
     "analyze_delfstar",
     "batch_analyze",
+    "batch_analyze_vmap",  # T044: Export batch_analyze_vmap
     # JAX configuration
     "configure_jax",
     "get_jax_backend",
     "is_gpu_available",
-    # Model class
+    # Model class and result types
     "QCMModel",
+    "BatchResult",  # T044: Export BatchResult
+    "SolveResult",
     "bulk_drho",
     # Constants (from physics.py)
     "Zq",
