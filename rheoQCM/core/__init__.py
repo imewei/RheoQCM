@@ -17,6 +17,13 @@ from rheoQCM.core.jax_config import configure_jax
 from rheoQCM.core.jax_config import get_jax_backend
 from rheoQCM.core.jax_config import is_gpu_available
 
+# Signal processing module exports (JAX-based, scipy-compatible)
+from rheoQCM.core.signal import (
+    find_peaks as signal_find_peaks,
+    peak_prominences,
+    peak_widths,
+)
+
 # Physics module exports - Layer 1
 from rheoQCM.core.physics import (
     # Constants
@@ -84,6 +91,10 @@ __all__ = [
     "configure_jax",
     "get_jax_backend",
     "is_gpu_available",
+    # Signal processing (scipy-compatible JAX implementations)
+    "signal_find_peaks",
+    "peak_prominences",
+    "peak_widths",
     # Constants
     "Zq",
     "f1_default",

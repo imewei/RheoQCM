@@ -27,7 +27,6 @@ import shutil
 import datetime, time
 import numpy as np
 import pandas as pd
-import scipy.signal
 # from collections import OrderedDict
 # import types
 from PyQt6.QtCore import pyqtSlot, Qt, QEvent, QTimer, QEventLoop, QCoreApplication, QSize, qFatal, QT_VERSION 

@@ -8,7 +8,7 @@ import numpy as np
 import jax.numpy as jnp
 from jax import jit
 from nlsq import curve_fit
-from scipy.signal import find_peaks, peak_widths, peak_prominences
+from rheoQCM.core.signal import find_peaks, peak_widths, peak_prominences
 from random import randrange
 
 # for debugging

@@ -5,9 +5,9 @@ import os
 from scipy.optimize import curve_fit
 from scipy.integrate import cumulative_trapezoid
 import matplotlib.pyplot as plt
-from scipy.signal import find_peaks
+from rheoQCM.core.signal import find_peaks
 import matplotlib.ticker as mticker
-from scipy.signal import savgol_filter
+from rheoQCM.core.physics import savgol_filter
 from sympy import symbols, diff, log, sqrt, lambdify
 from copy import deepcopy
 
