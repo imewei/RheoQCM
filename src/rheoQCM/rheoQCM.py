@@ -37,6 +37,7 @@ from PyQt6.QtGui import QIcon, QPixmap, QMouseEvent, QValidator, QIntValidator, 
 
 # packages
 from MainWindow import Ui_MainWindow # UI from QT5
+import UI_source_rc  # Qt resource file for icons - must be imported to register resources
 import UISettings # UI basic settings module
 from UISettings import harm_tree as harm_tree_default
 
@@ -1449,7 +1450,7 @@ class QCMApp(QMainWindow):
         self.ui.actionExport.triggered.connect(self.on_triggered_actionExport)
         self.ui.actionReset.triggered.connect(self.on_triggered_actionReset)
         self.ui.actionClear_All.triggered.connect(self.on_triggered_actionClear_All)
-        self.ui.actionOpen_MyVNA.triggered.connect(self.on_triggered_actionOpen_MyVNA)
+        self.ui.actionOpen_VNA.triggered.connect(self.on_triggered_actionOpen_MyVNA)
         # import QCM-D
         self.ui.actionImport_QCM_D.triggered.connect(self.on_triggered_actionImport_QCM_D)
         # import QCM-Z
@@ -3598,14 +3599,15 @@ class QCMApp(QMainWindow):
 
         if sender_name == 'checkBox_linkx': # link x axis of mpl_plt1 & mpl_plt2
             if signal:
-                self.ui.mpl_plt1.ax[0].get_shared_x_axes().join(
-                    self.ui.mpl_plt1.ax[0],
-                    self.ui.mpl_plt2.ax[0]
-                )
+                # Link x-axes by sharing
+                self.ui.mpl_plt2.ax[0].sharex(self.ui.mpl_plt1.ax[0])
             else:
-                self.ui.mpl_plt1.ax[0].get_shared_x_axes().remove(
-                    self.ui.mpl_plt2.ax[0]
-                )
+                # Unlink by creating independent axis
+                # Note: matplotlib 3.6+ doesn't have direct unshare, use workaround
+                try:
+                    self.ui.mpl_plt2.ax[0]._shared_axes['x'].remove(self.ui.mpl_plt2.ax[0])
+                except (KeyError, ValueError):
+                    pass  # Already unlinked or not linked
 
             self.ui.mpl_plt1.canvas.draw()
             self.ui.mpl_plt2.canvas.draw()
@@ -5404,15 +5406,9 @@ class QCMApp(QMainWindow):
         self.ui.mpl_contour1.init_contour(**mesh1, levels=levels1, cmap=cmap, title=title1)
         self.ui.mpl_contour2.init_contour(**mesh2, levels=levels2, cmap=cmap, title=title2)
 
-        # linkxy
-        self.ui.mpl_contour1.ax[0].get_shared_x_axes().join(
-            self.ui.mpl_contour1.ax[0],
-            self.ui.mpl_contour2.ax[0]
-        )
-        self.ui.mpl_contour1.ax[0].get_shared_y_axes().join(
-            self.ui.mpl_contour1.ax[0],
-            self.ui.mpl_contour2.ax[0]
-        )
+        # linkxy - share axes between contour plots
+        self.ui.mpl_contour2.ax[0].sharex(self.ui.mpl_contour1.ax[0])
+        self.ui.mpl_contour2.ax[0].sharey(self.ui.mpl_contour1.ax[0])
 
         # add data to contour
         self.add_data_to_contour()

@@ -989,12 +989,14 @@ harm_tree = {
     # default fit settings
     'checkBox_harmfit': True,
     'spinBox_harmfitfactor': 1,
-    'spinBox_peaks_num': 1, 
+    'spinBox_peaks_num': 1,
     'radioButton_peaks_num_max': True,
     'radioButton_peaks_num_fixed': False,
     'radioButton_peaks_policy_minf': False,
     'radioButton_peaks_policy_maxamp': True,
     'checkBox_settings_settings_harmzerophase': False,
+    'checkBox_settings_settings_harmlockphase': False,
+    'doubleSpinBox_settings_settings_harmlockphase': 0.0,
     'lineEdit_peaks_threshold': 0.00001,
     'lineEdit_peaks_prominence': 0.0001,
 }
