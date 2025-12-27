@@ -87,7 +87,7 @@ all = [
 ]
 
 [project.scripts]
-rheoqcm = "rheoQCM.main:main"
+rheoqcm-gui = "rheoQCM.main:main"
 
 [project.urls]
 "Homepage" = "https://github.com/imewei/RheoQCM"
