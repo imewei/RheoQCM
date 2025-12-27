@@ -34,7 +34,6 @@ import scipy.optimize as optimize
 import matplotlib.pyplot as plt
 from glob import glob
 import time
-from mpmath import findroot
 from scipy.io import loadmat
 from pylab import meshgrid
 import pandas as pd
@@ -4177,7 +4176,15 @@ def kotula_gstar(xi, Gmstar, Gfstar, xi_crit, s, t):
         if np.isscalar(xi):
             return complex(_to_numpy(result[0]))
         return _to_numpy(result)
-    # Fallback using mpmath
+    # Fallback using mpmath (requires mpmath package)
+    try:
+        from mpmath import findroot
+    except ImportError:
+        raise ImportError(
+            "kotula_gstar fallback requires mpmath package. "
+            "Install with: pip install mpmath\n"
+            "Or use rheoQCM.core.physics.kotula_gstar instead."
+        )
     gstar = np.full_like(xi, 1, dtype=complex)
     for i, xival in np.ndenumerate(xi):
         def ftosolve(gstar_val):
