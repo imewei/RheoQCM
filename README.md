@@ -88,12 +88,6 @@ If neither JAX nor mpmath is available, an informative ImportError is raised wit
 conda install -c conda-forge hdf5storage  
 ```
 
-## Using the Stand-alone Program (exe)
-
-A single executable file (exe file) which is precompiled from source code under 32-bit Python is located in the `stand_alone/` folder. It can be run without any additional installation on a Windows system, without the need to install a Python distribution. It is convienent for data collection in case you have 64-bit Python installed on your Windows, previously. (<span style="color:red">NOTE: You can customize the program by exporting you default settings as  `user_settings.json`  file (See below about the way it works.)</span>)  
-
-The single executable file version might not be updated as frequently as the source code.
-
 ## Using Python code
 
 ### Installation  

@@ -324,6 +324,12 @@ clean-test:
 		-not -path "./.claude/*" \
 		-not -path "./agent-os/*" \
 		-exec rm -rf {} + 2>/dev/null || true
+	find . -type d -name .hypothesis \
+		-not -path "./.venv/*" \
+		-not -path "./venv/*" \
+		-not -path "./.claude/*" \
+		-not -path "./agent-os/*" \
+		-exec rm -rf {} + 2>/dev/null || true
 	rm -rf .coverage
 	rm -rf coverage.xml
 
