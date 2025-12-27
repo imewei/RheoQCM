@@ -37,7 +37,7 @@ def fixtures_dir() -> Path:
 @pytest.fixture(scope="session")
 def bcb_h5_path(fixtures_dir: Path) -> Path:
     """Return path to BCB thin film test data."""
-    path = fixtures_dir / "BCB_4.h5"
+    path = fixtures_dir / "bcb_4.h5"
     if not path.exists():
         pytest.skip(f"Test fixture not found: {path}")
     return path

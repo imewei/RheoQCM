@@ -8,7 +8,7 @@ import QCM_functions as qcm
 plt.close('all')
 
 # read the data
-df = qcm.read_xlsx('../data/BCB_4.xlsx')
+df = qcm.read_xlsx('../data/samples/bcb_4.xlsx')
 
 # pick a calculation
 # we fit to the frequency shifts for the values before the colon
