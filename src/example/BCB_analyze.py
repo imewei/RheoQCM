@@ -18,16 +18,18 @@ import matplotlib.pyplot as plt
 os.environ["QCMFUNCS_SUPPRESS_DEPRECATION"] = "1"
 
 # Add QCMFuncs to path (relative to this script)
+# Script is in src/example/, QCMFuncs is in src/QCMFuncs/
 script_dir = Path(__file__).parent
-project_root = script_dir.parent
-sys.path.insert(0, str(project_root / "QCMFuncs"))
+src_dir = script_dir.parent  # src/
+sys.path.insert(0, str(src_dir / "QCMFuncs"))
 
 import QCM_functions as qcm
 
 plt.close("all")
 
 # Read the data
-data_path = project_root / "data" / "samples" / "bcb_4.xlsx"
+# data is in src/data/
+data_path = src_dir / "data" / "samples" / "bcb_4.xlsx"
 df = qcm.read_xlsx(str(data_path))
 
 # pick a calculation

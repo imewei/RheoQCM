@@ -11,7 +11,7 @@
 PYTHON := python
 PYTEST := pytest
 PACKAGE_NAME := rheoQCM
-SRC_DIRS := rheoQCM QCMFuncs
+SRC_DIRS := src/rheoQCM src/QCMFuncs
 TEST_DIR := tests
 DOCS_DIR := docs
 VENV := .venv

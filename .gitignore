@@ -6,18 +6,18 @@
 # Project-Specific Files
 # ----------------------------------------------------------------------------
 # Files used to build documentation pdf, along with data files
-QCMFuncs/figures
+src/QCMFuncs/figures
 doc/figures
 doc/QCMnotes.lyx~
 
-QCMFuncs/Depolo_sampledefs.py
+src/QCMFuncs/Depolo_sampledefs.py
 
 # Folder for temporary test files
 test/
 pyqt_gui_compile.bat
 
-QCMFuncs/test.pdf
-QCMFuncs/test.pptx
+src/QCMFuncs/test.pdf
+src/QCMFuncs/test.pptx
 
 # User setting files
 *.json
@@ -30,20 +30,20 @@ QCMFuncs/test.pptx
 *.dll
 
 # Misc other files - some may not even exist anymore
-QCMFuncs/filled_galkyd_runfile.py
-QCMFuncs/legacy_functions.py
-QCMFuncs/testfile.txt
-QCMFuncs/QCM_functions_old.py
-QCMFuncs/QCM_rubber_paper_plots.py
-QCMFuncs/Depolo_runfile.py
+src/QCMFuncs/filled_galkyd_runfile.py
+src/QCMFuncs/legacy_functions.py
+src/QCMFuncs/testfile.txt
+src/QCMFuncs/QCM_functions_old.py
+src/QCMFuncs/QCM_rubber_paper_plots.py
+src/QCMFuncs/Depolo_runfile.py
 docs/QCMnotes.lyx
-QCMFuncs/johannsmann.py
+src/QCMFuncs/johannsmann.py
 QCM_main/runqcm.sh
-QCMFuncs/QCM_functions_bak.py
+src/QCMFuncs/QCM_functions_bak.py
 docs/#QCMnotes.lyx#
-QCMFuncs/QCM_functions_extra.py
-QCMFuncs/QCM_functions.sync-conflict-20200304-141000-UTI7PHI.py
-QCMFuncs/QCM_functionsbak.py
+src/QCMFuncs/QCM_functions_extra.py
+src/QCMFuncs/QCM_functions.sync-conflict-20200304-141000-UTI7PHI.py
+src/QCMFuncs/QCM_functionsbak.py
 
 # ----------------------------------------------------------------------------
 # Python Bytecode & Compiled Files

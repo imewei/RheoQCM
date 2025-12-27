@@ -138,8 +138,9 @@ package = true
 nlsq = { path = "/home/wei/Documents/GitHub/NLSQ", editable = true }
 
 [tool.setuptools.packages.find]
+where = ["src"]
 include = ["rheoQCM", "rheoQCM.*", "QCMFuncs", "QCMFuncs.*"]
-exclude = ["tests*", "docs*", "example*", "data*", "UI*"]
+exclude = ["tests*", "docs*"]
 
 [tool.setuptools.package-data]
 "rheoQCM" = ["py.typed", "*.json", "*.yaml"]
@@ -182,7 +183,7 @@ extend-exclude = '''
   | build
   | dist
   | venv
-  | UI
+  | src/UI
 )/
 '''
 
@@ -210,7 +211,7 @@ exclude = [
     "dist",
     "node_modules",
     "venv",
-    "UI",
+    "src/UI",
 ]
 
 [tool.ruff.lint]
