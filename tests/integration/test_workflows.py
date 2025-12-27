@@ -33,6 +33,9 @@ from rheoQCM.core import configure_jax
 configure_jax()
 
 
+pytestmark = pytest.mark.integration
+
+
 class TestCompleteAnalysisWorkflow:
     """Test complete analysis workflow: load data -> fit -> results."""
 

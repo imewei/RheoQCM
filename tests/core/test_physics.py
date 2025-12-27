@@ -26,6 +26,9 @@ from rheoQCM.core import configure_jax
 configure_jax()
 
 
+pytestmark = pytest.mark.physics
+
+
 class TestSauerbreyEquations:
     """Test Sauerbrey frequency and mass calculations."""
 

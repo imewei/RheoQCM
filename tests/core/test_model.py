@@ -29,6 +29,9 @@ from rheoQCM.core import configure_jax
 configure_jax()
 
 
+pytestmark = pytest.mark.model
+
+
 class TestStateInitialization:
     """Test QCMModel state initialization and configuration."""
 
