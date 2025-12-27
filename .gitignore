@@ -107,6 +107,7 @@ coverage.xml
 .pytest_cache/
 cover/
 .benchmarks/
+.optimization/
 
 # ----------------------------------------------------------------------------
 # Virtual Environments

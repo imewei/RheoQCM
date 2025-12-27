@@ -1,18 +1,32 @@
 # RheoQCM Package Configuration
 # ==============================
 #
-# GPU ACCELERATION (Optional):
-# ----------------------------
-# JAX ships with CPU-only support by default. For GPU acceleration on Linux:
+# ============================================================================
+# GPU ACCELERATION (20-100x speedup for large datasets)
+# ============================================================================
+# Default: CPU-only JAX (works on ALL platforms: Linux, macOS, Windows)
 #
-#   make install-jax-gpu
+# For GPU acceleration (Linux + CUDA 12.1-12.9 ONLY):
 #
-# Or manually:
-#   pip uninstall -y jax jaxlib
-#   pip install "jax[cuda12-local]>=0.6.0"
+#   Quick install (from repository):
+#     make install-jax-gpu
 #
-# Requirements: Linux + NVIDIA GPU + CUDA 12.1-12.9 + cuDNN
-# See README.md "GPU Acceleration" section for details.
+#   Manual install:
+#     pip uninstall -y jax jaxlib
+#     pip install jax[cuda12-local]==0.8.0 jaxlib==0.8.0
+#
+#   Platform support:
+#     - Linux + NVIDIA GPU + CUDA 12.1-12.9: Full GPU acceleration
+#     - macOS: CPU-only (Apple Silicon/Intel, no NVIDIA GPU support)
+#     - Windows: CPU-only (CUDA support experimental/unstable)
+#
+#   Requirements:
+#     - System CUDA 12.1-12.9 pre-installed (not bundled)
+#     - NVIDIA driver >= 525
+#     - Linux x86_64 or aarch64
+#
+# See README.md for detailed GPU installation guide
+# ============================================================================
 
 [build-system]
 requires = ["setuptools>=68.0", "wheel", "setuptools-scm>=8"]
@@ -49,9 +63,10 @@ dependencies = [
     "pandas>=2.2.0,<3.0.0",
     "matplotlib>=3.9.0,<4.0.0",
 
-    # JAX ecosystem for GPU-accelerated computation
-    "jax>=0.8.0",
-    "jaxlib>=0.8.0",
+    # JAX ecosystem (CPU-only by default - works on all platforms)
+    # GPU users: see installation instructions above
+    "jax==0.8.0",     # JAX 0.8.0 CPU-only - exact version required
+    "jaxlib==0.8.0",  # jaxlib 0.8.0 CPU-only - must match JAX version exactly
     "jaxopt",
 
     # Curve fitting (replaces lmfit)

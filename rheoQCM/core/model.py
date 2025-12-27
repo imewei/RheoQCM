@@ -285,25 +285,10 @@ def _jax_rdcalc(n3: int, refh: int, dlam_refh: jnp.ndarray, phi: jnp.ndarray) ->
     return -jnp.imag(nds) / jnp.real(nds)
 
 
-def _jax_grho(n: int, grho_refh: jnp.ndarray, phi: jnp.ndarray, refh: int) -> jnp.ndarray:
-    """Calculate |G*|*rho at harmonic n using power law (JAX)."""
-    return grho_refh * (n / refh) ** (phi / (jnp.pi / 2))
-
-
-def _jax_grhostar_from_refh(n: int, grho_refh: jnp.ndarray, phi: jnp.ndarray, refh: int) -> jnp.ndarray:
-    """Calculate complex G*rho at harmonic n (JAX)."""
-    grho_n = _jax_grho(n, grho_refh, phi, refh)
-    return grho_n * jnp.exp(1j * phi)
-
-
-def _jax_zstar_bulk(grhostar: jnp.ndarray) -> jnp.ndarray:
-    """Calculate acoustic impedance from complex modulus (JAX)."""
-    return jnp.sqrt(grhostar)
-
-
-def _jax_calc_delfstar_sla(ZL: jnp.ndarray, f1: float, Zq: float) -> jnp.ndarray:
-    """Calculate complex frequency shift using SLA (JAX)."""
-    return f1 * 1j * ZL / (jnp.pi * Zq)
+# T016: _jax_grho replaced with physics.grho (005-jax-perf)
+# T017: _jax_grhostar_from_refh replaced with physics.grhostar_from_refh (005-jax-perf)
+# T018: _jax_zstar_bulk replaced with physics.zstar_bulk (005-jax-perf)
+# T019: _jax_calc_delfstar_sla replaced with physics.calc_delfstar_sla (005-jax-perf)
 
 
 def _jax_calc_ZL_single_layer(
@@ -311,8 +296,10 @@ def _jax_calc_ZL_single_layer(
     f1: float, refh: int
 ) -> jnp.ndarray:
     """Calculate load impedance for single layer (JAX)."""
-    grhostar = _jax_grhostar_from_refh(n, grho_refh, phi, refh)
-    zstar = _jax_zstar_bulk(grhostar)
+    # T017: Use physics.grhostar_from_refh instead of _jax_grhostar_from_refh
+    grhostar = physics.grhostar_from_refh(n, grho_refh, phi, refh=refh)
+    # T018: Use physics.zstar_bulk instead of _jax_zstar_bulk
+    zstar = physics.zstar_bulk(grhostar)
     D = 2 * jnp.pi * n * f1 * drho / zstar
     return 1j * zstar * jnp.tan(D)
 
@@ -323,7 +310,8 @@ def _jax_calc_delfstar(
 ) -> jnp.ndarray:
     """Calculate complex frequency shift for single layer (JAX)."""
     ZL = _jax_calc_ZL_single_layer(n, grho_refh, phi, drho, f1, refh)
-    return _jax_calc_delfstar_sla(ZL, f1, Zq)
+    # T019: Use physics.calc_delfstar_sla instead of _jax_calc_delfstar_sla
+    return physics.calc_delfstar_sla(ZL, f1=f1)
 
 
 def _jax_calc_delfstar_bulk(
@@ -331,7 +319,8 @@ def _jax_calc_delfstar_bulk(
     f1: float, Zq: float, refh: int
 ) -> jnp.ndarray:
     """Calculate complex frequency shift for bulk material (JAX)."""
-    grho_n = _jax_grho(n, grho_refh, phi, refh)
+    # T016: Use physics.grho instead of _jax_grho
+    grho_n = physics.grho(n, grho_refh, phi, refh=refh)
     return (f1 * jnp.sqrt(grho_n) / (jnp.pi * Zq)) * (-jnp.sin(phi / 2) + 1j * jnp.cos(phi / 2))
 
 
@@ -474,11 +463,12 @@ class QCMModel:
     ) -> None:
         """Initialize QCMModel with given parameters."""
         self.Zq: float = self.Zq_values[cut]
-        self.f1: float | None = f1
+        # T031: Use private attributes for f1/refh with property setters (005-jax-perf)
+        self._f1: float | None = f1
         self.g1: float | None = None
         self.f0s: dict[int, float] = {}
         self.g0s: dict[int, float] = {}
-        self.refh: int | None = refh
+        self._refh: int | None = refh
         self._calctype: str = self._normalize_calctype(calctype)
 
         # Data storage
@@ -501,6 +491,10 @@ class QCMModel:
 
         # Instance-level calctype registry (inherits from global)
         self._instance_calctypes: dict[str, CalctypeResidualFn] = {}
+
+        # T028: Computation cache for _grho_at_harmonic (005-jax-perf)
+        # Key: (n, grho_refh, phi, f1, refh) -> Value: computed grho at harmonic n
+        self._grho_cache: dict[tuple, float] = {}
 
     @staticmethod
     def _normalize_calctype(calctype: str) -> str:
@@ -531,6 +525,42 @@ class QCMModel:
     def calctype(self, value: str) -> None:
         """Set the calctype (with normalization)."""
         self._calctype = self._normalize_calctype(value)
+
+    # T031: Property getters/setters for f1 and refh with cache invalidation (005-jax-perf)
+    @property
+    def f1(self) -> float | None:
+        """Get the fundamental frequency."""
+        return self._f1
+
+    @f1.setter
+    def f1(self, value: float | None) -> None:
+        """Set the fundamental frequency and invalidate cache."""
+        if getattr(self, "_f1", None) != value:
+            self._f1 = value
+            if hasattr(self, "_grho_cache"):
+                self._invalidate_cache()
+
+    @property
+    def refh(self) -> int | None:
+        """Get the reference harmonic."""
+        return self._refh
+
+    @refh.setter
+    def refh(self, value: int | None) -> None:
+        """Set the reference harmonic and invalidate cache."""
+        if getattr(self, "_refh", None) != value:
+            self._refh = value
+            if hasattr(self, "_grho_cache"):
+                self._invalidate_cache()
+
+    # T028: Cache key and invalidation methods (005-jax-perf)
+    def _get_cache_key(self) -> tuple[float | None, int | None]:
+        """Return the current model state key for cache lookups."""
+        return (self.f1, self.refh)
+
+    def _invalidate_cache(self) -> None:
+        """Clear the grho computation cache when model parameters change."""
+        self._grho_cache.clear()
 
     def register_calctype(self, name: str, residual_fn: CalctypeResidualFn) -> None:
         """
@@ -837,10 +867,20 @@ class QCMModel:
     def _grho_at_harmonic(
         self, n: int, grho_refh: float, phi: float
     ) -> float:
-        """Calculate |G*|*rho at harmonic n using power law."""
+        """Calculate |G*|*rho at harmonic n using power law.
+
+        T029: Uses caching to avoid redundant computations (005-jax-perf).
+        Cache key includes (n, grho_refh, phi, f1, refh) to ensure correctness.
+        """
         if self.refh is None:
             raise ValueError("Reference harmonic (refh) must be set")
-        return float(physics.grho(n, grho_refh, phi, refh=self.refh))
+        # T029: Check cache before computing (005-jax-perf)
+        cache_key = (n, grho_refh, phi, *self._get_cache_key())
+        if cache_key in self._grho_cache:
+            return self._grho_cache[cache_key]
+        result = float(physics.grho(n, grho_refh, phi, refh=self.refh))
+        self._grho_cache[cache_key] = result
+        return result
 
     def _grhostar_at_harmonic(
         self, n: int, grho_refh: float, phi: float

@@ -143,6 +143,7 @@ rheoQCM.core.model : Layer 2 model class documentation
 from rheoQCM.core.jax_config import configure_jax
 from rheoQCM.core.jax_config import get_jax_backend
 from rheoQCM.core.jax_config import is_gpu_available
+from rheoQCM.core.jax_config import check_gpu_availability
 
 # Signal processing module exports (JAX-based, scipy-compatible)
 from rheoQCM.core.signal import (
@@ -237,6 +238,7 @@ __all__ = [
     "configure_jax",
     "get_jax_backend",
     "is_gpu_available",
+    "check_gpu_availability",
     # Signal processing (scipy-compatible JAX implementations)
     "signal_find_peaks",
     "peak_prominences",

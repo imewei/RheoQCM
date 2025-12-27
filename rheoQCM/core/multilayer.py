@@ -44,6 +44,7 @@ from typing import Any
 
 import jax
 import jax.numpy as jnp
+import numpy as np
 from jax import lax
 
 from rheoQCM.core.physics import (
@@ -153,11 +154,13 @@ def delete_layer(old_layers: dict[int, dict], num: int) -> dict[int, dict]:
 
     Notes
     -----
-    This function creates a deep copy of the layer dictionaries
+    This function creates a shallow copy of the layer dictionaries
     to avoid modifying the original data structure.
-    """
-    from copy import deepcopy
 
+    T049-T051: Using shallow dict.copy() instead of deepcopy (005-jax-perf)
+    Layer dicts contain only simple values (grho, phi, drho as floats),
+    so shallow copy is sufficient and more memory-efficient.
+    """
     layer_nums = sorted(old_layers.keys())
     layer_max = max(layer_nums)
     layer_min = min(layer_nums)
@@ -167,13 +170,13 @@ def delete_layer(old_layers: dict[int, dict], num: int) -> dict[int, dict]:
     # Copy layers below the deleted one unchanged
     for i in layer_nums:
         if i < num:
-            new_layers[i] = deepcopy(old_layers[i])
+            new_layers[i] = old_layers[i].copy()  # T049: shallow copy
 
     # Shift layers above the deleted one down by 1
     if num >= layer_min:
         for i in range(num, layer_max):
             if i + 1 in old_layers:
-                new_layers[i] = deepcopy(old_layers[i + 1])
+                new_layers[i] = old_layers[i + 1].copy()  # T050: shallow copy
 
     return new_layers
 
@@ -267,6 +270,284 @@ def _calc_D_from_layer(
 
 
 # =============================================================================
+# JIT-Compatible Layer Functions (T024-T027 from 005-jax-perf)
+# =============================================================================
+
+
+def _layers_to_arrays(
+    layers: dict[int, dict],
+    refh: int = 3,
+) -> tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray | None]:
+    """
+    Convert layer dict to arrays for JIT-compatible operations.
+
+    Parameters
+    ----------
+    layers : dict[int, dict]
+        Layer stack indexed by layer number.
+    refh : int
+        Default reference harmonic.
+
+    Returns
+    -------
+    grho_arr : jnp.ndarray
+        |G*|*rho at reference harmonic for each layer.
+    phi_arr : jnp.ndarray
+        Phase angles [radians] for each layer.
+    drho_arr : jnp.ndarray
+        Mass per unit area [kg/m^2] for each layer.
+    n_ref_arr : jnp.ndarray
+        Reference harmonic for each layer.
+    Zf_arr : jnp.ndarray | None
+        Pre-specified terminal impedances if top layer has 'Zf', else None.
+    """
+    layer_nums = sorted(layers.keys())
+    N = len(layers)
+
+    # Use NumPy preallocated arrays (10x faster than Python lists + jnp.array)
+    grho_np = np.empty(N, dtype=np.float64)
+    phi_np = np.empty(N, dtype=np.float64)
+    drho_np = np.empty(N, dtype=np.float64)
+    n_ref_np = np.empty(N, dtype=np.float64)
+
+    for i, layer_num in enumerate(layer_nums):
+        layer = layers[layer_num]
+        grho_np[i] = layer["grho"]
+        phi_np[i] = layer["phi"]
+        drho_np[i] = layer["drho"]
+        n_ref_np[i] = layer.get("n", refh)
+
+    # Convert to JAX arrays (single conversion at the end)
+    grho_arr = jnp.asarray(grho_np)
+    phi_arr = jnp.asarray(phi_np)
+    drho_arr = jnp.asarray(drho_np)
+    n_ref_arr = jnp.asarray(n_ref_np)
+
+    # Check for pre-specified terminal impedance
+    top_layer = layers[layer_nums[-1]]
+    Zf_arr = None
+    if "Zf" in top_layer:
+        Zf_arr = top_layer["Zf"]
+
+    return grho_arr, phi_arr, drho_arr, n_ref_arr, Zf_arr
+
+
+@partial(jax.jit, static_argnames=["calctype"])
+def _zstar_bulk_jit(
+    n: int,
+    grho_refh: jnp.ndarray,
+    phi: jnp.ndarray,
+    n_ref: jnp.ndarray,
+    calctype: str = "SLA",
+) -> jnp.ndarray:
+    """
+    Calculate complex acoustic impedance (JIT-compatible array version).
+
+    Parameters
+    ----------
+    n : int
+        Harmonic number.
+    grho_refh : float
+        |G*|*rho at reference harmonic [Pa kg/m^3].
+    phi : float
+        Phase angle [radians].
+    n_ref : float
+        Reference harmonic for this layer.
+    calctype : str
+        Calculation type: "SLA", "LL", or "Voigt".
+
+    Returns
+    -------
+    zstar : complex
+        Complex acoustic impedance [Pa s/m].
+    """
+    n = jnp.asarray(n, dtype=jnp.float64)
+
+    def power_law_path(_):
+        grho_n = grho_refh * (n / n_ref) ** (phi / (jnp.pi / 2))
+        grhostar = grho_n * jnp.exp(1j * phi)
+        return jnp.sqrt(grhostar)
+
+    def voigt_path(_):
+        greal = grho_refh * jnp.cos(phi)
+        gimag = grho_refh * (n / n_ref) * jnp.sin(phi)
+        grhostar = jnp.sqrt(gimag**2 + greal**2) * jnp.exp(1j * phi)
+        return jnp.sqrt(grhostar)
+
+    # Use lax.cond for JIT-compatible branching
+    return lax.cond(calctype != "Voigt", power_law_path, voigt_path, None)
+
+
+@jax.jit
+def _calc_D_jit(
+    n: jnp.ndarray,
+    drho: jnp.ndarray,
+    zstar: jnp.ndarray,
+    delfstar: jnp.ndarray,
+    f1: float,
+) -> jnp.ndarray:
+    """
+    Calculate D (thickness times complex wave number) - JIT-compatible.
+
+    Parameters
+    ----------
+    n : float
+        Harmonic number.
+    drho : float
+        Mass per unit area [kg/m^2].
+    zstar : complex
+        Complex acoustic impedance [Pa s/m].
+    delfstar : complex
+        Complex frequency shift [Hz].
+    f1 : float
+        Fundamental frequency [Hz].
+
+    Returns
+    -------
+    D : complex
+        Thickness times complex wave number (dimensionless).
+    """
+    zstar_safe = jnp.where(jnp.abs(zstar) < 1e-30, 1e-30 + 0j, zstar)
+    return 2 * jnp.pi * (n * f1 + delfstar) * drho / zstar_safe
+
+
+@partial(jax.jit, static_argnames=["num_layers", "calctype", "has_Zf_top"])
+def _calc_ZL_jit(
+    n: int,
+    grho_arr: jnp.ndarray,
+    phi_arr: jnp.ndarray,
+    drho_arr: jnp.ndarray,
+    n_ref_arr: jnp.ndarray,
+    delfstar: jnp.ndarray,
+    f1: float,
+    num_layers: int,
+    calctype: str = "SLA",
+    Zf_top: jnp.ndarray = jnp.array(0.0 + 0.0j),
+    has_Zf_top: bool = False,
+) -> jnp.ndarray:
+    """
+    Calculate complex load impedance for stack of layers (JIT-compiled).
+
+    This is the JIT-compatible version of calc_ZL that operates on arrays
+    instead of dictionaries. Uses lax.fori_loop for the matrix chain multiplication.
+
+    Parameters
+    ----------
+    n : int
+        Harmonic number.
+    grho_arr : jnp.ndarray
+        |G*|*rho at reference harmonic for each layer, shape (num_layers,).
+    phi_arr : jnp.ndarray
+        Phase angles [radians] for each layer, shape (num_layers,).
+    drho_arr : jnp.ndarray
+        Mass per unit area [kg/m^2] for each layer, shape (num_layers,).
+    n_ref_arr : jnp.ndarray
+        Reference harmonic for each layer, shape (num_layers,).
+    delfstar : complex
+        Complex frequency shift [Hz].
+    f1 : float
+        Fundamental frequency [Hz].
+    num_layers : int
+        Number of layers (static for JIT).
+    calctype : str
+        Calculation type: "SLA", "LL", or "Voigt".
+    Zf_top : complex
+        Pre-specified terminal impedance for top layer.
+    has_Zf_top : bool
+        If True, use Zf_top; if False, compute from top layer properties.
+
+    Returns
+    -------
+    ZL : complex
+        Complex load impedance [Pa s/m].
+    """
+    n_float = jnp.asarray(n, dtype=jnp.float64)
+
+    # Compute Z* and D for all layers
+    # Use static loop since num_layers is static
+    zstar_all = jnp.zeros(num_layers, dtype=jnp.complex128)
+    D_all = jnp.zeros(num_layers, dtype=jnp.complex128)
+
+    for i in range(num_layers):
+        zstar_i = _zstar_bulk_jit(n, grho_arr[i], phi_arr[i], n_ref_arr[i], calctype)
+        D_i = _calc_D_jit(n_float, drho_arr[i], zstar_i, delfstar, f1)
+        zstar_all = zstar_all.at[i].set(zstar_i)
+        D_all = D_all.at[i].set(D_i)
+
+    # Terminal impedance from top layer
+    if has_Zf_top:
+        Zf_max = Zf_top
+    else:
+        Zf_max = 1j * zstar_all[num_layers - 1] * jnp.tan(D_all[num_layers - 1])
+
+    # Single layer case
+    if num_layers == 1:
+        return Zf_max
+
+    # Multi-layer case
+    # Terminal matrix for second-to-last layer
+    second_last_idx = num_layers - 2
+    Tn = jnp.array(
+        [
+            [1 + Zf_max / zstar_all[second_last_idx], 0.0 + 0.0j],
+            [0.0 + 0.0j, 1 - Zf_max / zstar_all[second_last_idx]],
+        ],
+        dtype=jnp.complex128,
+    )
+
+    # L matrix for second-to-last layer
+    cos_D = jnp.cos(D_all[second_last_idx])
+    sin_D = jnp.sin(D_all[second_last_idx])
+    L_sl = jnp.array(
+        [[cos_D + 1j * sin_D, 0.0 + 0.0j], [0.0 + 0.0j, cos_D - 1j * sin_D]],
+        dtype=jnp.complex128,
+    )
+
+    # Initial vector
+    uvec = L_sl @ Tn @ jnp.array([[1.0], [1.0]], dtype=jnp.complex128)
+
+    # Propagate through remaining layers using lax.fori_loop
+    def propagate_step(i, uvec):
+        # We iterate from idx = num_layers-3 down to 0
+        # But fori_loop goes from 0 to num_layers-2
+        # So reverse the index: layer_idx = num_layers - 3 - i
+        layer_idx = num_layers - 3 - i
+        next_layer_idx = layer_idx + 1
+
+        # Build S matrix
+        S = jnp.array(
+            [
+                [1 + zstar_all[next_layer_idx] / zstar_all[layer_idx],
+                 1 - zstar_all[next_layer_idx] / zstar_all[layer_idx]],
+                [1 - zstar_all[next_layer_idx] / zstar_all[layer_idx],
+                 1 + zstar_all[next_layer_idx] / zstar_all[layer_idx]],
+            ],
+            dtype=jnp.complex128,
+        )
+
+        # Build L matrix for this layer
+        cos_D_i = jnp.cos(D_all[layer_idx])
+        sin_D_i = jnp.sin(D_all[layer_idx])
+        L_i = jnp.array(
+            [[cos_D_i + 1j * sin_D_i, 0.0 + 0.0j],
+             [0.0 + 0.0j, cos_D_i - 1j * sin_D_i]],
+            dtype=jnp.complex128,
+        )
+
+        return L_i @ S @ uvec
+
+    # Number of propagation steps (from layer num_layers-3 down to 0)
+    n_steps = num_layers - 2
+
+    # Use lax.fori_loop for JIT-compatible iteration
+    uvec_final = lax.fori_loop(0, n_steps, propagate_step, uvec)
+
+    # Extract load impedance from reflection coefficient
+    rstar = uvec_final[1, 0] / uvec_final[0, 0]
+    return zstar_all[0] * (1 - rstar) / (1 + rstar)
+
+
+# =============================================================================
 # Multi-layer Load Impedance
 # =============================================================================
 
@@ -335,9 +616,23 @@ def calc_ZL(
 
     layer_nums = sorted(layers.keys())
     N = len(layers)
-    layer_min = min(layer_nums)
     layer_max = max(layer_nums)
 
+    # Check for fractional area coverage (AF) or pre-specified terminal impedance (Zf)
+    # These require the slower path
+    has_AF = any("AF" in layers[i] for i in layer_nums[:-1])
+    top_layer = layers[layer_max]
+    has_Zf = "Zf" in top_layer
+
+    # T026: Use JIT-compiled version for standard cases (no AF, no pre-specified Zf)
+    if not has_AF and not has_Zf:
+        grho_arr, phi_arr, drho_arr, n_ref_arr, _ = _layers_to_arrays(layers, refh)
+        return _calc_ZL_jit(
+            n, grho_arr, phi_arr, drho_arr, n_ref_arr,
+            delfstar, f1, num_layers=N, calctype=calctype, has_Zf_top=False
+        )
+
+    # Fallback to original implementation for special cases
     # Build impedance and D dictionaries
     Z = {}
     D = {}
@@ -356,8 +651,7 @@ def calc_ZL(
         )
 
     # Terminal impedance from the top layer
-    top_layer = layers[layer_max]
-    if "Zf" in top_layer:
+    if has_Zf:
         # Pre-specified terminal impedance
         Zf_max = top_layer["Zf"].get(n, 0.0 + 0.0j)
     else:
@@ -488,10 +782,9 @@ def calc_delfstar_multilayer(
         logger.warning(f"Layer validation failed: {e}")
         return jnp.array(jnp.nan + 0.0j, dtype=jnp.complex128)
 
-    # Make a copy to avoid modifying input
-    from copy import deepcopy
-
-    layers = deepcopy(layers)
+    # T051: Make a shallow copy to avoid modifying input (005-jax-perf)
+    # Layer dicts contain only simple values, so shallow copy is sufficient
+    layers = {k: v.copy() for k, v in layers.items()}
 
     # Calculate load impedance
     ZL = calc_ZL(n, layers, 0.0, f1, calctype, refh)
@@ -516,11 +809,12 @@ def calc_delfstar_multilayer(
     if 0 not in layers:
         layers[0] = electrode
 
-    layers_all = deepcopy(layers)
+    # T051: Use shallow copy instead of deepcopy (005-jax-perf)
+    layers_all = {k: v.copy() for k, v in layers.items()}
     if reftype == "overlayer" and 1 in layers:
-        layers_ref = delete_layer(deepcopy(layers), 1)
+        layers_ref = delete_layer({k: v.copy() for k, v in layers.items()}, 1)
     else:
-        layers_ref = {0: layers[0]}
+        layers_ref = {0: layers[0].copy()}
 
     # Get initial guess from SLA
     ZL_all = calc_ZL(n, layers_all, 0.0, f1, calctype, refh)

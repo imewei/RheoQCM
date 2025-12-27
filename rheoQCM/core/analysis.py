@@ -642,6 +642,79 @@ def _parse_nhcalc(nhcalc: str) -> tuple[int, int, int]:
         raise ValueError(f"Invalid nhcalc format: {nhcalc}")
 
 
+# T042: Combined residual function for autodiff Jacobian (005-jax-perf)
+def _residual_fn(
+    params: jnp.ndarray,
+    n1: int,
+    n2: int,
+    n3: int,
+    refh: int,
+    rh_exp: jnp.ndarray,
+    rd_exp: jnp.ndarray,
+) -> jnp.ndarray:
+    """
+    Compute residuals [rh_calc - rh_exp, rd_calc - rd_exp] for Newton solver.
+
+    Parameters
+    ----------
+    params : jnp.ndarray
+        Array [dlam_refh, phi] of shape (2,).
+    n1, n2, n3 : int
+        Harmonic numbers for rh and rd calculations.
+    refh : int
+        Reference harmonic.
+    rh_exp, rd_exp : jnp.ndarray
+        Experimental harmonic ratio and dissipation ratio.
+
+    Returns
+    -------
+    jnp.ndarray
+        Residual array [rh_calc - rh_exp, rd_calc - rd_exp] of shape (2,).
+    """
+    dlam_refh = params[0]
+    phi = params[1]
+    rh_calc = _vmap_rhcalc(n1, n2, dlam_refh, phi, refh)
+    rd_calc = _vmap_rdcalc(n3, dlam_refh, phi, refh)
+    return jnp.array([rh_calc - rh_exp, rd_calc - rd_exp])
+
+
+# T043: Autodiff Jacobian using jax.jacfwd (005-jax-perf)
+def _jacobian_autodiff(
+    params: jnp.ndarray,
+    n1: int,
+    n2: int,
+    n3: int,
+    refh: int,
+    rh_exp: jnp.ndarray,
+    rd_exp: jnp.ndarray,
+) -> jnp.ndarray:
+    """
+    Compute Jacobian of residual function using JAX autodiff.
+
+    Uses jacfwd for forward-mode autodiff, which is efficient for
+    functions with few inputs (2 parameters) and few outputs (2 residuals).
+
+    Parameters
+    ----------
+    params : jnp.ndarray
+        Array [dlam_refh, phi] of shape (2,).
+    n1, n2, n3 : int
+        Harmonic numbers.
+    refh : int
+        Reference harmonic.
+    rh_exp, rd_exp : jnp.ndarray
+        Experimental ratios.
+
+    Returns
+    -------
+    jnp.ndarray
+        Jacobian matrix of shape (2, 2):
+        [[drh/ddlam, drh/dphi],
+         [drd/ddlam, drd/dphi]]
+    """
+    return jax.jacfwd(lambda p: _residual_fn(p, n1, n2, n3, refh, rh_exp, rd_exp))(params)
+
+
 def _solve_single_measurement(
     delfstar_n1: jnp.ndarray,
     delfstar_n2: jnp.ndarray,
@@ -694,24 +767,25 @@ def _solve_single_measurement(
         phi = jnp.array(0.1)
 
         # Simple iterative refinement (vmap-compatible fixed iterations)
+        # T044: Use autodiff Jacobian instead of finite differences (005-jax-perf)
         def body_fn(carry, _):
             dlam_r, phi_r = carry
-            rh_calc = _vmap_rhcalc(n1, n2, dlam_r, phi_r, refh)
-            rd_calc = _vmap_rdcalc(n3, dlam_r, phi_r, refh)
+            params = jnp.array([dlam_r, phi_r])
 
-            # Gradient-based update (simple Newton step approximation)
-            # Use small perturbations for numerical gradient
-            eps = 1e-6
-            drh_ddlam = (_vmap_rhcalc(n1, n2, dlam_r + eps, phi_r, refh) - rh_calc) / eps
-            drh_dphi = (_vmap_rhcalc(n1, n2, dlam_r, phi_r + eps, refh) - rh_calc) / eps
-            drd_ddlam = (_vmap_rdcalc(n3, dlam_r + eps, phi_r, refh) - rd_calc) / eps
-            drd_dphi = (_vmap_rdcalc(n3, dlam_r, phi_r + eps, refh) - rd_calc) / eps
+            # T044: Compute Jacobian using autodiff (1 call vs 4 finite-diff calls)
+            jac = _jacobian_autodiff(params, n1, n2, n3, refh, rh_exp_local, rd_exp_local)
+            drh_ddlam = jac[0, 0]
+            drh_dphi = jac[0, 1]
+            drd_ddlam = jac[1, 0]
+            drd_dphi = jac[1, 1]
 
-            # Jacobian
+            # Jacobian determinant
             det = drh_ddlam * drd_dphi - drh_dphi * drd_ddlam
             det_safe = jnp.where(jnp.abs(det) < 1e-20, 1e-20, det)
 
-            # Residuals
+            # Compute residuals (need current rh_calc and rd_calc)
+            rh_calc = _vmap_rhcalc(n1, n2, dlam_r, phi_r, refh)
+            rd_calc = _vmap_rdcalc(n3, dlam_r, phi_r, refh)
             r_rh = rh_exp_local - rh_calc
             r_rd = rd_exp_local - rd_calc
 

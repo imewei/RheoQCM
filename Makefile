@@ -147,11 +147,17 @@ install-jax-gpu:
 	@echo "  - CUDA 12.1-12.9 and cuDNN installed"
 	@echo "  - nvidia-smi should show your GPU"
 	@echo ""
+	@echo "$(BOLD)Step 1/3:$(RESET) Uninstalling CPU-only JAX..."
 	@$(UNINSTALL_CMD) jax jaxlib 2>/dev/null || true
-	@$(INSTALL_CMD) "jax[cuda12-local]>=0.6.0"
+	@echo ""
+	@echo "$(BOLD)Step 2/3:$(RESET) Installing GPU-enabled JAX (CUDA 12.1-12.9)..."
+	@$(INSTALL_CMD) "jax[cuda12-local]==0.8.0" "jaxlib==0.8.0"
+	@echo ""
+	@echo "$(BOLD)Step 3/3:$(RESET) Verifying GPU detection..."
+	@$(MAKE) gpu-check
 	@echo ""
 	@echo "$(BOLD)$(GREEN)Done: JAX GPU installed!$(RESET)"
-	@echo "Run 'make gpu-check' to verify GPU detection."
+	@echo "  JAX version: 0.8.0 with CUDA 12 support"
 
 gpu-check:
 	@echo "$(BOLD)$(BLUE)Checking JAX GPU Configuration$(RESET)"

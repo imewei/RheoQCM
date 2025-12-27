@@ -306,7 +306,7 @@ def validate_inputs(
 # =============================================================================
 
 
-@jax.jit
+@partial(jax.jit, static_argnames=["f1"])
 def sauerbreyf(
     n: jnp.ndarray | float,
     drho: jnp.ndarray | float,
@@ -348,7 +348,7 @@ def sauerbreyf(
     return 2 * n * f1**2 * drho / Zq
 
 
-@jax.jit
+@partial(jax.jit, static_argnames=["f1"])
 def sauerbreym(
     n: jnp.ndarray | float,
     delf: jnp.ndarray | float,
@@ -493,7 +493,7 @@ def grhostar_from_refh(
     return grhostar(grho_n, phi)
 
 
-@jax.jit
+@partial(jax.jit, static_argnames=["f1"])
 def grho_from_dlam(
     n: jnp.ndarray | float,
     drho: jnp.ndarray | float,
@@ -536,7 +536,7 @@ def grho_from_dlam(
     return (drho * n * f1 * jnp.cos(phi / 2) / dlam_safe) ** 2
 
 
-@jax.jit
+@partial(jax.jit, static_argnames=["f1"])
 def calc_dlam(
     n: jnp.ndarray | float,
     grho_n: jnp.ndarray | float,
@@ -575,7 +575,7 @@ def calc_dlam(
     return drho * n * f1 * jnp.cos(phi / 2) / jnp.sqrt(grho_n)
 
 
-@jax.jit
+@partial(jax.jit, static_argnames=["f1"])
 def calc_lamrho(
     n: jnp.ndarray | float,
     grho_n: jnp.ndarray | float,
@@ -610,7 +610,7 @@ def calc_lamrho(
     return jnp.sqrt(grho_n) / (n * f1 * jnp.cos(phi / 2))
 
 
-@jax.jit
+@partial(jax.jit, static_argnames=["f1"])
 def calc_deltarho(
     n: jnp.ndarray | float,
     grho_n: jnp.ndarray | float,
@@ -643,7 +643,7 @@ def calc_deltarho(
     return lamrho / (2 * jnp.pi * jnp.tan(phi / 2))
 
 
-@jax.jit
+@partial(jax.jit, static_argnames=["f1"])
 def etarho(
     n: jnp.ndarray | float,
     grho_n: jnp.ndarray | float,
@@ -698,7 +698,7 @@ def zstar_bulk(grhostar_val: jnp.ndarray) -> jnp.ndarray:
 # =============================================================================
 
 
-@jax.jit
+@partial(jax.jit, static_argnames=["f1"])
 def calc_delfstar_sla(
     ZL: jnp.ndarray,
     f1: float = f1_default,
@@ -812,7 +812,7 @@ def normdelfstar(
     return -jnp.sinc(D / jnp.pi) / jnp.cos(D)
 
 
-@jax.jit
+@partial(jax.jit, static_argnames=["f1"])
 def bulk_props(
     delfstar: jnp.ndarray,
     f1: float = f1_default,
@@ -845,7 +845,7 @@ def bulk_props(
     return grho_val, phi
 
 
-@jax.jit
+@partial(jax.jit, static_argnames=["f1"])
 def deltarho_bulk(
     n: jnp.ndarray | float,
     delfstar: jnp.ndarray,
@@ -926,6 +926,7 @@ def _kotula_equation(
     return term1 + term2
 
 
+@partial(jax.jit, static_argnames=["xi_crit", "s", "t", "damping"])
 def _newton_step_complex_damped(
     gstar: jnp.ndarray,
     xi: jnp.ndarray,
@@ -970,6 +971,7 @@ def _newton_step_complex_damped(
     return gstar - damping * scale * step
 
 
+@partial(jax.jit, static_argnames=["xi_crit", "s", "t", "max_iter", "tol"])
 def _solve_kotula_single(
     xi: float,
     Gmstar: jnp.ndarray,

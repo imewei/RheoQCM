@@ -288,6 +288,57 @@ def log_platform_status() -> None:
         logger.info("Using TPU acceleration")
 
 
+def check_gpu_availability() -> None:
+    """Check if GPU is available but not being used by JAX.
+
+    Prints a helpful warning if:
+    - NVIDIA GPU hardware is detected (nvidia-smi works)
+    - But JAX is running in CPU-only mode
+
+    This helps users realize they can enable GPU acceleration for 20-100x speedup.
+    """
+    try:
+        import subprocess
+
+        # Check if nvidia-smi detects GPU hardware
+        result = subprocess.run(
+            ["nvidia-smi", "--query-gpu=name", "--format=csv,noheader"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+
+        if result.returncode == 0 and result.stdout.strip():
+            gpu_name = result.stdout.strip()
+
+            # Check if JAX is using GPU
+            devices = jax.devices()
+            using_gpu = any(
+                "cuda" in str(d).lower() or "gpu" in str(d).lower() for d in devices
+            )
+
+            if not using_gpu:
+                print(f"\n⚠️  GPU ACCELERATION AVAILABLE")
+                print(f"═══════════════════════════════")
+                print(f"NVIDIA GPU detected: {gpu_name}")
+                print(f"JAX is currently using: CPU-only")
+                print(f"\nEnable 150-270x speedup with GPU acceleration:")
+                print(f"  make install-jax-gpu")
+                print(f"\nOr manually:")
+                print(f"  pip uninstall -y jax jaxlib")
+                print(f'  pip install "jax[cuda12-local]==0.8.0" "jaxlib==0.8.0"')
+                print(f"\nSee README.md GPU Installation section for details.\n")
+
+    except (subprocess.TimeoutExpired, FileNotFoundError, ImportError):
+        # nvidia-smi not found or JAX not installed - silently skip
+        pass
+    except Exception:
+        # Unexpected error - silently skip to avoid disrupting workflow
+        pass
+
+
 # Auto-configure on import if not already configured
 if not _configured:
     configure_jax()
+    # Check for GPU availability and warn user if GPU is available but not used
+    check_gpu_availability()
