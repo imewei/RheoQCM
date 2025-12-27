@@ -1,11 +1,30 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Current version:  2025.06.18
+QCMFuncs - Legacy QCM Analysis Functions
+
+Current version:  2025.12.26
 Created on Thu Jan  4 09:19:59 2018 and updated continuously
 most recent version at the following link:
 https://github.com/shullgroup/rheoQCM/tree/master/QCMFuncs/QCM_functions.py
 @author: Ken Shull (k-shull@northwestern.edu)
+
+MIGRATION NOTICE
+----------------
+This module is being migrated to use the new rheoQCM.core package.
+For new code, please use:
+
+    from rheoQCM.core.analysis import QCMAnalyzer, sauerbreyf, sauerbreym
+
+The new core package provides:
+    - JAX-accelerated physics calculations
+    - GPU support for batch processing
+    - Unified API for scripting and UI
+
+This legacy module maintains backward compatibility with existing scripts.
+Functions here use phi in DEGREES, while rheoQCM.core uses RADIANS.
+
+See rheoQCM.core.analysis for the modern API.
 """
 
 import numpy as np
@@ -25,6 +44,30 @@ from matplotlib.ticker import FormatStrFormatter
 import re
 import warnings
 
+# =============================================================================
+# Import from rheoQCM.core for shared constants (with fallback for standalone use)
+# =============================================================================
+try:
+    from rheoQCM.core.physics import (
+        Zq as _core_Zq,
+        f1_default as _core_f1_default,
+        e26 as _core_e26,
+        g0_default as _core_g0_default,
+    )
+    # Use core constants for consistency
+    Zq = _core_Zq
+    f1_default = _core_f1_default
+    e26 = _core_e26
+    g0_default = _core_g0_default
+    _CORE_AVAILABLE = True
+except ImportError:
+    # Fallback: define constants locally if core is not available
+    Zq = 8.84e6  # shear acoustic impedance of at cut quartz
+    f1_default = 5e6  # fundamental resonant frequency
+    e26 = 9.65e-2
+    g0_default = 50  # Half bandwidth of unloaded resonator
+    _CORE_AVAILABLE = False
+
 # Suppress the specific warning when working with All-nan arrays
 warnings.filterwarnings("ignore", message="All-NaN slice encountered")
 
@@ -34,7 +77,7 @@ warnings.filterwarnings("ignore", message="No artists with labels found to put i
 
 
 #  Broderick's color palette
-palette = ['#0093F5', '#F08E2C', '#000000', '#424EBD', '#B04D25', 
+palette = ['#0093F5', '#F08E2C', '#000000', '#424EBD', '#B04D25',
            '#75CA85', '#C892D6', '#007d00']
 
 
@@ -45,17 +88,9 @@ try:
 except ImportError:
   pass
 
-            
+
 # set up colors we'll use to plot different harmonics
 col = {1:'C0', 3:'C1', 5:'C2', 7:'C3', 9:'C4'}
-
-# setvvalues for standard constants
-Zq = 8.84e6  # shear acoustic impedance of at cut quartz
-f1_default = 5e6  # fundamental r_defaault_defaaultesonant frequency
-e26 = 9.65e-2
-
-# Half bandwidth of unloaed resonator (intrinsic dissipation on crystalline quartz)
-g0_default = 50
 
 # note that these values give constant delf/n for n=3, 5, 7
 T_coef_default = {'f': {1: [0.00054625, 0.04338, 0.08075, 0],
