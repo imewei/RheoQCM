@@ -2,7 +2,7 @@
 # ========================
 # Development Tools for QCM Analysis Software
 
-.PHONY: help install install-dev install-gui env-info \
+.PHONY: help install install-dev install-gui install-jax-gpu gpu-check env-info \
         test test-fast test-coverage \
         clean clean-all clean-pyc clean-build clean-test clean-venv \
         format lint type-check check quick docs build info version
@@ -84,7 +84,11 @@ help:
 	@echo "$(BOLD)$(GREEN)INSTALLATION$(RESET)"
 	@echo "  $(CYAN)install$(RESET)          Install package in editable mode"
 	@echo "  $(CYAN)install-dev$(RESET)      Install with development dependencies"
-	@echo "  $(CYAN)install-gui$(RESET)      Install with GUI dependencies (PyQt5)"
+	@echo "  $(CYAN)install-gui$(RESET)      Install with GUI dependencies (PyQt6)"
+	@echo ""
+	@echo "$(BOLD)$(GREEN)GPU ACCELERATION$(RESET)"
+	@echo "  $(CYAN)install-jax-gpu$(RESET)  Install JAX with CUDA GPU support (Linux + NVIDIA)"
+	@echo "  $(CYAN)gpu-check$(RESET)        Check GPU detection and JAX backend status"
 	@echo ""
 	@echo "$(BOLD)$(GREEN)TESTING$(RESET)"
 	@echo "  $(CYAN)test$(RESET)             Run all tests"
@@ -134,6 +138,34 @@ install-gui:
 	@echo "$(BOLD)$(BLUE)Installing GUI dependencies...$(RESET)"
 	@$(INSTALL_CMD) -e ".[gui]"
 	@echo "$(BOLD)$(GREEN)Done: GUI dependencies installed!$(RESET)"
+
+install-jax-gpu:
+	@echo "$(BOLD)$(BLUE)Installing JAX with CUDA GPU support...$(RESET)"
+	@echo ""
+	@echo "$(BOLD)Requirements:$(RESET)"
+	@echo "  - Linux system with NVIDIA GPU"
+	@echo "  - CUDA 12.1-12.9 and cuDNN installed"
+	@echo "  - nvidia-smi should show your GPU"
+	@echo ""
+	@$(UNINSTALL_CMD) jax jaxlib 2>/dev/null || true
+	@$(INSTALL_CMD) "jax[cuda12-local]>=0.6.0"
+	@echo ""
+	@echo "$(BOLD)$(GREEN)Done: JAX GPU installed!$(RESET)"
+	@echo "Run 'make gpu-check' to verify GPU detection."
+
+gpu-check:
+	@echo "$(BOLD)$(BLUE)Checking JAX GPU Configuration$(RESET)"
+	@echo "================================"
+	@echo ""
+	@echo "$(BOLD)NVIDIA GPU Status:$(RESET)"
+	@nvidia-smi --query-gpu=name,driver_version,memory.total --format=csv,noheader 2>/dev/null || echo "  nvidia-smi not available or no GPU found"
+	@echo ""
+	@echo "$(BOLD)JAX Device Detection:$(RESET)"
+	@$(PYTHON) -c "import jax; devices = jax.devices(); print(f'  Available devices: {len(devices)}'); [print(f'    - {d}') for d in devices]" 2>&1 || echo "  Failed to import JAX"
+	@echo ""
+	@echo "$(BOLD)JAX Backend:$(RESET)"
+	@$(PYTHON) -c "import jax; print(f'  Default backend: {jax.default_backend()}')" 2>&1 || echo "  Failed to check backend"
+	@echo ""
 
 # Environment info target
 env-info:

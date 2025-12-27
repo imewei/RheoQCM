@@ -22,7 +22,61 @@ The analysis portions of the software should work on Windows/Mac/Linux platforms
 
 ### Prerequisites
 
-* If you only want to run the stand -alone program, there is no Python environment needed. If you want to run it with Python, Python 3.5+ is required. For data analysis only, it can run with both 32-bit and 64-bit Python. If you want to use the data collection portion with myVNA, 32-bit Python and Windows are required. Python labroaries needed to run the software are listed in the `requirements.txt` file.  
+* Python 3.12+ is required. For data analysis only, it can run with both 32-bit and 64-bit Python. If you want to use the data collection portion with myVNA, 32-bit Python and Windows are required.
+
+### GPU Acceleration (Optional)
+
+RheoQCM uses JAX for high-performance numerical computations. GPU acceleration is optional but provides 100-200x speedup for large datasets.
+
+**Requirements:**
+- Linux system with NVIDIA GPU
+- CUDA 12.1-12.9 installed
+- cuDNN installed
+
+**Installation:**
+```bash
+# Quick install using Makefile
+make install-jax-gpu
+
+# Or manually:
+pip uninstall -y jax jaxlib
+pip install "jax[cuda12-local]>=0.6.0"
+
+# Verify GPU detection
+make gpu-check
+```
+
+**Troubleshooting GPU Issues:**
+
+1. **"No GPU detected"** - Ensure CUDA is properly installed:
+   ```bash
+   nvidia-smi  # Should show your GPU
+   ```
+
+2. **"CUDA version mismatch"** - JAX requires CUDA 12.1-12.9. Check your version:
+   ```bash
+   nvcc --version
+   ```
+
+3. **"cuDNN not found"** - Install cuDNN matching your CUDA version from NVIDIA Developer.
+
+4. **Fallback to CPU** - If GPU installation fails, JAX will automatically use CPU. The software will still work, but computations will be slower.
+
+### Fallback Behavior
+
+The Kotula model supports multiple backends with automatic fallback:
+
+1. **JAX (default)** - High-performance vectorized computation (100x+ faster)
+2. **mpmath (fallback)** - Used when JAX is unavailable
+
+Install mpmath as a fallback option:
+```bash
+pip install mpmath
+# Or install with the fallback optional dependency:
+pip install "rheoQCM[fallback]"
+```
+
+If neither JAX nor mpmath is available, an informative ImportError is raised with installation instructions.
 
 * If you want to run data collection, hardware and external software for data collection: The AccessMyVNA and myVNA programs were obtained from <http://g8kbb.co.uk/html/downloads.html>.
   

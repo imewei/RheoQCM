@@ -1,3 +1,19 @@
+# RheoQCM Package Configuration
+# ==============================
+#
+# GPU ACCELERATION (Optional):
+# ----------------------------
+# JAX ships with CPU-only support by default. For GPU acceleration on Linux:
+#
+#   make install-jax-gpu
+#
+# Or manually:
+#   pip uninstall -y jax jaxlib
+#   pip install "jax[cuda12-local]>=0.6.0"
+#
+# Requirements: Linux + NVIDIA GPU + CUDA 12.1-12.9 + cuDNN
+# See README.md "GPU Acceleration" section for details.
+
 [build-system]
 requires = ["setuptools>=68.0", "wheel", "setuptools-scm>=8"]
 build-backend = "setuptools.build_meta"
@@ -82,8 +98,12 @@ hardware = [
     # Windows-specific for AccessMyVNA module
     "pypiwin32>=223; sys_platform == 'win32'",
 ]
+# mpmath provides fallback for Kotula model when JAX is unavailable
+fallback = [
+    "mpmath>=1.3.0",
+]
 all = [
-    "rheoQCM[dev,gui,hardware]",
+    "rheoQCM[dev,gui,hardware,fallback]",
 ]
 
 [project.scripts]

@@ -781,6 +781,12 @@ def _solve_kotula_single(
     Solve Kotula equation for a single xi value.
 
     Uses damped Newton-Raphson iteration with JAX.
+
+    Returns
+    -------
+    gstar : complex
+        Solution to Kotula equation, or NaN if non-convergent.
+        Non-convergence is detectable via ``jnp.isnan(result)``.
     """
     xi = jnp.asarray(xi, dtype=jnp.float64)
 
@@ -804,9 +810,13 @@ def _solve_kotula_single(
         residual = jnp.abs(_kotula_equation(gstar, xi, Gmstar, Gfstar, xi_crit, s, t))
         return (residual > tol) & (i < max_iter)
 
-    gstar, _ = lax.while_loop(cond_fn, body_fn, (gstar, 0))
+    gstar, final_iter = lax.while_loop(cond_fn, body_fn, (gstar, 0))
 
-    return gstar
+    # Check convergence and return NaN if not converged
+    final_residual = jnp.abs(_kotula_equation(gstar, xi, Gmstar, Gfstar, xi_crit, s, t))
+    converged = final_residual <= tol
+    nan_complex = jnp.nan + 1j * jnp.nan
+    return jnp.where(converged, gstar, nan_complex)
 
 
 def kotula_gstar(
@@ -816,6 +826,8 @@ def kotula_gstar(
     xi_crit: float,
     s: float,
     t: float,
+    tol: float = 1e-10,
+    max_iter: int = 100,
 ) -> jnp.ndarray:
     """
     Calculate complex modulus using Kotula model.
@@ -837,16 +849,25 @@ def kotula_gstar(
         Exponent for matrix contribution.
     t : float
         Exponent for filler contribution.
+    tol : float, optional
+        Convergence tolerance for Newton-Raphson iteration. Default 1e-10.
+    max_iter : int, optional
+        Maximum number of iterations. Default 100.
 
     Returns
     -------
     gstar : complex or array
-        Effective complex modulus at each xi.
+        Effective complex modulus at each xi. Returns NaN (complex NaN)
+        for any xi value where the Newton-Raphson iteration fails to
+        converge within tolerance. Non-convergence is detectable via
+        ``jnp.isnan(result)``.
 
     Notes
     -----
     This implementation uses JAX-compatible Newton-Raphson iteration
     instead of mpmath.findroot for GPU acceleration and JIT compilation.
+    The solver uses damped Newton-Raphson with geometric interpolation
+    for the initial guess.
     """
     xi = jnp.asarray(xi, dtype=jnp.float64)
     Gmstar = jnp.asarray(Gmstar, dtype=jnp.complex128)
@@ -854,10 +875,12 @@ def kotula_gstar(
 
     # Handle scalar vs array input
     if xi.ndim == 0:
-        return _solve_kotula_single(xi, Gmstar, Gfstar, xi_crit, s, t)
+        return _solve_kotula_single(xi, Gmstar, Gfstar, xi_crit, s, t, max_iter, tol)
     else:
         # Vectorize over xi values
-        solve_fn = lambda x: _solve_kotula_single(x, Gmstar, Gfstar, xi_crit, s, t)
+        solve_fn = lambda x: _solve_kotula_single(
+            x, Gmstar, Gfstar, xi_crit, s, t, max_iter, tol
+        )
         return jax.vmap(solve_fn)(xi)
 
 

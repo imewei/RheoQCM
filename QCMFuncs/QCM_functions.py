@@ -4181,9 +4181,12 @@ def kotula_gstar(xi, Gmstar, Gfstar, xi_crit, s, t):
         from mpmath import findroot
     except ImportError:
         raise ImportError(
-            "kotula_gstar fallback requires mpmath package. "
-            "Install with: pip install mpmath\n"
-            "Or use rheoQCM.core.physics.kotula_gstar instead."
+            "kotula_gstar requires JAX or mpmath. Neither is available.\n"
+            "\nTo fix, install one of:\n"
+            "  - JAX (recommended, 100x+ faster): pip install jax jaxlib\n"
+            "  - mpmath (fallback): pip install mpmath\n"
+            "\nFor GPU acceleration (Linux only):\n"
+            "  pip install 'jax[cuda12-local]>=0.6.0'"
         )
     gstar = np.full_like(xi, 1, dtype=complex)
     for i, xival in np.ndenumerate(xi):
