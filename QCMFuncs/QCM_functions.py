@@ -45,20 +45,56 @@ import re
 import warnings
 
 # =============================================================================
-# Import from rheoQCM.core for shared constants (with fallback for standalone use)
+# Deprecation Warning
+# =============================================================================
+# Check for environment variable to suppress deprecation warning
+_SUPPRESS_DEPRECATION = os.environ.get("QCMFUNCS_SUPPRESS_DEPRECATION", "").lower() in ("1", "true", "yes")
+
+if not _SUPPRESS_DEPRECATION:
+    # Emit deprecation warning on import (can be silenced with warnings.filterwarnings)
+    warnings.warn(
+        "QCM_functions module is deprecated. For new code, use:\n"
+        "  from rheoQCM.core.analysis import QCMAnalyzer\n"
+        "  from rheoQCM.core import sauerbreyf, sauerbreym, grho\n"
+        "Note: rheoQCM.core uses phi in RADIANS (this module uses DEGREES).\n"
+        "To suppress this warning: set QCMFUNCS_SUPPRESS_DEPRECATION=1",
+        DeprecationWarning,
+        stacklevel=2
+    )
+
+# =============================================================================
+# Import from rheoQCM.core for JAX-accelerated physics (with fallback)
 # =============================================================================
 try:
-    from rheoQCM.core.physics import (
-        Zq as _core_Zq,
-        f1_default as _core_f1_default,
-        e26 as _core_e26,
-        g0_default as _core_g0_default,
-    )
-    # Use core constants for consistency
-    Zq = _core_Zq
-    f1_default = _core_f1_default
-    e26 = _core_e26
-    g0_default = _core_g0_default
+    from rheoQCM.core import physics as _core_physics
+    from rheoQCM.core.model import QCMModel as _CoreModel
+
+    # Constants from core
+    Zq = _core_physics.Zq
+    f1_default = _core_physics.f1_default
+    e26 = _core_physics.e26
+    g0_default = _core_physics.g0_default
+
+    # Physics functions from core (used for delegation)
+    _core_sauerbreyf = _core_physics.sauerbreyf
+    _core_sauerbreym = _core_physics.sauerbreym
+    _core_grho = _core_physics.grho
+    _core_grhostar = _core_physics.grhostar
+    _core_grhostar_from_refh = _core_physics.grhostar_from_refh
+    _core_grho_from_dlam = _core_physics.grho_from_dlam
+    _core_calc_dlam = _core_physics.calc_dlam
+    _core_calc_lamrho = _core_physics.calc_lamrho
+    _core_calc_deltarho = _core_physics.calc_deltarho
+    _core_etarho = _core_physics.etarho
+    _core_zstar_bulk = _core_physics.zstar_bulk
+    _core_calc_delfstar_sla = _core_physics.calc_delfstar_sla
+    _core_calc_D = _core_physics.calc_D
+    _core_normdelfstar = _core_physics.normdelfstar
+    _core_bulk_props = _core_physics.bulk_props
+    _core_deltarho_bulk = _core_physics.deltarho_bulk
+    _core_kotula_gstar = _core_physics.kotula_gstar
+    _core_kotula_xi = _core_physics.kotula_xi
+
     _CORE_AVAILABLE = True
 except ImportError:
     # Fallback: define constants locally if core is not available
@@ -67,6 +103,27 @@ except ImportError:
     e26 = 9.65e-2
     g0_default = 50  # Half bandwidth of unloaded resonator
     _CORE_AVAILABLE = False
+
+
+# =============================================================================
+# Unit conversion helpers (legacy uses degrees, core uses radians)
+# =============================================================================
+def _deg2rad(phi_deg):
+    """Convert phase angle from degrees to radians."""
+    return np.deg2rad(phi_deg)
+
+
+def _rad2deg(phi_rad):
+    """Convert phase angle from radians to degrees."""
+    return np.rad2deg(phi_rad)
+
+
+def _to_numpy(x):
+    """Convert JAX array to numpy array for backward compatibility."""
+    if hasattr(x, 'ndim') and x.ndim == 0:
+        # Scalar JAX array - convert to Python scalar
+        return complex(x) if np.iscomplexobj(x) else float(x)
+    return np.asarray(x)
 
 # Suppress the specific warning when working with All-nan arrays
 warnings.filterwarnings("ignore", message="All-NaN slice encountered")
@@ -340,44 +397,53 @@ def add_D_axis(ax):
 
 
 def sauerbreyf(n, drho, **kwargs):
-
     """
-    Find indices of array with values within a specified range.
-    
+    Calculate Sauerbrey frequency shift from mass loading.
+
+    Delegates to rheoQCM.core.physics.sauerbreyf for JAX-accelerated computation.
+
     Parameters
     ----------
-    n : interger
+    n : int
         Harmonic of interest.
     drho : float
-        Mass per unit area.
+        Mass per unit area [kg/m^2].
 
     Returns
-    --------
+    -------
     deltaf : float
-        Calculated Sauerbrey frequency shift.
+        Calculated Sauerbrey frequency shift [Hz].
     """
     f1 = kwargs.get('f1', f1_default)
-    return 2*n*f1 ** 2*drho/Zq
+    if _CORE_AVAILABLE:
+        return _to_numpy(_core_sauerbreyf(n, drho, f1))
+    # Fallback if core not available
+    return 2 * n * f1 ** 2 * drho / Zq
 
 
 def sauerbreym(n, delf, **kwargs):
     """
     Calculate Sauerbrey mass from frequency shift.
-    
+
+    Delegates to rheoQCM.core.physics.sauerbreym for JAX-accelerated computation.
+
     Parameters
     ----------
-    n : integer
+    n : int
         Harmonic of interest.
-    delf : real float
-        Frequency shift in Hz.
+    delf : float
+        Frequency shift [Hz].
 
     Returns
-    ---------
-    drho : real float
-        Sauerbrey mass in kg/m^2.
+    -------
+    drho : float
+        Sauerbrey mass [kg/m^2].
     """
     f1 = kwargs.get('f1', f1_default)
-    return -delf*Zq/(2*n*f1 ** 2)
+    if _CORE_AVAILABLE:
+        return _to_numpy(_core_sauerbreym(n, delf, f1))
+    # Fallback if core not available
+    return -delf * Zq / (2 * n * f1 ** 2)
 
 
 def etarho(n, props, **kwargs):
@@ -420,23 +486,28 @@ def grho(n, props):
     """
     Use power law formulation to get |G*|rho at different harmonics,
     with properties at n=3 as an input.
-    
+
+    Delegates to rheoQCM.core.physics.grho for JAX-accelerated computation.
+
     Parameters
-    -----------
-    n : integer
+    ----------
+    n : int
         Harmonic of interest.
-    props : dictionary:
-        Dictionary of material properties, which must contain
-        grho3 and phi.
+    props : dict
+        Dictionary of material properties containing 'grho3' and 'phi' (degrees).
 
     Returns
-    --------
-    grho_mag : real
+    -------
+    grho_mag : float
         |G*rho| at harmonic of interest.
     """
     grho3 = props['grho3']
-    phi = props['phi']
-    return grho3*(n/3) ** (phi/90)
+    phi_deg = props['phi']
+    if _CORE_AVAILABLE:
+        phi_rad = _deg2rad(phi_deg)
+        return _to_numpy(_core_grho(n, grho3, phi_rad, refh=3))
+    # Fallback if core not available
+    return grho3 * (n / 3) ** (phi_deg / 90)
 
 
 def calc_grho3(n, grhostar):
@@ -914,44 +985,63 @@ def calc_dlam_from_dlam3(n, dlam3, phi):
 
 def calc_lamrho(n, grho3, phi, **kwargs):
     """
-    Calculate lambda*\rho at specified harmonic.
-    args:
-        n (int):
-            Harmonic of interest.
+    Calculate lambda*rho at specified harmonic.
 
-        grho3 (real):
-            |G*|$\rho$  at n=3 (SI units).
+    Delegates to rheoQCM.core.physics.calc_lamrho for JAX-accelerated computation.
 
-        phi (real):
-            Phase angle (degrees).
+    Parameters
+    ----------
+    n : int
+        Harmonic of interest.
+    grho3 : float
+        |G*|rho at n=3 (SI units).
+    phi : float
+        Phase angle (degrees).
 
-    returns:
-        shear wavelength times density in SI units
+    Returns
+    -------
+    float
+        Shear wavelength times density in SI units.
     """
     f1 = kwargs.get('f1', f1_default)
-    # calculate lambda*rho
-    grho = grho3*(n/3) ** (phi/90)
-    return np.sqrt(grho)/(n*f1*np.cos(np.deg2rad(phi/2)))
+    if _CORE_AVAILABLE:
+        phi_rad = _deg2rad(phi)
+        # First compute grho at harmonic n using power law
+        grho_n = _core_grho(n, grho3, phi_rad, refh=3)
+        return _to_numpy(_core_calc_lamrho(n, grho_n, phi_rad, f1))
+    # Fallback if core not available
+    grho_val = grho3 * (n / 3) ** (phi / 90)
+    return np.sqrt(grho_val) / (n * f1 * np.cos(np.deg2rad(phi / 2)))
 
 
-def calc_deltarho(n, grho3, phi):
+def calc_deltarho(n, grho3, phi, **kwargs):
     """
-    Calculate delta*\rho at specified harmonic.
-    args:
-        n (int):
-            Harmonic of interest.
+    Calculate delta*rho at specified harmonic.
 
-        grho3 (real):
-            |G*|\rho  at n=3 (SI units).
+    Delegates to rheoQCM.core.physics.calc_deltarho for JAX-accelerated computation.
 
-        phi (real):
-            Phase angle (degrees).
+    Parameters
+    ----------
+    n : int
+        Harmonic of interest.
+    grho3 : float
+        |G*|rho at n=3 (SI units).
+    phi : float
+        Phase angle (degrees).
 
-    returns:
-        decay length times density in SI units
+    Returns
+    -------
+    float
+        Decay length times density in SI units.
     """
-    # calculate delta*rho (decay length times density)
-    return calc_lamrho(n, grho3, phi)/(2*np.pi*np.tan(np.radians(phi/2)))
+    f1 = kwargs.get('f1', f1_default)
+    if _CORE_AVAILABLE:
+        phi_rad = _deg2rad(phi)
+        # First compute grho at harmonic n using power law
+        grho_n = _core_grho(n, grho3, phi_rad, refh=3)
+        return _to_numpy(_core_calc_deltarho(n, grho_n, phi_rad, f1))
+    # Fallback if core not available
+    return calc_lamrho(n, grho3, phi) / (2 * np.pi * np.tan(np.radians(phi / 2)))
 
 
 def phi_from_grho3_sadman(grho3):
@@ -990,23 +1080,30 @@ def dlam(n, dlam3, phi):
 
 def normdelfstar(n, dlam3, phi):
     """
-    Calculate complex frequency shift normzlized by Sauerbrey shift.
-    args:
-        n (int):
-            Harmonic of interest.
+    Calculate complex frequency shift normalized by Sauerbrey shift.
 
-        dlam3 (real):
-            d/lambda at n=3.
+    Delegates to rheoQCM.core.physics.normdelfstar for JAX-accelerated computation.
 
-        phi (real):
-            Phase angle (degrees).
+    Parameters
+    ----------
+    n : int
+        Harmonic of interest.
+    dlam3 : float
+        d/lambda at n=3.
+    phi : float
+        Phase angle (degrees).
 
-    returns:
-        delfstar normalized by Sauerbrey value
-    
+    Returns
+    -------
+    complex
+        delfstar normalized by Sauerbrey value.
     """
-    D = 2*np.pi*dlam(n, dlam3, phi)*(1-1j*np.tan(np.deg2rad(phi/2)))
-    return -np.sinc(D/np.pi)/np.cos(D)
+    if _CORE_AVAILABLE:
+        phi_rad = _deg2rad(phi)
+        return _to_numpy(_core_normdelfstar(n, dlam3, phi_rad))
+    # Fallback if core not available
+    D = 2 * np.pi * dlam(n, dlam3, phi) * (1 - 1j * np.tan(np.deg2rad(phi / 2)))
+    return -np.sinc(D / np.pi) / np.cos(D)
     # note:  sinc(x)=sin(pi*x)/(pi*x)
             
 def normdelfstar_liq(n, dlamval, phi, drho, overlayer):
@@ -1173,22 +1270,29 @@ def rd_from_delfstar(n, delfstar):
 def bulk_props(delfstar, **kwargs):
     """
     Determine properties of bulk material from complex frequency shift.
-    
-    args:
-        delfstar (complex):
-            Complex frequency shift (at any harmonic).
 
-    returns:
-        grho:
-            harmonic where delfstar was measured.
-        phi:
-            Phase angle in degrees, at harmonic where delfstar was measured.
+    Delegates to rheoQCM.core.physics.bulk_props for JAX-accelerated computation.
+
+    Parameters
+    ----------
+    delfstar : complex
+        Complex frequency shift (at any harmonic).
+
+    Returns
+    -------
+    grho : float
+        |G*|rho at harmonic where delfstar was measured.
+    phi : float
+        Phase angle in degrees, at harmonic where delfstar was measured.
     """
     f1 = kwargs.get('f1', f1_default)
-    grho = (np.pi*Zq*abs(delfstar)/f1) ** 2
-    phi = -np.degrees(2*np.arctan(delfstar.real /
-                      delfstar.imag))
-    return grho, min(phi, 90)
+    if _CORE_AVAILABLE:
+        grho_val, phi_rad = _core_bulk_props(delfstar, f1)
+        return _to_numpy(grho_val), min(_to_numpy(_rad2deg(phi_rad)), 90)
+    # Fallback if core not available
+    grho_val = (np.pi * Zq * abs(delfstar) / f1) ** 2
+    phi_val = -np.degrees(2 * np.arctan(delfstar.real / delfstar.imag))
+    return grho_val, min(phi_val, 90)
 
 
 def nvals_from_calc(calc):
@@ -4042,57 +4146,81 @@ def getxy_from_MATLAB_fig(filename):
     return nax, x, y, Color, Marker
 
 
-def kotula_gstar(xi, Gmstar, Gfstar, xi_crit, s,t):
-    ''' 
-    Kotua moldel of complex modulus as a function of filler fraction.
-    
+def kotula_gstar(xi, Gmstar, Gfstar, xi_crit, s, t):
+    """
+    Kotula model of complex modulus as a function of filler fraction.
+
+    Delegates to rheoQCM.core.physics.kotula_gstar for JAX-accelerated computation.
+
     Parameters
     ----------
-    xi : real 
+    xi : float or array
         Filler volume fraction.
     Gmstar : complex
         Matrix complex modulus.
     Gfstar : complex
         Filler complex modulus.
-    xi_crit : real
+    xi_crit : float
         Critical filler volume fraction.
-    s, t : exponents
-    
-    '''
-    gstar = np.full_like(xi, 1, dtype = complex)
+    s, t : float
+        Exponents.
+
+    Returns
+    -------
+    complex or array
+        Complex modulus at given filler fraction.
+    """
+    if _CORE_AVAILABLE:
+        import jax.numpy as jnp
+        xi_arr = jnp.atleast_1d(jnp.asarray(xi))
+        result = _core_kotula_gstar(xi_arr, Gmstar, Gfstar, xi_crit, s, t)
+        if np.isscalar(xi):
+            return complex(_to_numpy(result[0]))
+        return _to_numpy(result)
+    # Fallback using mpmath
+    gstar = np.full_like(xi, 1, dtype=complex)
     for i, xival in np.ndenumerate(xi):
-        def ftosolve(gstar):
-            A = (1-xi_crit)/xi_crit
-            func = ((1-xival)*(Gmstar**(1/s)-gstar**(1/s))/(Gmstar**(1/s)+
-                     A*gstar**(1/s)) + xival*(Gfstar**(1/t)-gstar**(1/t))/
-                     (Gfstar**(1/t)+A*gstar**(1/t)))
+        def ftosolve(gstar_val):
+            A = (1 - xi_crit) / xi_crit
+            func = ((1 - xival) * (Gmstar**(1/s) - gstar_val**(1/s)) / (Gmstar**(1/s) +
+                     A * gstar_val**(1/s)) + xival * (Gfstar**(1/t) - gstar_val**(1/t)) /
+                     (Gfstar**(1/t) + A * gstar_val**(1/t)))
             return func
-        gstar[i] =findroot(ftosolve, Gmstar)
+        gstar[i] = findroot(ftosolve, Gmstar)
     return gstar
 
 
-def kotula_xi(gstar, Gmstar, Gfstar, xi_crit, s,t):
-    ''' 
-    Kotua moldel filler raction as a function of compex modulus.
-    Basically the inverse of kotula-gstar, but we can solve
-    this one anaytically
-    
+def kotula_xi(gstar, Gmstar, Gfstar, xi_crit, s, t):
+    """
+    Kotula model filler fraction as a function of complex modulus.
+
+    Basically the inverse of kotula_gstar, solved analytically.
+    Delegates to rheoQCM.core.physics.kotula_xi for JAX-accelerated computation.
+
     Parameters
     ----------
-    gstar : compplex 
-        Filler volume fraction.
+    gstar : complex
+        Complex modulus.
     Gmstar : complex
         Matrix complex modulus.
     Gfstar : complex
         Filler complex modulus.
-    xi_crit : real
+    xi_crit : float
         Critical filler volume fraction.
-    s, t : exponents
-    
-    '''
-    A = (1-xi_crit)/xi_crit
-    xi = (-A * Gmstar**(1/s) * gstar**(1/t) + A * gstar**((s + t)/(s * t)) -       
-            Gfstar**(1/t) * Gmstar**(1/s) + Gfstar**(1/t) * gstar**(1/s)) / (A *  
+    s, t : float
+        Exponents.
+
+    Returns
+    -------
+    float or array
+        Filler volume fraction.
+    """
+    if _CORE_AVAILABLE:
+        return _to_numpy(_core_kotula_xi(gstar, Gmstar, Gfstar, xi_crit, s, t))
+    # Fallback
+    A = (1 - xi_crit) / xi_crit
+    xi = (-A * Gmstar**(1/s) * gstar**(1/t) + A * gstar**((s + t)/(s * t)) -
+            Gfstar**(1/t) * Gmstar**(1/s) + Gfstar**(1/t) * gstar**(1/s)) / (A *
             Gfstar**(1/t) * gstar**(1/s) - A * Gmstar**(1/s) * gstar**(1/t) +
             Gfstar**(1/t) * gstar**(1/s) - Gmstar**(1/s) * gstar**(1/t))
     return xi
