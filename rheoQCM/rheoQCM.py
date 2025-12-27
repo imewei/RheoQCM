@@ -279,7 +279,7 @@ class QCMApp(QMainWindow):
                 # check box_harm<n>, lineEdit_<start/end>f<n></_r> all come togeter. So, only check one
                 ## create widget check box_harm<n>
                 setattr(self.ui, 'checkBox_harm' + harm, QCheckBox(self.ui.groupBox_settings_harmonics))
-                sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
+                sizePolicy = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
                 sizePolicy.setHorizontalStretch(0)
                 sizePolicy.setVerticalStretch(0)
                 sizePolicy.setHeightForWidth(getattr(self.ui, 'checkBox_harm' + harm).sizePolicy().hasHeightForWidth())
@@ -303,15 +303,15 @@ class QCMApp(QMainWindow):
             ## create frame_sp<n>
             if not getattr(self.ui, 'frame_sp'+harm, None): # check if the item exist
                 setattr(self.ui, 'frame_sp'+harm, QFrame(self.ui.page_spectra_show))
-                sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
+                sizePolicy = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Expanding)
                 sizePolicy.setHorizontalStretch(0)
                 sizePolicy.setVerticalStretch(1)
                 sizePolicy.setHeightForWidth(getattr(self.ui, 'frame_sp'+harm).sizePolicy().hasHeightForWidth())
                 getattr(self.ui, 'frame_sp'+harm).setSizePolicy(sizePolicy)
                 # getattr(self.ui, 'frame_sp'+harm).setMinimumSize(QSize(0, 100))
                 getattr(self.ui, 'frame_sp'+harm).setMaximumSize(QSize(16777215, 400))
-                getattr(self.ui, 'frame_sp'+harm).setFrameShape(QFrame.StyledPanel)
-                getattr(self.ui, 'frame_sp'+harm).setFrameShadow(QFrame.Sunken)
+                getattr(self.ui, 'frame_sp'+harm).setFrameShape(QFrame.Shape.StyledPanel)
+                getattr(self.ui, 'frame_sp'+harm).setFrameShadow(QFrame.Shadow.Sunken)
                 getattr(self.ui, 'frame_sp'+harm).setObjectName('frame_sp'+harm)
                 self.ui.verticalLayout_sp.addWidget(getattr(self.ui, 'frame_sp'+harm))
 
@@ -354,7 +354,7 @@ class QCMApp(QMainWindow):
                 self.ui.tabWidget_settings_settings_harm.indexOf(
                     getattr(self.ui, 'tab_settings_settings_harm' + harm)
                 ),
-                QTabBar.LeftSide,
+                QTabBar.ButtonPosition.LeftSide,
                 getattr(self.ui, 'checkBox_tree_harm' + harm
                 )
             )
@@ -511,12 +511,12 @@ class QCMApp(QMainWindow):
         # add checkbox to tabWidget_settings_settings_samprefchn
         self.ui.tabWidget_settings_settings_samprefchn.tabBar().setTabButton(
             self.ui.tabWidget_settings_settings_samprefchn.indexOf(self.ui.tab_settings_settings_harmchnsamp),
-            QTabBar.LeftSide,
+            QTabBar.ButtonPosition.LeftSide,
             self.ui.checkBox_activechn_samp,
         )
         self.ui.tabWidget_settings_settings_samprefchn.tabBar().setTabButton(
             self.ui.tabWidget_settings_settings_samprefchn.indexOf(self.ui.tab_settings_settings_harmchnref),
-            QTabBar.LeftSide,
+            QTabBar.ButtonPosition.LeftSide,
             self.ui.checkBox_activechn_ref,
         )
 
@@ -569,9 +569,9 @@ class QCMApp(QMainWindow):
             160,
         )
 
-        # move checkBox_settings_settings_harmzerophase
+        # move checkBox_settings_settings_harmlockphase
         self.move_to_col(
-            self.ui.checkBox_settings_settings_harmzerophase,
+            self.ui.checkBox_settings_settings_harmlockphase,
             self.ui.treeWidget_settings_settings_harmtree,
             'Phase',
             160,
@@ -896,7 +896,7 @@ class QCMApp(QMainWindow):
         self.ui.radioButton_peaks_num_fixed.toggled['bool'].connect(self.update_harmwidget)
         self.ui.radioButton_peaks_policy_minf.toggled['bool'].connect(self.update_harmwidget)
         self.ui.radioButton_peaks_policy_maxamp.toggled['bool'].connect(self.update_harmwidget)
-        self.ui.checkBox_settings_settings_harmzerophase.toggled['bool'].connect(self.update_harmwidget)
+        self.ui.checkBox_settings_settings_harmlockphase.toggled['bool'].connect(self.update_harmwidget)
 
         # set signals to update hardware settings_settings
         self.ui.comboBox_samp_channel.currentIndexChanged.connect(self.update_widget)
@@ -4103,7 +4103,7 @@ class QCMApp(QMainWindow):
 
                 # combobox comboBox_mech_expertmode_source_
                 setattr(self.ui, 'comboBox_mech_expertmode_source_'+str(i), QComboBox(self.ui.stackedWidgetPage_mech_expertmode))
-                sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
+                sizePolicy = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
                 sizePolicy.setHorizontalStretch(0)
                 sizePolicy.setVerticalStretch(0)
                 sizePolicy.setHeightForWidth(getattr(self.ui, 'comboBox_mech_expertmode_source_'+str(i)).sizePolicy().hasHeightForWidth())
@@ -5788,9 +5788,9 @@ class QCMApp(QMainWindow):
             self.get_harmdata('radioButton_peaks_policy_maxamp', harm=harm)
         )
 
-        # update checkBox_settings_settings_harmzerophase
-        self.ui.checkBox_settings_settings_harmzerophase.setChecked(
-            self.get_harmdata('checkBox_settings_settings_harmzerophase', harm=harm)
+        # update checkBox_settings_settings_harmlockphase
+        self.ui.checkBox_settings_settings_harmlockphase.setChecked(
+            self.get_harmdata('checkBox_settings_settings_harmlockphase', harm=harm)
         )
 
         # update lineEdit_peaks_threshold
@@ -6294,7 +6294,7 @@ class QCMApp(QMainWindow):
         # set objectName
         obj_box.setObjectName(name)
         # set its size adjust policy
-        obj_box.SizeAdjustPolicy(QComboBox.AdjustToContents)
+        obj_box.setSizeAdjustPolicy(QComboBox.SizeAdjustPolicy.AdjustToContents)
         # add items from contents
         if isinstance(contents, list): # if given a list, add only the text
             for val in contents:
