@@ -50,7 +50,7 @@ import datetime
 import time # for test
 import pandas as pd
 import numpy as np
-from scipy.interpolate import interp1d # , splrep, splev
+from rheoQCM.core.physics import create_interp_func  # JAX-based interpolation
 import h5py
 import json
 import openpyxl
@@ -2033,7 +2033,7 @@ class DataSaver:
                 for ind_list in reference_idx: # iterate each list
                     logger.info('ind_list %s', ind_list)
                     if len(ind_list) == 1: # single point
-                        # cause single point is not allowed for interp1d, doubling the length by repeating
+                        # cause single point is not allowed for interpolation, doubling the length by repeating
                         ind_list = ind_list * 2
                     func_f_list = [] # func for all freq
                     func_g_list = [] # func for all gamma
@@ -2048,13 +2048,13 @@ class DataSaver:
                         else: # there is data
                             logger.info('tempind %s', tempind) 
                             logger.info('fharmind %s', fharmind) 
-                            func_f_list.append(interp1d(tempind, fharmind, kind=self.exp_ref['mode']['fit'], fill_value=np.nan, bounds_error=False))
+                            func_f_list.append(create_interp_func(tempind, fharmind, method=self.exp_ref['mode']['fit'], extrap=np.nan))
                         
                         # calc gamma
                         if np.isnan(gharmind).all(): # no data in harm and ind_list
                             pass # already initiated
                         else: # there is data
-                            func_g_list.append(interp1d(tempind, gharmind, kind=self.exp_ref['mode']['fit'], fill_value=np.nan, bounds_error=False))
+                            func_g_list.append(create_interp_func(tempind, gharmind, method=self.exp_ref['mode']['fit'], extrap=np.nan))
 
                     # make function for each ind_list
                     func_list.append(self.make_interpfun(func_f_list, func_g_list))
@@ -2711,7 +2711,7 @@ class DataSaver:
                                     func_seg_list.append(lambda temp: np.array([np.nan] * len(temp))) # add a func return nan
                                 else: # there is data
                                     logger.info('%s %s', temp_b_ind.shape, col_arr_i.shape)
-                                    func_seg_list.append(interp1d(temp_b_ind, col_arr_i, kind=self.exp_ref['mode']['fit'], fill_value=np.nan, bounds_error=False))
+                                    func_seg_list.append(create_interp_func(temp_b_ind, col_arr_i, method=self.exp_ref['mode']['fit'], extrap=np.nan))
                             func_list.append(lambda temp: [func_seg(temp) for func_seg in func_seg_list])    
  
                         # check if all elements in self.exp_ref.samp_ref[1] is list
