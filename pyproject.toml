@@ -103,7 +103,7 @@ nlsq = { path = "/home/wei/Documents/GitHub/NLSQ", editable = true }
 
 [tool.setuptools.packages.find]
 include = ["rheoQCM", "rheoQCM.*", "QCMFuncs", "QCMFuncs.*"]
-exclude = ["tests*", "docs*", "example*", "test_data*", "stand_alone*", "UI*"]
+exclude = ["tests*", "docs*", "example*", "data*", "stand_alone*", "UI*"]
 
 [tool.setuptools.package-data]
 "rheoQCM" = ["py.typed", "*.json", "*.yaml"]
