@@ -2,9 +2,9 @@
 class for peak tracking and fitting 
 '''
 import numpy as np
-from lmfit import Model, Minimizer, minimize, Parameters, fit_report, printfuncs
+from lmfit import Model, Minimizer, minimize, Parameters, fit_report
 from lmfit.models import ConstantModel
-from scipy.signal import find_peaks, find_peaks_cwt, peak_widths, peak_prominences
+from scipy.signal import find_peaks, peak_widths, peak_prominences
 from random import randrange
 
 import UISettings

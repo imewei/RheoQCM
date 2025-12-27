@@ -1,15 +1,29 @@
+"""
+AccessMyVNA - Interface to myVNA hardware (Windows-only).
+
+This module provides access to myVNA network analyzer hardware
+through Windows DLL calls. It requires Windows and the myVNA
+software/drivers to be installed.
+"""
+import sys
+
+# Platform check - this module only works on Windows
+if sys.platform != 'win32':
+    raise ImportError(
+        "AccessMyVNA module requires Windows. "
+        "myVNA hardware interface is not available on this platform."
+    )
 
 import os
 import json
 import signal
 import numpy as np
 from ctypes import *
-# from ctypes import windll, WinDLL, wintypes, WINFUNCTYPE, POINTER, c_int, c_double, byref, Array, cast, get_last_error, WinError
 from ctypes.wintypes import HWND, LONG, BOOL, LPARAM, LPDWORD, DWORD, LPWSTR
-# from comtypes.safearray import safearray_as_ndarray
 
 import numpy.ctypeslib as clib
-import sys, struct, time
+import struct
+import time
 import threading
 
 import win32ui
@@ -18,6 +32,7 @@ import win32process
 import ctypes
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 

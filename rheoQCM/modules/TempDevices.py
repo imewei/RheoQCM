@@ -23,8 +23,8 @@ def list_devices():
             logger.info('Device Name: {0}, Product Category: {1}, Product Type: {2}'.format(
                 device.name, device.product_category, device.product_type))
             devices.append(device)
-    except:
-        dcvices = []
+    except Exception:
+        devices = []
     return devices
 
 
