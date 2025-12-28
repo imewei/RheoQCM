@@ -24,14 +24,16 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from rheoQCM.core import physics
 from rheoQCM.core import multilayer as _core_multilayer
-from rheoQCM.core.model import QCMModel
-from rheoQCM.core.model import bulk_drho
-from rheoQCM.core.model import dlam_refh_range
-from rheoQCM.core.model import drho_range
-from rheoQCM.core.model import grho_refh_range
-from rheoQCM.core.model import phi_range
+from rheoQCM.core import physics
+from rheoQCM.core.model import (
+    QCMModel,
+    bulk_drho,
+    dlam_refh_range,
+    drho_range,
+    grho_refh_range,
+    phi_range,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -39,8 +41,7 @@ logger = logging.getLogger(__name__)
 kww_spec = importlib.util.find_spec("kww")
 found_kww = kww_spec is not None
 if found_kww:
-    from kww import kwwc
-    from kww import kwws
+    from kww import kwwc, kwws
 else:
     logger.info("kww module is not found!")
 
@@ -229,7 +230,12 @@ class QCM:
         """Calculate D parameter."""
         grho_n = self.grho(n, grho_refh, phi)
         return (
-            2 * np.pi * drho * n * self.f1 * (np.cos(phi / 2) - 1j * np.sin(phi / 2))
+            2
+            * np.pi
+            * drho
+            * n
+            * self.f1
+            * (np.cos(phi / 2) - 1j * np.sin(phi / 2))
             / grho_n**0.5
         )
 
@@ -302,12 +308,10 @@ class QCM:
         )
         return complex(result)
 
-    def d_lamcalc(
-        self, n: int, grho_refh: float, phi: float, drho: float
-    ) -> float:
+    def d_lamcalc(self, n: int, grho_refh: float, phi: float, drho: float) -> float:
         """Calculate d/lambda."""
-        return drho * n * self.f1 * np.cos(phi / 2) / np.sqrt(
-            self.grho(n, grho_refh, phi)
+        return (
+            drho * n * self.f1 * np.cos(phi / 2) / np.sqrt(self.grho(n, grho_refh, phi))
         )
 
     def thin_film_gamma(self, n: int, drho: float, jdprime_rho: float) -> float:
@@ -343,7 +347,9 @@ class QCM:
         drho = material["drho"]
         if drho == 0:
             return 0
-        return 2 * np.pi * (n * self.f1 + delfstar) * drho / self.zstar_bulk(n, material)
+        return (
+            2 * np.pi * (n * self.f1 + delfstar) * drho / self.zstar_bulk(n, material)
+        )
 
     def zstar_bulk(self, n: int, material: dict) -> complex:
         """Calculate bulk acoustic impedance for material."""
@@ -376,9 +382,7 @@ class QCM:
                 return -1.0 + 0j
         return result
 
-    def calc_drho(
-        self, n1: int, delfstar: dict, dlam_refh: float, phi: float
-    ) -> float:
+    def calc_drho(self, n1: int, delfstar: dict, dlam_refh: float, phi: float) -> float:
         """Calculate drho from delfstar."""
         return self.sauerbreym(n1, np.real(delfstar[n1])) / np.real(
             self.normdelfstar(n1, dlam_refh, phi)
@@ -416,15 +420,16 @@ class QCM:
 
     def delrho_bulk(self, n: int, delfstar: dict) -> float:
         """Calculate decay length * density for bulk material."""
-        return -self.Zq * abs(delfstar[n]) ** 2 / (
-            2 * n * self.f1**2 * np.real(delfstar[n])
+        return (
+            -self.Zq
+            * abs(delfstar[n]) ** 2
+            / (2 * n * self.f1**2 * np.real(delfstar[n]))
         )
 
     def delfstarcalc_bulk(self, n: int, grho_refh: float, phi: float) -> complex:
         """Calculate complex frequency shift for bulk layer."""
-        return (
-            (self.f1 * np.sqrt(self.grho(n, grho_refh, phi)) / (np.pi * self.Zq))
-            * (-np.sin(phi / 2) + 1j * np.cos(phi / 2))
+        return (self.f1 * np.sqrt(self.grho(n, grho_refh, phi)) / (np.pi * self.Zq)) * (
+            -np.sin(phi / 2) + 1j * np.cos(phi / 2)
         )
 
     def delfstarcalc_bulk_from_film(self, n: int, film: dict) -> complex:
@@ -497,10 +502,12 @@ class QCM:
 
         # Use core multilayer function
         result = _core_multilayer.calc_ZL(
-            n, layers, delfstar,
+            n,
+            layers,
+            delfstar,
             f1=self.f1,
             calctype=self.calctype,
-            refh=self.refh if self.refh else 3
+            refh=self.refh if self.refh else 3,
         )
         return complex(result)
 
@@ -519,10 +526,11 @@ class QCM:
 
         if self.calctype.upper() == "SLA":
             result = _core_multilayer.calc_delfstar_multilayer(
-                n, layers_without_0,
+                n,
+                layers_without_0,
                 f1=self.f1,
                 calctype="SLA",
-                refh=self.refh if self.refh else 3
+                refh=self.refh if self.refh else 3,
             )
             return complex(result)
         elif self.calctype.upper() == "LL":
@@ -533,7 +541,8 @@ class QCM:
 
             # Use core multilayer function for LL calculation
             result = _core_multilayer.calc_delfstar_multilayer(
-                n, layers_with_electrode,
+                n,
+                layers_with_electrode,
                 f1=self.f1,
                 calctype="LL",
                 refh=self.refh if self.refh else 3,
@@ -556,7 +565,9 @@ class QCM:
         """
         # Use core multilayer function
         result = _core_multilayer.calc_Zmot(
-            n, layers, delfstar,
+            n,
+            layers,
+            delfstar,
             f1=self.f1,
             calctype=self.calctype,
             refh=self.refh if self.refh else 3,
@@ -804,7 +815,9 @@ class QCM:
         ]
 
         delfstar_calc = {}
-        delfsn = {i * 2 + 1: self.sauerbreyf(i * 2 + 1, drho) for i, _ in enumerate(marks)}
+        delfsn = {
+            i * 2 + 1: self.sauerbreyf(i * 2 + 1, drho) for i, _ in enumerate(marks)
+        }
         normdelfstar_calcs = {}
 
         # Copy queue data
@@ -844,9 +857,7 @@ class QCM:
             delg_calcs[nh2i(n)] = np.imag(delfstar_calc[n])
 
             delD_exps[nh2i(n)] = self.convert_gamma_to_D(np.imag(delfstar[n]), n)
-            delD_calcs[nh2i(n)] = self.convert_gamma_to_D(
-                np.imag(delfstar_calc[n]), n
-            )
+            delD_calcs[nh2i(n)] = self.convert_gamma_to_D(np.imag(delfstar_calc[n]), n)
             sauerbreyms[nh2i(n)] = self.sauerbreym(n, -np.real(delfstar[n]))
 
             rd_calcs[nh2i(n)] = self.rd_from_delfstar(n, delfstar_calc)
@@ -907,9 +918,7 @@ class QCM:
 
         return mech_queue
 
-    def all_nhcaclc_harm_not_na(
-        self, nh: list[int], qcm_queue: pd.DataFrame
-    ) -> bool:
+    def all_nhcaclc_harm_not_na(self, nh: list[int], qcm_queue: pd.DataFrame) -> bool:
         """Check if all harmonics in nhcalc are not NA."""
         delfstars = qcm_queue.delfstars.iloc[0]
         if (
@@ -952,19 +961,27 @@ class QCM:
         for col in cols:
             if any([st in col for st in ["drho", "lamrho", "delrho", "sauerbreyms"]]):
                 df[col] = df[col].apply(
-                    lambda x: list(np.array(x) * 1000) if isinstance(x, list) else x * 1000
+                    lambda x: list(np.array(x) * 1000)
+                    if isinstance(x, list)
+                    else x * 1000
                 )
             elif any([st in col for st in ["grho", "etarho"]]):
                 df[col] = df[col].apply(
-                    lambda x: list(np.array(x) / 1000) if isinstance(x, list) else x / 1000
+                    lambda x: list(np.array(x) / 1000)
+                    if isinstance(x, list)
+                    else x / 1000
                 )
             elif "phi" in col:
                 df[col] = df[col].apply(
-                    lambda x: list(np.rad2deg(x)) if isinstance(x, list) else np.rad2deg(x)
+                    lambda x: list(np.rad2deg(x))
+                    if isinstance(x, list)
+                    else np.rad2deg(x)
                 )
             elif "D_" in col:
                 df[col] = df[col].apply(
-                    lambda x: list(np.array(x) * 1e6) if isinstance(x, list) else x * 1e6
+                    lambda x: list(np.array(x) * 1e6)
+                    if isinstance(x, list)
+                    else x * 1e6
                 )
         return df
 
@@ -985,9 +1002,7 @@ class QCM:
             return data * 1e6
         return data
 
-    def single_harm_data(
-        self, var: str, qcm_df: pd.DataFrame
-    ) -> pd.Series | None:
+    def single_harm_data(self, var: str, qcm_df: pd.DataFrame) -> pd.Series | None:
         """Get variables calculated from single harmonic."""
         if var == "delf_calcs":
             return qcm_df.delfs
@@ -999,8 +1014,7 @@ class QCM:
             s = qcm_df.delfstars.copy()
             s.apply(
                 lambda delfstars: [
-                    self.rd_from_delfstar(n, delfstars)
-                    for n in range(len(delfstars))
+                    self.rd_from_delfstar(n, delfstars) for n in range(len(delfstars))
                 ]
             )
             return s
@@ -1015,9 +1029,7 @@ class QCM:
         return 1j * wtau / (1 + 1j * wtau)
 
     @np.vectorize
-    def gstar_kww(
-        self, wtau: float, beta: float
-    ) -> complex:
+    def gstar_kww(self, wtau: float, beta: float) -> complex:
         """KWW (stretched exponential) G*."""
         return wtau * (kwws(wtau, beta) + 1j * kwwc(wtau, beta))
 
@@ -1111,8 +1123,8 @@ if __name__ == "__main__":
         nh, delfstar, film, calctype="SLA", bulklimit=0.5
     )
 
-    print("drho", drho)
-    print("grho_refh", grho_refh)
-    print("phi", phi)
-    print("dlam_refh", dlam_refh)
-    print("err", err)
+    logger.info("drho %s", drho)
+    logger.info("grho_refh %s", grho_refh)
+    logger.info("phi %s", phi)
+    logger.info("dlam_refh %s", dlam_refh)
+    logger.info("err %s", err)

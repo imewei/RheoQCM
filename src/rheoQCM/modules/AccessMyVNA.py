@@ -5,33 +5,27 @@ This module provides access to myVNA network analyzer hardware
 through Windows DLL calls. It requires Windows and the myVNA
 software/drivers to be installed.
 """
+
 import sys
 
 # Platform check - this module only works on Windows
-if sys.platform != 'win32':
+if sys.platform != "win32":
     raise ImportError(
         "AccessMyVNA module requires Windows. "
         "myVNA hardware interface is not available on this platform."
     )
 
+import logging
 import os
-import json
 import signal
-import numpy as np
-from ctypes import *
-from ctypes.wintypes import HWND, LONG, BOOL, LPARAM, LPDWORD, DWORD, LPWSTR
-
-import numpy.ctypeslib as clib
 import struct
 import time
-import threading
+from ctypes import *
+from ctypes.wintypes import HWND
 
-import win32ui
+import numpy as np
 import win32process
-
-import ctypes
-
-import logging
+import win32ui
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +33,7 @@ logger = logging.getLogger(__name__)
 # load vna_wait_time_extra
 try:
     import UISettings
+
     config_default = UISettings.get_config()
     settings_default = UISettings.get_settings()
 except:
@@ -46,11 +41,13 @@ except:
     settings_default = {}
 
 # initialize extra_time by default
-extra_time = config_default.get('vna_wait_time_extra', 0.05) # in s. This extra time will be added to the calculated value
+extra_time = config_default.get(
+    "vna_wait_time_extra", 0.05
+)  # in s. This extra time will be added to the calculated value
 
-if 'vna_wait_time_extra' in settings_default:
-    extra_time = settings_default['vna_wait_time_extra']
-    logger.info('use user settings vna_wait_time_extra')
+if "vna_wait_time_extra" in settings_default:
+    extra_time = settings_default["vna_wait_time_extra"]
+    logger.info("use user settings vna_wait_time_extra")
 # end load vna_wait_time_extra
 
 # try: # run from main
@@ -58,13 +55,13 @@ if 'vna_wait_time_extra' in settings_default:
 # except: # run by itself
 #     from retrying import retry
 
-logger.info(sys.version) 
-logger.info(struct.calcsize('P') * 8) 
+logger.info(sys.version)
+logger.info(struct.calcsize("P") * 8)
 
 
 # constant
-WM_USER = 0x0400                 # WM_USER   0x0400
-WM_COMMAND = 0x0111                # WM_COMMAND 0x0111
+WM_USER = 0x0400  # WM_USER   0x0400
+WM_COMMAND = 0x0111  # WM_COMMAND 0x0111
 MESSAGE_SCAN_ENDED = WM_USER + 0x1234  # MESSAGE_SCAN_ENDED (WM_USER+0x1234)
 
 # # retry decorator
@@ -74,25 +71,30 @@ MESSAGE_SCAN_ENDED = WM_USER + 0x1234  # MESSAGE_SCAN_ENDED (WM_USER+0x1234)
 
 # window name
 win_names = [
-    u'myVNA - Reflection mode "myVNA" [Embedded] ',  # there is a space at the end
-    u'myVNA - Reflection mode "myVNA"']
+    'myVNA - Reflection mode "myVNA" [Embedded] ',  # there is a space at the end
+    'myVNA - Reflection mode "myVNA"',
+]
 # win_name = 'AccessMyVNA'
 
 # dll path
 # dll_path = r'./VNA/AccessMyVNA_v0.7/release/AccessMyVNAdll.dll'
 # dll_path = r'./VNA/AccessMyVNAv0.7_J/release/AccessMyVNAdll.dll'
 
-dll_path = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'dll', 'AccessMyVNAdll.dll')
+dll_path = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
+    "dll",
+    "AccessMyVNAdll.dll",
+)
 
-vna = WinDLL(dll_path, use_last_error=False) # this only works with AccessMyVNA
+vna = WinDLL(dll_path, use_last_error=False)  # this only works with AccessMyVNA
 # vna = OleDLL(r'AccessMyVNAdll.dll', use_last_error=True) # this only works with AccessMyVNA
-# logger.info(vars(vna)) 
-logger.info(vna._handle) 
-# logger.info(dir(vna)) 
+# logger.info(vars(vna))
+logger.info(vna._handle)
+# logger.info(dir(vna))
 
 
-#region functions
-def _check_zero(result, func, args):    
+# region functions
+def _check_zero(result, func, args):
     if not result:
         err = get_last_error()
         if err:
@@ -106,7 +108,7 @@ def get_hWnd(win_name=win_names[0]):
         # pid = win32process.GetWindowThreadProcessId(hWnd)[1]
     except:
         hWnd = None
-    logger.info('hWnd %s "%s"', hWnd, win_name) 
+    logger.info('hWnd %s "%s"', hWnd, win_name)
     return hWnd
 
     # hWnd = win32ui.GetMainFrame.GetSafeHwnd
@@ -114,8 +116,8 @@ def get_hWnd(win_name=win_names[0]):
 
 def get_pid(hWnd):
     if not hWnd:
-        logger.info('PID did not find!') 
-        pid = None        
+        logger.info("PID did not find!")
+        pid = None
     else:
         pid = win32process.GetWindowThreadProcessId(hWnd)[1]
 
@@ -126,27 +128,27 @@ def close_win():
     # close myVNA initiated by AccessMyVNA
     for win_name in win_names:
         hWnd = get_hWnd(win_name)
-        logger.info('hWnd %s', hWnd) 
+        logger.info("hWnd %s", hWnd)
         pid = get_pid(hWnd)
-        logger.info('pid %s', pid) 
+        logger.info("pid %s", pid)
         if pid:
             os.kill(pid, signal.SIGTERM)
 
 
-# make function prototypes 
+# make function prototypes
 def wfunc(name, dll, result, *args):
-    '''
+    """
     build and apply a ctypes prototype complete with   rameter flags
-    
-    name: string of function name in the dll, 
-    dll: dll object, 
-    out: type of the output, 
-    *args: list of tuples(argtype, (in/out, argname[, default]) 
-        argname: name of the argument, 
-        argtype: type, 
+
+    name: string of function name in the dll,
+    dll: dll object,
+    out: type of the output,
+    *args: list of tuples(argtype, (in/out, argname[, default])
+        argname: name of the argument,
+        argtype: type,
         in/out: 1=input and 2=output,
         default: optional default value.
-    '''
+    """
     atypes = []
     aflags = []
     for arg in args:
@@ -154,6 +156,7 @@ def wfunc(name, dll, result, *args):
         aflags.append(arg[1])
     return WINFUNCTYPE(result, *atypes)((name, dll), tuple(aflags))
     # return WINFUNCTYPE(result, *atypes)((name, dll)) #, tuple(aflags))
+
 
 # TODO adjust alignment incorporating conversion delays, documentation provides no details about how this is done
 # @param nPoints: user selected number of sample points
@@ -163,38 +166,59 @@ def wfunc(name, dll, result, *args):
 # @param mbuffer: buffer time in microseconds appended to the conversion time prior to multiplying conversion rate by number of phase points
 # @param delay: time delay in microseconds that depends on the PC CPU speed, sweep points, etc. documentation provides no further details
 
-def get_wait_time(nPoints=200, averages=0, step_delay=0, start_delay=0, mbuffer=70, delay=4000):
-    dds_load = 90 # microseconds
-    phase_points = [0, 90, 180, 270] # CDS phase points, size of list is what is important
+
+def get_wait_time(
+    nPoints=200, averages=0, step_delay=0, start_delay=0, mbuffer=70, delay=4000
+):
+    dds_load = 90  # microseconds
+    phase_points = [
+        0,
+        90,
+        180,
+        270,
+    ]  # CDS phase points, size of list is what is important
 
     # ADC conversion timing
-    conversion_delay = 300 # microseconds
-    fqud_pulse = 100 # microseconds
-    clock_delay = 20 # microseconds
-    
-    usb_frame_time = 125 # USB version 0.22
-    
+    conversion_delay = 300  # microseconds
+    fqud_pulse = 100  # microseconds
+    clock_delay = 20  # microseconds
+
+    usb_frame_time = 125  # USB version 0.22
+
     # align ADC conversions with USB frames grid
-    minimum_conversion_time = 500 # microseconds
-    conversion_time = conversion_delay + fqud_pulse + clock_delay + step_delay + mbuffer # microseconds
+    minimum_conversion_time = 500  # microseconds
+    conversion_time = (
+        conversion_delay + fqud_pulse + clock_delay + step_delay + mbuffer
+    )  # microseconds
     if conversion_time % usb_frame_time != 0:
-        minimum_conversion_time = (conversion_time % usb_frame_time)*conversion_time + usb_frame_time # microseconds
-    
-    conversion_rate = 1/(conversion_time*1e-6) # get the data rate in ADC conversions/sec
-    num_conversions = nPoints * len(phase_points) # get the number of conversions
-    total_time = dds_load * 1e-6 + start_delay * 1e-6 + num_conversions / conversion_rate + delay * 1e-6 # get total time in seconds
-    logger.info(total_time) 
+        minimum_conversion_time = (
+            conversion_time % usb_frame_time
+        ) * conversion_time + usb_frame_time  # microseconds
+
+    conversion_rate = 1 / (
+        conversion_time * 1e-6
+    )  # get the data rate in ADC conversions/sec
+    num_conversions = nPoints * len(phase_points)  # get the number of conversions
+    total_time = (
+        dds_load * 1e-6
+        + start_delay * 1e-6
+        + num_conversions / conversion_rate
+        + delay * 1e-6
+    )  # get total time in seconds
+    logger.info(total_time)
 
     return total_time
 
 
 def bg_wait_till(t_wait):
     while time.time() < t_wait:
-        # logger.info('wait...') 
+        # logger.info('wait...')
         time.sleep(0.01)
-#endregion
 
-#region assign functions
+
+# endregion
+
+# region assign functions
 #########################################
 # MyVNAInit = vna[13] # MyVNAInit
 # // call this function befoe trying to do anything else. It attempts to executeF myVNA
@@ -204,7 +228,9 @@ def bg_wait_till(t_wait):
 # __declspec(dllexport) int _stdcall MyVNAInit(void)
 
 _MyVNAInit = wfunc(
-    '?MyVNAInit@@YGHXZ', vna, c_int,
+    "?MyVNAInit@@YGHXZ",
+    vna,
+    c_int,
 )
 
 ##########################################
@@ -214,11 +240,13 @@ _MyVNAInit = wfunc(
 # // you MUST call this before the calling windows application closes in order to correctly shut down OLE
 # // Make sure you call the Close function before the windows GUI application is closed
 # // OLE equivalent:
-# // simply release the interface	
+# // simply release the interface
 # __declspec(dllexport) int _stdcall MyVNAClose(void);
 
 _MyVNAClose = wfunc(
-    '?MyVNAClose@@YGHXZ', vna, c_int,
+    "?MyVNAClose@@YGHXZ",
+    vna,
+    c_int,
 )
 
 ##########################################
@@ -231,8 +259,7 @@ _MyVNAClose = wfunc(
 # // void ShowWindowAutomation(LONG nValue);
 # __declspec(dllexport) int _stdcall MyVNAShowWindow(int nValue)
 _MyVNAShowWindow = wfunc(
-    '?MyVNAShowWindow@@YGHH@Z', vna, c_int,
-    (c_int, (1, 'nValue', 1))
+    "?MyVNAShowWindow@@YGHH@Z", vna, c_int, (c_int, (1, "nValue", 1))
 )
 ##########################################
 # MyVNAGetScanSteps = vna[11] # MyVNAGetScanSteps
@@ -243,8 +270,7 @@ _MyVNAShowWindow = wfunc(
 # int nTemp;
 # int nRet = MyVNAGetScanSteps(&nTemp);
 _MyVNAGetScanSteps = wfunc(
-    '?MyVNAGetScanSteps@@YGHPAH@Z', vna, c_int,
-    (POINTER(c_int), (1, 'pnSteps', 200))
+    "?MyVNAGetScanSteps@@YGHPAH@Z", vna, c_int, (POINTER(c_int), (1, "pnSteps", 200))
 )
 
 
@@ -258,8 +284,7 @@ _MyVNAGetScanSteps = wfunc(
 # int nTemp;
 # int nRet = MyVNASetScanSteps(nTemp);
 _MyVNASetScanSteps = wfunc(
-    '?MyVNASetScanSteps@@YGHH@Z', vna, c_int,
-    (c_int, (1, 'nSteps', 400))
+    "?MyVNASetScanSteps@@YGHH@Z", vna, c_int, (c_int, (1, "nSteps", 400))
 )
 
 ##########################################
@@ -268,8 +293,7 @@ _MyVNASetScanSteps = wfunc(
 # int nTemp;
 # int nRet = MyVNAGetScanAverage(&nTemp);
 _MyVNAGetScanAverage = wfunc(
-    '?MyVNAGetScanAverage@@YGHPAH@Z', vna, c_int,
-    (POINTER(c_int), (1, 'pnAverage', 1))
+    "?MyVNAGetScanAverage@@YGHPAH@Z", vna, c_int, (POINTER(c_int), (1, "pnAverage", 1))
 )
 
 ##########################################
@@ -281,8 +305,7 @@ _MyVNAGetScanAverage = wfunc(
 # int nTemp;
 # int nRet = MyVNASetScanAverage(&nTemp);
 _MyVNASetScanAverage = wfunc(
-    '?MyVNASetScanAverage@@YGHH@Z', vna, c_int,
-    (c_int, (1, 'nAverage', 1))
+    "?MyVNASetScanAverage@@YGHH@Z", vna, c_int, (c_int, (1, "nAverage", 1))
 )
 
 ##########################################
@@ -296,17 +319,19 @@ _MyVNASetScanAverage = wfunc(
 #   }
 #
 _MyVNAGetDoubleArray = wfunc(
-    '?MyVNAGetDoubleArray@@YGHHHHPAN@Z', vna, c_int,
-    (c_int, (1, 'nwhat')), 
-    (c_int, (1, 'nIndex')), 
-    (c_int, (1, 'nArraySize')),
-    # (c_void_p, (1, 'npResult')) 
-    (POINTER(c_double), (1, 'npResult')) 
+    "?MyVNAGetDoubleArray@@YGHHHHPAN@Z",
+    vna,
+    c_int,
+    (c_int, (1, "nwhat")),
+    (c_int, (1, "nIndex")),
+    (c_int, (1, "nArraySize")),
+    # (c_void_p, (1, 'npResult'))
+    (POINTER(c_double), (1, "npResult")),
 )
 
 ##########################################
 # MyVNASetDoubleArray = vna[21] # MyVNASetDoubleArray
-#__declspec(dllexport) int _stdcall MyVNASetDoubleArray(int nWhat, int nIndex, int nArraySize, double *pnData)
+# __declspec(dllexport) int _stdcall MyVNASetDoubleArray(int nWhat, int nIndex, int nArraySize, double *pnData)
 # double dFreqData[10];
 # 	if( MyVNASetDoubleArray( GET_SCAN_FREQ_DATA, 0, 9, &dFreqData[0] ) == 0 )
 #   {
@@ -386,12 +411,14 @@ _MyVNAGetDoubleArray = wfunc(
 # // so for 8 components it needs an array of 16 doubles
 # #define GETSET_SIMULATION_COMPONENT_VALUES 6
 _MyVNASetDoubleArray = wfunc(
-    '?MyVNASetDoubleArray@@YGHHHHPAN@Z', vna, c_int,
-    (c_int, (1, 'nwhat')), 
-    (c_int, (1, 'nIndex')), 
-    (c_int, (1, 'nArraySize')),
-    # (c_void_p, (1, 'pnData')) 
-    (POINTER(c_double), (1, 'pnData')) 
+    "?MyVNASetDoubleArray@@YGHHHHPAN@Z",
+    vna,
+    c_int,
+    (c_int, (1, "nwhat")),
+    (c_int, (1, "nIndex")),
+    (c_int, (1, "nArraySize")),
+    # (c_void_p, (1, 'pnData'))
+    (POINTER(c_double), (1, "pnData")),
 )
 
 ##########################################
@@ -400,12 +427,14 @@ _MyVNASetDoubleArray = wfunc(
 # # __declspec(dllexport) int _stdcall MyVNAGetIntegerArray(int nWhat, int nIndex, int nArraySize, int *pnResult)
 # pass
 _MyVNAGetIntegerArray = wfunc(
-    '?MyVNAGetIntegerArray@@YGHHHHPAH@Z', vna, c_int,
-    (c_int, (1, 'nwhat')), 
-    (c_int, (1, 'nIndex')), 
-    (c_int, (1, 'nArraySize')),
-    # (c_void_p, (1, 'npResult')) 
-    (POINTER(c_int), (1, 'npResult')) 
+    "?MyVNAGetIntegerArray@@YGHHHHPAH@Z",
+    vna,
+    c_int,
+    (c_int, (1, "nwhat")),
+    (c_int, (1, "nIndex")),
+    (c_int, (1, "nArraySize")),
+    # (c_void_p, (1, 'npResult'))
+    (POINTER(c_int), (1, "npResult")),
 )
 
 ##########################################
@@ -469,7 +498,7 @@ _MyVNAGetIntegerArray = wfunc(
 # #define GETSET_PRINT_OPTIONS 1
 
 # // case 2 - get and set screen colours - array of 1 integers
-# // nIndex - which colour to access. 
+# // nIndex - which colour to access.
 # //		0 = Border
 # //		1 = graticule
 # //		0x10 to 0x17 = trace colours 1 to 8
@@ -526,7 +555,7 @@ _MyVNAGetIntegerArray = wfunc(
 # // CDS mode. This is an integer structured as follows
 # // bit 0 - if 0, basic mode and rest of this integer has no effect
 # //       - if 1, harmonic suppression mode as defined below
-# // bits 8-15 - harmonic where 0x01 means fundamental, 0x02 is second harmonic 
+# // bits 8-15 - harmonic where 0x01 means fundamental, 0x02 is second harmonic
 # // bits 16-24 - number of samples 0x01 means 1, 0x04 means 4 etc
 # // limitations:
 # // samples must be 0x04, 0x08, 0x10 or 0x32. Other values will cause setting to be ignored
@@ -593,7 +622,7 @@ _MyVNAGetIntegerArray = wfunc(
 
 # // case 8 - get (not set) various program constants
 # // nIndex = 0 - return the following
-# // data[0] - number of different left/right axis parameters 
+# // data[0] - number of different left/right axis parameters
 # // data[1] - number of markers
 # // data[2] - number of calculation markers
 # // data[3] - number of stores for traces
@@ -629,8 +658,8 @@ _MyVNAGetIntegerArray = wfunc(
 # // 0 = unused
 # // 1 = simulation
 # // 2 = scan data
-# // 3 = store 1 
-# // 4 = store 2 
+# // 3 = store 1
+# // 4 = store 2
 # // etc
 # #define GETSETSIMULATIONCONFIG 10
 
@@ -670,12 +699,14 @@ _MyVNAGetIntegerArray = wfunc(
 # // data[1] - values 0 to 7 sets the attenuator
 # #define GETSETSWITCHATTENUATORSETTINGS 13
 _MyVNASetIntegerArray = wfunc(
-    '?MyVNASetIntegerArray@@YGHHHHPAH@Z', vna, c_int,
-    (c_int, (1, 'nwhat')), 
-    (c_int, (1, 'nIndex')), 
-    (c_int, (1, 'nArraySize')),
-    # (c_void_p, (1, 'pnData')) 
-    (POINTER(c_int), (1, 'pnData')) 
+    "?MyVNASetIntegerArray@@YGHHHHPAH@Z",
+    vna,
+    c_int,
+    (c_int, (1, "nwhat")),
+    (c_int, (1, "nIndex")),
+    (c_int, (1, "nArraySize")),
+    # (c_void_p, (1, 'pnData'))
+    (POINTER(c_int), (1, "pnData")),
 )
 
 ##########################################
@@ -683,9 +714,11 @@ _MyVNASetIntegerArray = wfunc(
 # __declspec(dllexport) int _stdcall MyVNAGetInstrumentMode(int *pnMode)
 # int nRet = MyVNAGetInstrumentMode( &nTemp);
 _MyVNAGetInstrumentMode = wfunc(
-    '?MyVNAGetInstrumentMode@@YGHPAH@Z', vna, c_int,
-    (POINTER(c_int), (1, 'pnMode', 0)) # 0: reflection
-) 
+    "?MyVNAGetInstrumentMode@@YGHPAH@Z",
+    vna,
+    c_int,
+    (POINTER(c_int), (1, "pnMode", 0)),  # 0: reflection
+)
 
 ##########################################
 # MyVNASetInstrumentMode = vna[24] # MyVNASetInstrumentMode
@@ -704,7 +737,7 @@ _MyVNAGetInstrumentMode = wfunc(
 # #define INSTRUMENT_MODE_SPARAM 3
 # #define INSTRUMENT_MODE_SPECANAL 4
 # // bit 4 if set causes the program to always do a dual scan even if reflection or transmission mode set
-# #define ALWAYS_DO_DUAL_SCAN	
+# #define ALWAYS_DO_DUAL_SCAN
 # // bit 5 if set forces a reverse scan (as in S12/S22 instead of S21/S11
 # #define REVERSE_SCAN (1<<5)
 # // bit 6 if set causes RFIV mode to be selected
@@ -714,17 +747,15 @@ _MyVNAGetInstrumentMode = wfunc(
 # // bit 8 if set causes log frequency scale mode to be selected
 # #define LOGF_SCAN (1<<8)
 _MyVNASetInstrumentMode = wfunc(
-    '?MyVNASetInstrumentMode@@YGHH@Z', vna, c_int,
-    (c_int, (1, 'nMode', 0))
-)     # 0: reflection
+    "?MyVNASetInstrumentMode@@YGHH@Z", vna, c_int, (c_int, (1, "nMode", 0))
+)  # 0: reflection
 
 ##########################################
 # MyVNAGetDisplayMode = vna[5] # MyVNAGetDisplayMode
 # __declspec(dllexport) int _stdcall MyVNAGetDisplayMode(int *pnMode)
 # int nRet = MyVNAGetDisplayMode( nInstrumentMode);
-_MyVNAGetDisplayMode= wfunc(
-    '?MyVNAGetDisplayMode@@YGHPAH@Z', vna, c_int,
-    (POINTER(c_int), (1, 'pnMode'), 0)
+_MyVNAGetDisplayMode = wfunc(
+    "?MyVNAGetDisplayMode@@YGHPAH@Z", vna, c_int, (POINTER(c_int), (1, "pnMode"), 0)
 )
 
 ##########################################
@@ -738,8 +769,7 @@ _MyVNAGetDisplayMode= wfunc(
 # #define DISP_MODE_EQ_CCT 2
 # #define DISP_MODE_POLAR 3
 _MyVNASetDisplayMode = wfunc(
-    '?MyVNASetDisplayMode@@YGHH@Z', vna, c_int,
-    (c_int, (1, 'nMode', 0))
+    "?MyVNASetDisplayMode@@YGHH@Z", vna, c_int, (c_int, (1, "nMode", 0))
 )
 
 ##########################################
@@ -757,11 +787,13 @@ _MyVNASetDisplayMode = wfunc(
 # int nRet = MyVNASingleScan(WM_COMMAND, GetSafeHwnd(), MESSAGE_SCAN_ENDED, 0 );
 
 _MyVNASingleScan = wfunc(
-    '?MyVNASingleScan@@YGHHPAUHWND__@@HH@Z', vna, c_int,
-    (c_int, (1, 'Message'), WM_COMMAND),
-    (HWND, (1, 'hWnd'), WM_COMMAND),
-    (c_int, (1, 'nCommand'), MESSAGE_SCAN_ENDED),
-    (c_int, (1, 'lParam'), 0),
+    "?MyVNASingleScan@@YGHHPAUHWND__@@HH@Z",
+    vna,
+    c_int,
+    (c_int, (1, "Message"), WM_COMMAND),
+    (HWND, (1, "hWnd"), WM_COMMAND),
+    (c_int, (1, "nCommand"), MESSAGE_SCAN_ENDED),
+    (c_int, (1, "lParam"), 0),
 )
 
 ##########################################
@@ -780,11 +812,13 @@ _MyVNASingleScan = wfunc(
 # int nRet = MyVNAEqCctRefine(WM_COMMAND, GetSafeHwnd(), MESSAGE_SCAN_ENDED, 0 );
 
 _MyVNAEqCctRefine = wfunc(
-    '?MyVNAEqCctRefine@@YGHHPAUHWND__@@HH@Z', vna, c_int,
-    (c_int, (1, 'Message'), WM_COMMAND),
-    (HWND, (1, 'hWnd'), WM_COMMAND),
-    (c_int, (1, 'nCommand'), MESSAGE_SCAN_ENDED),
-    (c_int, (1, 'lParam'), 0),
+    "?MyVNAEqCctRefine@@YGHHPAUHWND__@@HH@Z",
+    vna,
+    c_int,
+    (c_int, (1, "Message"), WM_COMMAND),
+    (HWND, (1, "hWnd"), WM_COMMAND),
+    (c_int, (1, "nCommand"), MESSAGE_SCAN_ENDED),
+    (c_int, (1, "lParam"), 0),
 )
 
 ##########################################
@@ -815,11 +849,13 @@ _MyVNAEqCctRefine = wfunc(
 # int nRet = MyVNASetFequencies( dFreqStart*1e6, dFreqStop*1e6, 1 );
 
 _MyVNASetFequencies = wfunc(
-    '?MyVNASetFequencies@@YGHNNH@Z', vna, c_int,
-    (c_double, (1, 'f1')),
-    (c_double, (1, 'f2')),
-    (c_int, (1, 'nflags')),
-)  
+    "?MyVNASetFequencies@@YGHNNH@Z",
+    vna,
+    c_int,
+    (c_double, (1, "f1")),
+    (c_double, (1, "f2")),
+    (c_int, (1, "nflags")),
+)
 
 ##########################################
 # MyVNAGetScanData = vna[10] # MyVNAGetScanData
@@ -827,7 +863,7 @@ _MyVNASetFequencies = wfunc(
 # // MyVNAGetScanData()
 # // get current scan data results starting from scan point nStart up to and including nEnd
 # // note that a scan of N steps gives N+1 data points from 0 to N
-# // the data type requsted( nWhat) must be one of the ones as follows. 
+# // the data type requsted( nWhat) must be one of the ones as follows.
 # // It is the callers' responsibility
 # // to make sure that that data type is capable of being calculatd from the current scan data
 # //
@@ -838,7 +874,7 @@ _MyVNASetFequencies = wfunc(
 # // variant must be provided still
 # __declspec(dllexport) int _stdcall MyVNAGetScanData(int nStart, int nEnd, int nWhata, int nWhatb, double *pDataA, double *pDataB );
 # // flags for nWhat in GetScanData
-# // the first is a dummy - used for nWhata or nWHatb to cause no data to be retrieved for that 
+# // the first is a dummy - used for nWhata or nWHatb to cause no data to be retrieved for that
 # // case ( a or b) hence to retrieve just one parameter set in a call, set nWhatA or nWhatB to the
 # // desired value and set the other (nWhatb or nWhata) to be set to -2.
 # // Otherwise two separate parameter values may be retrieved at same time, for example setting
@@ -850,13 +886,15 @@ _MyVNASetFequencies = wfunc(
 # nWhat -2: nothing; -1: frequency; 15: Gp; 16:Bp (see the defination in .h file)
 
 _MyVNAGetScanData = wfunc(
-    '?MyVNAGetScanData@@YGHHHHHPAN0@Z', vna, c_int,
-    (c_int, (1, 'nStart')),
-    (c_int, (1, 'nEnd')),
-    (c_int, (1, 'nWhata')),
-    (c_int, (1, 'nWthab')),
-    (POINTER(c_double), (1, 'pDataA')),
-    (POINTER(c_double), (1, 'pDataB')),
+    "?MyVNAGetScanData@@YGHHHHHPAN0@Z",
+    vna,
+    c_int,
+    (c_int, (1, "nStart")),
+    (c_int, (1, "nEnd")),
+    (c_int, (1, "nWhata")),
+    (c_int, (1, "nWthab")),
+    (POINTER(c_double), (1, "pDataA")),
+    (POINTER(c_double), (1, "pDataB")),
 )
 
 ##########################################
@@ -867,9 +905,7 @@ _MyVNAGetScanData = wfunc(
 # __declspec(dllexport) int _stdcall MyVNAAutoscale()
 # MyVNAAutoscale = getattr(vna, '?MyVNAAutoscale@@YGHXZ')
 # MyVNAAutoscale.argtypes = None
-_MyVNAAutoscale = wfunc(
-    '?MyVNAAutoscale@@YGHXZ', vna, c_int
-)
+_MyVNAAutoscale = wfunc("?MyVNAAutoscale@@YGHXZ", vna, c_int)
 
 
 # // MyVNALoadConfiguration()
@@ -889,40 +925,47 @@ _MyVNAAutoscale = wfunc(
 # MyVNALoadConfiguration = vna[15]
 # __declspec(dllexport) int _stdcall MyVNALoadConfiguration(_TCHAR * fileName)
 _MyVNALoadConfiguration = wfunc(
-    '?MyVNALoadConfiguration@@YGHPA_W@Z', vna, c_int,
-    (c_wchar_p, (1, 'fileName')),
+    "?MyVNALoadConfiguration@@YGHPA_W@Z",
+    vna,
+    c_int,
+    (c_wchar_p, (1, "fileName")),
 )
 
 
 # MyVNASaveConfiguration = vna[18]
 # # __declspec(dllexport) int _stdcall MyVNASaveConfiguration(_TCHAR * fileName)
 _MyVNASaveConfiguration = wfunc(
-    '?MyVNASaveConfiguration@@YGHPA_W@Z', vna, c_int,
-    (c_wchar_p, (1, 'fileName')),
+    "?MyVNASaveConfiguration@@YGHPA_W@Z",
+    vna,
+    c_int,
+    (c_wchar_p, (1, "fileName")),
 )
-    
+
 
 # MyVNALoadCalibration = vna[14]
 # # __declspec(dllexport) int _stdcall MyVNALoadCalibration(_TCHAR * fileName)
 _MyVNALoadCalibration = wfunc(
-    '?MyVNALoadCalibration@@YGHPA_W@Z', vna, c_int,
-    (c_wchar_p, (1, 'fileName')),
+    "?MyVNALoadCalibration@@YGHPA_W@Z",
+    vna,
+    c_int,
+    (c_wchar_p, (1, "fileName")),
 )
 
 
 # MyVNASaveCalibration = vna[17]
 # # __declspec(dllexport) int _stdcall MyVNASaveCalibration(_TCHAR * fileName)
 _MyVNASaveCalibration = wfunc(
-    '?MyVNASaveCalibration@@YGHPA_W@Z', vna, c_int,
-    (c_char_p, (1, 'fileName')),
+    "?MyVNASaveCalibration@@YGHPA_W@Z",
+    vna,
+    c_int,
+    (c_char_p, (1, "fileName")),
 )
-    
 
 
-#endregion
+# endregion
 
-#region
-'''
+# region
+"""
 // AccessMyVNAdll.h : main header file for the AccessMyVNAdll DLL
 //
 // Remote access to myVNA via OLE automation
@@ -938,80 +981,83 @@ _MyVNASaveCalibration = wfunc(
 // There are a number of exported functions descibed below that
 // may be used to control the applicaiton
 // In general these return 0 if the call succeeded but in some cases
-'''
+"""
 
-#endregion
+# endregion
 
-class AccessMyVNA():
-    '''
+
+class AccessMyVNA:
+    """
     the module used to comunicate with MyVNA
-    '''
+    """
+
     def __init__(self):
         # super(AccessMyVNA, self).__init__()
         # self.scandata_a = []
         # self.scandata_b = []
         # self.narray = []
-        logger.info('__init__0') 
+        logger.info("__init__0")
         _, self._nsteps = self.GetScanSteps()
         _, self._naverage = self.GetScanAverage()
         _, self._instrmode = self.Getinstrmode()
         self._displaymode = np.array(0, dtype=int)
-        _, self._chn = self.getADCChannel() # avtive channel
-        self._f = [np.nan, np.nan] # start & stop  frequencies [start, stop]
-        _, self._speed, self._step_delay, self._start_delay, self._phase_delay = self.get_speed_delays()
-        logger.info(self._nsteps) 
-        logger.info(self._naverage) 
-        logger.info(self._instrmode) 
-        logger.info(self._displaymode) 
-        logger.info(self._chn) 
-        logger.info(self._f) 
-        logger.info(self._speed) 
-        logger.info(self._step_delay) 
-        logger.info(self._start_delay) 
-        logger.info(self._phase_delay) 
+        _, self._chn = self.getADCChannel()  # avtive channel
+        self._f = [np.nan, np.nan]  # start & stop  frequencies [start, stop]
+        _, self._speed, self._step_delay, self._start_delay, self._phase_delay = (
+            self.get_speed_delays()
+        )
+        logger.info(self._nsteps)
+        logger.info(self._naverage)
+        logger.info(self._instrmode)
+        logger.info(self._displaymode)
+        logger.info(self._chn)
+        logger.info(self._f)
+        logger.info(self._speed)
+        logger.info(self._step_delay)
+        logger.info(self._start_delay)
+        logger.info(self._phase_delay)
 
-        logger.info('__init__1') 
+        logger.info("__init__1")
 
     # use __enter__ __exit__ for with or use try finally
     def __enter__(self):
         self.Init()
-        self.ShowWindow(1) # mininmize window (may not work)
-        logger.info('in') 
+        self.ShowWindow(1)  # mininmize window (may not work)
+        logger.info("in")
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        logger.info('out1') 
+        logger.info("out1")
         self.Close()
-        logger.info('out2') 
-
+        logger.info("out2")
 
     _vnaset_int = {
-        'instrmode': np.array(0, dtype=int),
-        'displaymode': np.array(0, dtype=int),
-        'nsteps': np.array(0, dtype=int),
-        'naverage': np.array(0, dtype=int),
-        'chn': np.array(0, dtype=int), # avtive channel
-        'speed': np.array(0, dtype=int), # speed of vna
-        'f': [np.nan, np.nan], # start & stop frequencies [start, stop]
+        "instrmode": np.array(0, dtype=int),
+        "displaymode": np.array(0, dtype=int),
+        "nsteps": np.array(0, dtype=int),
+        "naverage": np.array(0, dtype=int),
+        "chn": np.array(0, dtype=int),  # avtive channel
+        "speed": np.array(0, dtype=int),  # speed of vna
+        "f": [np.nan, np.nan],  # start & stop frequencies [start, stop]
     }
 
     def Init(self):
         # close vna window
         close_win()
         ret = _MyVNAInit()
-        logger.info('MyVNAInit\n%s', ret) 
+        logger.info("MyVNAInit\n%s", ret)
         return ret
 
     def Close(self):
         ret = _MyVNAClose()
-        logger.info('MyVNAClose\n%s', ret) #MyVNAAutoscale
+        logger.info("MyVNAClose\n%s", ret)  # MyVNAAutoscale
 
     def ShowWindow(self, nValue=1):
-        '''
+        """
         nValue 0: show; 1:minimize
-        '''
+        """
         ret = _MyVNAShowWindow(nValue)
-        logger.info('MyVNAShowWindow\n %s', ret) 
+        logger.info("MyVNAShowWindow\n %s", ret)
         return ret
 
     def SetScanSteps(self, nSteps=400):
@@ -1022,14 +1068,14 @@ class AccessMyVNA():
         # if not ret:
         #     self._nsteps = nSteps # save to class
 
-        logger.info('MyVNASetScanSteps\n %s %s', ret, nSteps) 
+        logger.info("MyVNASetScanSteps\n %s %s", ret, nSteps)
         return ret, nSteps
 
     def GetScanSteps(self):
         nSteps = np.array(0, dtype=int)
         ret = _MyVNAGetScanSteps(nSteps.ctypes.data_as(POINTER(c_int)))
         # ret = MyVNAGetScanSteps(byref(nSteps))
-        logger.info('MyVNAGetScanSteps\n %s %s', ret, nSteps) 
+        logger.info("MyVNAGetScanSteps\n %s %s", ret, nSteps)
 
         nStp = nSteps
         del nSteps
@@ -1041,7 +1087,7 @@ class AccessMyVNA():
         #     nAverage = np.array(nAverage, dtype=int)
         ret = _MyVNASetScanAverage(nAverage)
         # ret = MyVNASetScanAverage(nAverage)
-        logger.info('MyVNASetScanAverage\n %s %s', ret, nAverage) 
+        logger.info("MyVNASetScanAverage\n %s %s", ret, nAverage)
         # if not ret:
         #     self._naverage = nAverage
         return ret, nAverage
@@ -1050,16 +1096,15 @@ class AccessMyVNA():
         # nAverage = c_int()
         nAverage = np.array(1, dtype=int)
         ret = _MyVNAGetScanAverage(nAverage.ctypes.data_as(POINTER(c_int)))
-        logger.info('MyVNAGetScanAverage\n %s %s', ret, nAverage) 
+        logger.info("MyVNAGetScanAverage\n %s %s", ret, nAverage)
 
         nAve = nAverage
         del nAverage
 
         return ret, nAve
 
-        
-    #region
-    '''
+    # region
+    """
                                         nWhat   nArraySize
     GET_SCAN_FREQ_DATA                  0       9
     GETSET_MARKER_VALUES                1       2
@@ -1073,17 +1118,17 @@ class AccessMyVNA():
     GETSETTRACECALCULATIONOPTIONS          1
     GETSETSWITCHATTENUATORCONFIG           3
     GETSETSWITCHATTENUATORSETTINGS         2
-    '''
-    #endregion
+    """
+    # endregion
 
     # @retry(wait_fixed=wait_fixed, stop_max_attempt_number=stop_max_attempt_number, stop_max_delay=stop_max_delay, logger=True)
     def GetDoubleArray(self, nWhat=0, nIndex=0, nArraySize=9):
-        '''
+        """
         Get frequency nWhat = GET_SCAN_FREQ_DATA 0
-        '''
-        logger.info('MyVNAGetDoubleArray') 
+        """
+        logger.info("MyVNAGetDoubleArray")
 
-        nResult = np.zeros(nArraySize, dtype=np.float64, order='C')
+        nResult = np.zeros(nArraySize, dtype=np.float64, order="C")
         # self.narray = nResult
 
         nRes_ptr = nResult.ctypes.data_as(POINTER(c_double))
@@ -1091,179 +1136,167 @@ class AccessMyVNA():
         # ret = _MyVNAGetDoubleArray(nWhat, nIndex, nArraySize, c_void_p(nResult))
         ######### end pointer ##########
 
-        # logger.info(nRes_ptr) 
-        # logger.info(nRes_ptr.contents) 
-        ndRes = nResult[:] 
+        # logger.info(nRes_ptr)
+        # logger.info(nRes_ptr.contents)
+        ndRes = nResult[:]
         rt = ret
         del nResult, ret
 
-        logger.info('%s %s', rt, ndRes) 
+        logger.info("%s %s", rt, ndRes)
         return rt, ndRes
-
 
     # @retry(wait_fixed=wait_fixed, stop_max_attempt_number=stop_max_attempt_number, stop_max_delay=stop_max_delay, logger=True)
     def SetDoubleArray(self, nWhat=0, nIndex=0, nArraySize=9, nData=None):
-        '''
+        """
         Set frequency nWhat = GET_SCAN_FREQ_DATA 0
-        '''
-        logger.info('MyVNASetDoubleArray') 
-        if nData is None: # nData has to be 
-            logger.info('no nData')
+        """
+        logger.info("MyVNASetDoubleArray")
+        if nData is None:  # nData has to be
+            logger.info("no nData")
             return 0, None
 
-        if len(nData) == nArraySize: # check nData size
-            if not isinstance(nData, np.ndarray): # check nData type
+        if len(nData) == nArraySize:  # check nData size
+            if not isinstance(nData, np.ndarray):  # check nData type
                 nData = np.array(nData)
-            nData.astype(np.float64, order='C')
-        # logger.info(nData) 
-        # logger.info(nData.ctypes.data) 
+            nData.astype(np.float64, order="C")
+        # logger.info(nData)
+        # logger.info(nData.ctypes.data)
 
         # cast the array into a pointer of type c_double:
         ptr = nData.ctypes.data_as(POINTER(c_double))
         ret = _MyVNASetDoubleArray(nWhat, nIndex, nArraySize, ptr)
         # ret = _MyVNASetDoubleArray(nWhat, nIndex, nArraySize, c_void_p(nData.ctypes.data))
 
-        logger.info('%s %s', ret, nData) 
-        
+        logger.info("%s %s", ret, nData)
+
         nD = nData
         rt = ret
         del nData, ret
 
         return rt, nD
 
-
     # @retry(wait_fixed=wait_fixed, stop_max_attempt_number=stop_max_attempt_number, stop_max_delay=stop_max_delay, logger=True)
     def GetIntegerArray(self, nWhat=5, nIndex=0, nArraySize=4):
-        '''
+        """
         get hardware setup
         Get hardware delay & adc speed nWhat = 5
-        '''
-        logger.info('MyVNAGetIntegerArray') 
+        """
+        logger.info("MyVNAGetIntegerArray")
 
-        nResult = np.zeros(nArraySize, dtype=int, order='C')
+        nResult = np.zeros(nArraySize, dtype=int, order="C")
         # self.narray = nResult
 
         nRes_ptr = nResult.ctypes.data_as(POINTER(c_int))
         ret = _MyVNAGetIntegerArray(nWhat, nIndex, nArraySize, nRes_ptr)
         ######### end pointer ##########
 
-        # logger.info(nRes_ptr) 
-        # logger.info(nRes_ptr.contents) 
-        ndRes = nResult[:] 
+        # logger.info(nRes_ptr)
+        # logger.info(nRes_ptr.contents)
+        ndRes = nResult[:]
         del nResult
 
-        logger.info('%s %s', ret, ndRes) 
+        logger.info("%s %s", ret, ndRes)
         return ret, ndRes
-
 
     # @retry(wait_fixed=wait_fixed, stop_max_attempt_number=stop_max_attempt_number, stop_max_delay=stop_max_delay, logger=True)
     def SetIntegerArray(self, nWhat=5, nIndex=0, nArraySize=4, nData=None):
-        '''
+        """
         Set frequency nWhat = GET_SCAN_FREQ_DATA 0
-        '''
-        logger.info('MyVNASetIntegerArray') 
-        if nData is None: # no nData given
-            logger.info('no nData')
+        """
+        logger.info("MyVNASetIntegerArray")
+        if nData is None:  # no nData given
+            logger.info("no nData")
             return 0, None
-            
-        if len(nData) == nArraySize: # check nData size
-            if not isinstance(nData, np.ndarray): # check nData type
+
+        if len(nData) == nArraySize:  # check nData size
+            if not isinstance(nData, np.ndarray):  # check nData type
                 nData = np.array(nData)
-            nData.astype(int, order='C')
-        # logger.info(nData) 
-        # logger.info(nData.ctypes.data) 
+            nData.astype(int, order="C")
+        # logger.info(nData)
+        # logger.info(nData.ctypes.data)
 
         # cast the array into a pointer of type c_int:
         ptr = nData.ctypes.data_as(POINTER(c_int))
         ret = _MyVNASetIntegerArray(nWhat, nIndex, nArraySize, ptr)
 
-        logger.info('%s %s', ret, nData) 
-        
+        logger.info("%s %s", ret, nData)
+
         nD = nData
         rt = ret
         del nData, ret
 
         return rt, nD
 
-
     def Getinstrmode(self):
         nMode = np.array(0, dtype=int)
         ret = _MyVNAGetInstrumentMode(nMode.ctypes.data_as(POINTER(c_int)))
-        logger.info('MyVNAGetInstrumentMode\n%s %s', ret, nMode) 
+        logger.info("MyVNAGetInstrumentMode\n%s %s", ret, nMode)
 
         nM = nMode
         del nMode
 
         return ret, nM
 
-
     def Setinstrmode(self, nMode=0):
-        '''
+        """
         nMode: 0, Reflection
-        '''
+        """
         ret = _MyVNASetInstrumentMode(nMode)
-        logger.info('MyVNASetInstrumentMode\n%s %s', ret, nMode) 
+        logger.info("MyVNASetInstrumentMode\n%s %s", ret, nMode)
         # if not ret:
-        #     self._instrmode = nMode        
+        #     self._instrmode = nMode
         return ret, nMode
-
 
     def Getdisplaymode(self):
         nMode = np.array(0, dtype=int)
         ret = _MyVNAGetDisplayMode(nMode.ctypes.data_as(POINTER(c_int)))
-        logger.info('MyVNAGetDisplayMode\n%s %s', ret, nMode) 
+        logger.info("MyVNAGetDisplayMode\n%s %s", ret, nMode)
         return ret, nMode
-
 
     def Setdisplaymode(self, nMode=0):
         ret = _MyVNASetDisplayMode(nMode)
-        logger.info('MyVNASetDisplayMode\n%s %s', ret, nMode) 
+        logger.info("MyVNASetDisplayMode\n%s %s", ret, nMode)
         # if not ret:
-        #     self._displaymode = nMode        
+        #     self._displaymode = nMode
         return ret, nMode
         # __declspec(dllexport) int _stdcall MyVNASetDisplayMode(int nMode)
         # int nRet = MyVNASetDisplayMode( nDisplayMode);
 
-
     def SingleScan(self):
-        '''
-        starts a single scan 
-        '''
+        """
+        starts a single scan
+        """
         # ret = MyVNASingleScan(0x0111, get_hWnd(), 0x0400 + 0x1234, 0)
         hWnd = get_hWnd()
         ret = _MyVNASingleScan(WM_COMMAND, hWnd, MESSAGE_SCAN_ENDED, 0)
-        logger.info('MyVNASingleScan\n%s %s', ret, hWnd) 
+        logger.info("MyVNASingleScan\n%s %s", ret, hWnd)
         return ret, hWnd
-
 
     def EqCctRefine(self):
         hWnd = get_hWnd()
         ret = _MyVNAEqCctRefine(WM_COMMAND, hWnd, MESSAGE_SCAN_ENDED, 0)
-        logger.info('MyVNAEqCctRefine\n%s %s', ret, hWnd) 
+        logger.info("MyVNAEqCctRefine\n%s %s", ret, hWnd)
         return ret, hWnd
 
-
     def SetFequencies(self, f1=4.95e6, f2=5.05e6, nFlags=1):
-        '''
+        """
         nFlags: 1 = start / stop
-        '''
+        """
         ret = _MyVNASetFequencies(f1, f2, 1)
-        logger.info('MyVNASetFequencies\n%s %s %s', ret, f1, f2) #MyVNASetFequencies
+        logger.info("MyVNASetFequencies\n%s %s %s", ret, f1, f2)  # MyVNASetFequencies
         # if not ret:
         #     self._f = [f1, f2]
         return ret, f1, f2
 
-
     # @retry(wait_fixed=wait_fixed, stop_max_attempt_number=stop_max_attempt_number, stop_max_delay=stop_max_delay)
     def GetScanData(self, nStart=0, nEnd=299, nWhata=-1, nWhatb=15):
-        logger.info('MyVNAGetScanData') 
+        logger.info("MyVNAGetScanData")
         nSteps = nEnd - nStart + 1
         # nSteps = nSteps * 2
-        # logger.info('nSteps=', nSteps) 
+        # logger.info('nSteps=', nSteps)
 
-
-        data_a = np.zeros(nSteps, dtype=np.float, order='C')
-        data_b = np.zeros(nSteps, dtype=np.float, order='C')
+        data_a = np.zeros(nSteps, dtype=np.float, order="C")
+        data_b = np.zeros(nSteps, dtype=np.float, order="C")
 
         ptr_a = data_a.ctypes.data_as(POINTER(c_double))
         ptr_b = data_b.ctypes.data_as(POINTER(c_double))
@@ -1271,349 +1304,375 @@ class AccessMyVNA():
         # self.scandata_a.append(ptr_a)
         # self.scandata_b.append(ptr_b)
 
-        ret = _MyVNAGetScanData(nStart, nEnd+1, nWhata, nWhatb, ptr_a, ptr_b)
+        ret = _MyVNAGetScanData(nStart, nEnd + 1, nWhata, nWhatb, ptr_a, ptr_b)
 
         # ret
-        #  0: 
+        #  0:
         # -1: nSteps < 1
         #  1: crushes before l682: (errcode = MyVNAInit()) == 0
-        logger.info('%s %s %s', ret, data_a[0], data_b[0]) 
+        logger.info("%s %s %s", ret, data_a[0], data_b[0])
 
-        logger.info('len %s', len(data_a)) 
-        logger.info('end %s', data_a[nEnd]) 
+        logger.info("len %s", len(data_a))
+        logger.info("end %s", data_a[nEnd])
         da = data_a[:]
         db = data_b[:]
         rt = ret
         del data_a, data_b, ret
 
         return rt, da, db
-        
+
         # simple way
         # return MyVNAGetScanData(nStart, nEnd, nWhata, nWhatb, data_a.ctypes.data_as(POINTER(c_double)), data_b.ctypes.data_as(POINTER(c_double)))
 
-
     def Autoscale(self):
         ret = _MyVNAAutoscale()
-        logger.info('MyVNAAutoscale\n%s', ret) #MyVNAAutoscale
+        logger.info("MyVNAAutoscale\n%s", ret)  # MyVNAAutoscale
         return ret
-
 
     def LoadCalibration(self, fileName):
         pfn = c_wchar_p(fileName)
         ret = _MyVNALoadCalibration(pfn)
-        logger.info('MyVNALoadCalibration\n%s', ret) 
+        logger.info("MyVNALoadCalibration\n%s", ret)
         logger.info(pfn.value)
         return ret
-
 
     def SaveCalibration(self, fileName):
         pfn = c_wchar_p(fileName)
         ret = _MyVNASaveCalibration(pfn)
-        logger.info('MyVNASaveCalibration\n%s', ret) 
+        logger.info("MyVNASaveCalibration\n%s", ret)
         logger.info(pfn.value)
         return ret
-
 
     def LoadConfiguration(self, fileName):
         pfn = c_wchar_p(fileName)
         ret = _MyVNALoadCalibration(pfn)
-        logger.info('MyVNALoadConfiguration\n%s', ret) 
+        logger.info("MyVNALoadConfiguration\n%s", ret)
         logger.info(pfn.value)
         return ret
-
 
     def SaveConfiguration(self, fileName):
         pfn = c_wchar_p(fileName)
         ret = _MyVNASaveConfiguration(pfn)
-        logger.info('MyVNASaveConfiguration\n%s', ret) 
+        logger.info("MyVNASaveConfiguration\n%s", ret)
         logger.info(pfn.value)
         return ret
 
-
     ################ combined functions #################
     def single_scan(self):
-        logger.info('single_scan') 
-        logger.info('self._nsteps%s', self._nsteps) 
+        logger.info("single_scan")
+        logger.info("self._nsteps%s", self._nsteps)
         # self.Init()
         self.SingleScan()
-        logger.info('self._nsteps%s', self._nsteps) 
+        logger.info("self._nsteps%s", self._nsteps)
         self.setDisplayFreq()
         self.Autoscale()
-        logger.info('self._nsteps%s', self._nsteps) 
+        logger.info("self._nsteps%s", self._nsteps)
 
         t_wait = time.time() + self._get_wait_time()
         # wait for some time
-        bg_wait_till(t_wait) # sleep
+        bg_wait_till(t_wait)  # sleep
 
         # # used thread
         # thread = threading.Thread(target=bg_wait_till, args=(t_wait,))
         # thread.start()
         # thread.join()
 
-        logger.info('self._nsteps%s', self._nsteps) 
+        logger.info("self._nsteps%s", self._nsteps)
         # ret, nSteps = self.GetScanSteps()
-        ret, f, G = self.GetScanData(nStart=0, nEnd=int(self._nsteps-1), nWhata=-1, nWhatb=15)
+        ret, f, G = self.GetScanData(
+            nStart=0, nEnd=int(self._nsteps - 1), nWhata=-1, nWhatb=15
+        )
         # time.sleep(1)
-        logger.info('self._nsteps%s', self._nsteps) 
-        ret, f, B = self.GetScanData(nStart=0, nEnd=int(self._nsteps-1), nWhata=-1, nWhatb=16)
+        logger.info("self._nsteps%s", self._nsteps)
+        ret, f, B = self.GetScanData(
+            nStart=0, nEnd=int(self._nsteps - 1), nWhata=-1, nWhatb=16
+        )
         # self.Close()
-        logger.info('self._nsteps%s', self._nsteps) 
-        return ret, f, G * 1e3, B * 1e3 # f in Hz; G & B in mS
-
+        logger.info("self._nsteps%s", self._nsteps)
+        return ret, f, G * 1e3, B * 1e3  # f in Hz; G & B in mS
 
     def setDisplayFreq(self):
-        '''
+        """
         set x/y axis in myVNA
         This is setup will make it convient to view in myVNA.
         It is not necessary for the Python program
-        '''
+        """
         # set x axis
         ret, nData = self.SetDoubleArray(nWhat=3, nIndex=0, nArraySize=2, nData=self._f)
-        
 
     def change_settings(self, refChn=1, nMode=0, nSteps=400, nAverage=1):
         # ret =           self.Init()
-        ret, nMode =    self.Setinstrmode(nMode)
-        ret, nData =    self.setADCChannel(refChn)
-        ret, nSteps =   self.SetScanSteps(nSteps)
+        ret, nMode = self.Setinstrmode(nMode)
+        ret, nData = self.setADCChannel(refChn)
+        ret, nSteps = self.SetScanSteps(nSteps)
         ret, nAverage = self.SetScanAverage(nAverage)
         # ret =           self.Close()
 
-
     def set_steps_freq(self, nSteps=300, f1=4.95e6, f2=5.00e6):
         # set scan parameters
-        ret, nSteps =   self.SetScanSteps(nSteps)
+        ret, nSteps = self.SetScanSteps(nSteps)
         self.SetFequencies(f1, f2, nFlags=1)
-
 
     def setADCChannel(self, reflectchn=1, paths={}):
         # switch ADV channel for test
         # nData = [transChn, reflectchn] (float)
         if reflectchn == 1:
-            nData = np.array([2., 1.])
+            nData = np.array([2.0, 1.0])
         elif reflectchn == 2:
-            nData = np.array([1., 2.])
+            nData = np.array([1.0, 2.0])
 
         ret, nData = self.SetDoubleArray(nWhat=5, nIndex=0, nArraySize=2, nData=nData)
         # if not ret:
         #     self._chn = reflectchn
 
         # load calibration file by channel
-        if paths and paths['ADC'+str(reflectchn)]:
-            ret += self.LoadCalibration(paths['ADC'+str(reflectchn)])
+        if paths and paths["ADC" + str(reflectchn)]:
+            ret += self.LoadCalibration(paths["ADC" + str(reflectchn)])
 
         return ret, reflectchn
-
 
     def getADCChannel(self):
         # get current ADV channel set
         # nData = [transChn, reflectchn] (float)
 
-        #TODO seems not work (may check C++ source code)
+        # TODO seems not work (may check C++ source code)
 
         ret, nData = self.GetDoubleArray(nWhat=5, nIndex=0, nArraySize=2)
-        logger.info('getADCChannel %s', nData)
+        logger.info("getADCChannel %s", nData)
 
         if int(nData[1]) == 1:
             reflectchn = 1
         elif int(nData[1]) == 2:
-            reflectchn =  2
-        else: 
+            reflectchn = 2
+        else:
             reflectchn = None
         return ret, reflectchn
 
-
     def set_vna(self, setflg):
-        '''
+        """
         set MyVNA by setflg (dict)
         setflg: {'f1', 'f2', 'steps', 'chn', 'avg', 'speed', ...}
-        '''
-        logger.info('--------') 
-        logger.info(self._nsteps) 
-        logger.info(self._naverage) 
-        logger.info(self._f) 
-        logger.info(self._chn) 
-        logger.info(self._speed) 
-        logger.info(self._step_delay) 
-        logger.info(self._start_delay) 
-        logger.info(self._phase_delay) 
-        logger.info('--------') 
+        """
+        logger.info("--------")
+        logger.info(self._nsteps)
+        logger.info(self._naverage)
+        logger.info(self._f)
+        logger.info(self._chn)
+        logger.info(self._speed)
+        logger.info(self._step_delay)
+        logger.info(self._start_delay)
+        logger.info(self._phase_delay)
+        logger.info("--------")
 
-        flg_list = ['f', 'steps', 'chn', 'avg', 'speed', 'instrmode'] # list of flags to check
+        flg_list = [
+            "f",
+            "steps",
+            "chn",
+            "avg",
+            "speed",
+            "instrmode",
+        ]  # list of flags to check
 
         for flg, val in setflg.items():
-            if (val is not None) and (flg in flg_list): # val != None
-                logger.info(flg) 
-                logger.info(val) 
-                ret = 0 # initialize ret in case no change is needed
-                if (flg == 'f') and (self._f != val): # set frequency
-                    logger.info(len(val)) 
-                    ret, self._f[0], self._f[1] = self.SetFequencies(f1=val[0], f2=val[1], nFlags=1)
+            if (val is not None) and (flg in flg_list):  # val != None
+                logger.info(flg)
+                logger.info(val)
+                ret = 0  # initialize ret in case no change is needed
+                if (flg == "f") and (self._f != val):  # set frequency
+                    logger.info(len(val))
+                    ret, self._f[0], self._f[1] = self.SetFequencies(
+                        f1=val[0], f2=val[1], nFlags=1
+                    )
                     if ret != 0:
                         logger.info(ret)
-                        logger.warning('SetFrequencies')
+                        logger.warning("SetFrequencies")
                         exit(0)
-                elif (flg == 'steps') and self._nsteps != val: # set scan steps
+                elif (flg == "steps") and self._nsteps != val:  # set scan steps
                     ret, self._nsteps = self.SetScanSteps(nSteps=val)
                     if ret != 0:
                         logger.info(ret)
-                        logger.warning('SettScanSteps')
+                        logger.warning("SettScanSteps")
                         exit(0)
-                elif (flg == 'chn'): # set scan channel
-                    if val != 'none' and (self._chn != int(val)):
-                        ret, self._chn = self.setADCChannel(reflectchn=int(val), paths=setflg['cal'])
+                elif flg == "chn":  # set scan channel
+                    if val != "none" and (self._chn != int(val)):
+                        ret, self._chn = self.setADCChannel(
+                            reflectchn=int(val), paths=setflg["cal"]
+                        )
                         if ret != 0:
                             logger.info(ret)
-                            logger.warning('SetADCChannel')
+                            logger.warning("SetADCChannel")
                             exit(0)
-                elif (flg == 'avg') and (self._naverage != val): # set scan average
+                elif (flg == "avg") and (self._naverage != val):  # set scan average
                     ret, self._naverage = self.SetScanAverage(nAverage=val)
                     if ret != 0:
                         logger.info(ret)
-                        logger.warning('SetScanAverage')
+                        logger.warning("SetScanAverage")
                         exit(0)
-                elif (flg == 'instrmode') and (self._instrmode != val): # set instrument mode
+                elif (flg == "instrmode") and (
+                    self._instrmode != val
+                ):  # set instrument mode
                     ret, self._instrmode = self.Setinstrmode(nMode=0)
                     if ret != 0:
                         logger.info(ret)
-                        logger.warning('Setinstrmode')
+                        logger.warning("Setinstrmode")
                         exit(0)
-                elif (flg == 'speed') and (self._speed != val): # set scan speed
+                elif (flg == "speed") and (self._speed != val):  # set scan speed
                     # we don't need to change it through python now
                     pass
                 else:
                     # add more above else
                     pass
-                
-                if ret != 0: # error found during setting vna  
+
+                if ret != 0:  # error found during setting vna
                     return ret
-            else: # val == None
+            else:  # val == None
                 # don't need change the default
                 pass
-        logger.info('========') 
-        logger.info(self._nsteps) 
-        logger.info(self._naverage) 
-        logger.info(self._f) 
-        logger.info(self._chn) 
-        logger.info(self._speed) 
-        logger.info(self._step_delay) 
-        logger.info(self._start_delay) 
-        logger.info(self._phase_delay) 
-        logger.info('========') 
+        logger.info("========")
+        logger.info(self._nsteps)
+        logger.info(self._naverage)
+        logger.info(self._f)
+        logger.info(self._chn)
+        logger.info(self._speed)
+        logger.info(self._step_delay)
+        logger.info(self._start_delay)
+        logger.info(self._phase_delay)
+        logger.info("========")
 
         return 0
 
-
     def get_freq_span(self):
-        ''' get frequency span from vna setup '''
+        """get frequency span from vna setup"""
         ret, ndResult = self.GetDoubleArray(nWhat=0, nIndex=0, nArraySize=9)
         return ret, ndResult[0:1]
 
-
     def get_speed_delays(self):
-        ''' get adc_speed and delays'''
+        """get adc_speed and delays"""
         ret, delays = self.GetIntegerArray(nWhat=5, nIndex=0, nArraySize=4)
         ADC_speed, ADC_step_delay, sweep_start_delay, phase_change_delay = delays
 
         return ret, ADC_speed, ADC_step_delay, sweep_start_delay, phase_change_delay
 
-
     def _get_wait_time(self):
-        
-        '''
-        delta t = npt * phase delay 
-        delta t = npt * step delay 
-        '''
-        nsteps= self._nsteps
+        """
+        delta t = npt * phase delay
+        delta t = npt * step delay
+        """
+        nsteps = self._nsteps
         naverage = self._naverage
         step_delay = self._step_delay
         start_delay = self._start_delay
         phase_delay = self._phase_delay
 
-        logger.info('nsteps %s', nsteps) 
-        logger.info('naverage %s', naverage) 
-        logger.info('step_delay %s', step_delay) 
-        logger.info('start_delay %s', start_delay) 
-        logger.info('phase_delay %s', phase_delay) 
+        logger.info("nsteps %s", nsteps)
+        logger.info("naverage %s", naverage)
+        logger.info("step_delay %s", step_delay)
+        logger.info("start_delay %s", start_delay)
+        logger.info("phase_delay %s", phase_delay)
 
-        average_delay = 95 # in us, delay between scans for an average
-        mbuffer=70
-        delay=4000
-        dds_load = 90 # microseconds
-        num_phase = 4 #[0, 90, 180, 270] # CDS phase points, size of list is what is important
+        average_delay = 95  # in us, delay between scans for an average
+        mbuffer = 70
+        delay = 4000
+        dds_load = 90  # microseconds
+        num_phase = (
+            4  # [0, 90, 180, 270] # CDS phase points, size of list is what is important
+        )
 
         # start_delay has a fixed number 960 + extended time
-        start_delay += 960 # plus system start delay
+        start_delay += 960  # plus system start delay
         # ADC conversion timing
         conversion_delay = 320  # updates DDS at the end of an ADC conversion
-        fqud_pulse = 0 # 100 # microseconds
-        clock_delay = 0 # 20 # microseconds
-        
-        usb_frame_time = 125 # USB version 0.22
-        
+        fqud_pulse = 0  # 100 # microseconds
+        clock_delay = 0  # 20 # microseconds
+
+        usb_frame_time = 125  # USB version 0.22
+
         # align ADC conversions with USB frames grid
         # minimum_conversion_time = 500 # microseconds
-        conversion_time = conversion_delay + fqud_pulse + clock_delay + step_delay + mbuffer + 110 + num_phase * phase_delay # microseconds 110 a fied# microseconds
+        conversion_time = (
+            conversion_delay
+            + fqud_pulse
+            + clock_delay
+            + step_delay
+            + mbuffer
+            + 110
+            + num_phase * phase_delay
+        )  # microseconds 110 a fied# microseconds
 
-        logger.info(conversion_time) 
-        logger.info(1/conversion_time * 1e6) 
+        logger.info(conversion_time)
+        logger.info(1 / conversion_time * 1e6)
 
         if conversion_time % usb_frame_time != 0:
-            conversion_time = (conversion_time // usb_frame_time)*usb_frame_time + usb_frame_time + 320 # microseconds
-        
-        logger.info(conversion_time) 
-        logger.info(1/conversion_time * 1e6) 
+            conversion_time = (
+                (conversion_time // usb_frame_time) * usb_frame_time
+                + usb_frame_time
+                + 320
+            )  # microseconds
 
-        conversion_rate = 1/(conversion_time*1e-6) # get the data rate in ADC conversions/sec
-        num_conversions = nsteps # get the number of conversions
+        logger.info(conversion_time)
+        logger.info(1 / conversion_time * 1e6)
 
-        logger.info(num_conversions) 
-        logger.info(num_conversions / conversion_rate) 
-        total_time = dds_load * 1e-6 + start_delay * 1e-6 + num_conversions / conversion_rate + delay * 1e-6 # get total time in seconds
-        logger.info(total_time) 
-        logger.info(total_time * naverage + average_delay * (naverage - 1) * 1e-6 + extra_time)
-        return total_time * naverage + average_delay * (naverage - 1) * 1e-6 + extra_time
-        
-            
-            
+        conversion_rate = 1 / (
+            conversion_time * 1e-6
+        )  # get the data rate in ADC conversions/sec
+        num_conversions = nsteps  # get the number of conversions
+
+        logger.info(num_conversions)
+        logger.info(num_conversions / conversion_rate)
+        total_time = (
+            dds_load * 1e-6
+            + start_delay * 1e-6
+            + num_conversions / conversion_rate
+            + delay * 1e-6
+        )  # get total time in seconds
+        logger.info(total_time)
+        logger.info(
+            total_time * naverage + average_delay * (naverage - 1) * 1e-6 + extra_time
+        )
+        return (
+            total_time * naverage + average_delay * (naverage - 1) * 1e-6 + extra_time
+        )
 
 
 # get_hWnd()
 
 # exit(0)
-if __name__ == '__main__':
-    import time
+if __name__ == "__main__":
     import logging
+    import time
+
     logging.basicConfig(level=logging.INFO)
     with AccessMyVNA() as vna:
         if vna.Init() == 0:
-            print('open')
+            logger.info("open")
         else:
-            print('false')
+            logger.info("false")
         pass
-    print(vna)
-    print(vna._chn)
+    logger.info(vna)
+    logger.info(vna._chn)
     exit(0)
     with vna:
-        print('start')
+        logger.info("start")
         # vna.SingleScan()
         t0 = time.time()
-        i =0
+        i = 0
         while True:
-            t=time.time()
+            t = time.time()
             if t - t0 > 1:
                 break
-            ret, f, G = vna.GetScanData(nStart=0, nEnd=int(vna._nsteps-1), nWhata=-1, nWhatb=15)
-            # print(i, t - t0, f[-1], G[-1])
+            ret, f, G = vna.GetScanData(
+                nStart=0, nEnd=int(vna._nsteps - 1), nWhata=-1, nWhatb=15
+            )
+            # logger.info('%s %s %s %s', i, t - t0, f[-1], G[-1])
             time.sleep(0.01)
         t1 = time.time()
-        # print(t1 - t0)
-        
+        # logger.info(t1 - t0)
+
         # vna.setADCChannel(reflectchn=2)
         # ret, delays = vna.GetIntegerArray(nWhat=5, nIndex=0, nArraySize=4)
-        # print(delays)
+        # logger.info(delays)
         # ret, chn = vna.getADCChannel()
-        # print('chn is ', chn)
+        # logger.info('chn is %s', chn)
 
         # ls = [
         #     (0, 0, 9),
@@ -1623,7 +1682,7 @@ if __name__ == '__main__':
         # ]
         # for l in ls:
         #     ret, darr = vna.GetDoubleArray(nWhat=l[0], nIndex=l[1], nArraySize=l[2])
-        #     print(l[0], ret, darr)
+        #     logger.info('%s %s %s', l[0], ret, darr)
 
     exit(0)
     # ret = _MyVNAInit()
@@ -1633,34 +1692,38 @@ if __name__ == '__main__':
     # # ret = accvna.GetDoubleArray()
     # # ret, f, G, B = accvna.single_scan()
     accvna = AccessMyVNA()
-    # print('acc', accvna._naverage) 
+    # logger.info('acc %s', accvna._naverage)
     with accvna:
         ret, nSteps = accvna.SetScanSteps(nSteps=300)
         accvna.GetDoubleArray(nWhat=5, nIndex=0, nArraySize=5)
         # accvna._get_wait_time()
         # pass
-        # print('acc', accvna._naverage) 
-        # print(11111) 
+        # logger.info('acc %s', accvna._naverage)
+        # logger.info(11111)
 
-    # print('acc', accvna._naverage)
+    # logger.info('acc %s', accvna._naverage)
     # exit(0)
     with AccessMyVNA() as accvna:
         accvna.GetDoubleArray(nWhat=5, nIndex=0, nArraySize=5)
         # exit(0)
-        fileName = r'C:\Users\ShullGroup\Documents\User Data\WQF\GoogleDriveSync\py_programs\QCM\QCM_py\tests\dll\Hermes_4k_steps_4_36MHz_base_ADC2.myVNA.cal'
+        fileName = r"C:\Users\ShullGroup\Documents\User Data\WQF\GoogleDriveSync\py_programs\QCM\QCM_py\tests\dll\Hermes_4k_steps_4_36MHz_base_ADC2.myVNA.cal"
         ret = accvna.LoadCalibration(fileName)
         ret = accvna.LoadConfiguration(fileName)
 
-        ret, accvna._f[0], accvna._f[1] = accvna.SetFequencies(f1=4.9e6, f2=5.1e6, nFlags=1)
+        ret, accvna._f[0], accvna._f[1] = accvna.SetFequencies(
+            f1=4.9e6, f2=5.1e6, nFlags=1
+        )
         nSteps = 400
         ret, f, B = accvna.single_scan()
-        ret, f, G = accvna.GetScanData(nStart=0, nEnd=accvna._nsteps-1, nWhata=-1, nWhatb=15)
+        ret, f, G = accvna.GetScanData(
+            nStart=0, nEnd=accvna._nsteps - 1, nWhata=-1, nWhatb=15
+        )
 
         exit(1)
-        # print(accvna._get_wait_time())
-        print('acc', accvna._naverage)
+        # logger.info(accvna._get_wait_time())
+        logger.info("acc %s", accvna._naverage)
         ret, nSteps = accvna.SetScanSteps(nSteps=300)
-        print(accvna._nsteps)
+        logger.info(accvna._nsteps)
         # exit(0)
         ret = accvna.ShowWindow(1)
         ret, delays = accvna.GetIntegerArray(nWhat=5, nIndex=0, nArraySize=4)
@@ -1668,19 +1731,24 @@ if __name__ == '__main__':
         ADC_speed, ADC_step_delay, sweep_start_delay, phase_change_delay = delays
 
         accvna._get_wait_time()
-    
+
     # accvna.GetIntegerArray(nWhat=6, nIndex=0, nArraySize=4)
     exit(0)
     import inspect
+
     import AccessMyVNA
 
     ml = inspect.getmembers(AccessMyVNA, inspect.isclass)
-    print(ml)
+    logger.info(ml)
     for m in ml:
-        print(m)
-        print(m[1].__module__)
+        logger.info(m)
+        logger.info(m[1].__module__)
 
-    [m[0] for m in inspect.getmembers(AccessMyVNA, inspect.isclass) if m[1].__module__ == 'AccessMyVNA']
+    [
+        m[0]
+        for m in inspect.getmembers(AccessMyVNA, inspect.isclass)
+        if m[1].__module__ == "AccessMyVNA"
+    ]
     exit(0)
 
     with AccessMyVNA() as accvna:
@@ -1696,7 +1764,7 @@ if __name__ == '__main__':
         accvna.GetDoubleArray(nWhat=5, nIndex=0, nArraySize=2)
         exit(0)
         ret, nSteps = accvna.SetScanSteps()
-        ret, nSteps = accvna.GetScanSteps() 
+        ret, nSteps = accvna.GetScanSteps()
         ret, nAverage = accvna.SetScanAverage()
         ret, nAverage = accvna.GetScanAverage()
         ret, nMode = accvna.Setinstrmode()
@@ -1706,28 +1774,27 @@ if __name__ == '__main__':
         t0 = time.time()
         ret, nMode = accvna.SingleScan()
         t1 = time.time()
-        print(t1-t0)
+        logger.info(t1 - t0)
         # exit(0)
         ret, nMode = accvna.EqCctRefine()
         ret = accvna.SetFequencies()
         # for i in range(100):
-        #     print('i:', i)
+        #     logger.info('i: %s', i)
         #     ret, nResult = accvna.SetDoubleArray(nWhat=5, nIndex=0, nArraySize=2, nData=[1, 2])
         ret, nResult = accvna.GetDoubleArray()
-        # print('nR', nResult)
+        # logger.info('nR %s', nResult)
         ret, f, G = accvna.single_scan()
-        ret, f, B = accvna.GetScanData(nStart=0, nEnd=nSteps-1, nWhata=-1, nWhatb=15)
+        ret, f, B = accvna.GetScanData(nStart=0, nEnd=nSteps - 1, nWhata=-1, nWhatb=15)
         # ret = accvna.SingleScan()
-        print(ret)
+        logger.info(ret)
 
     # vna = AccessMyVNA()
     # vna.Init()
     # vna.SingleScan()
     # vna.GetDoubleArray()                 # AccessMyVNA(Open: click NO; Closed:OK) MyVNA: doesn't affect
     # vna.Close()
-    
-    
-    # accvna = AccessMyVNA() 
+
+    # accvna = AccessMyVNA()
     # # call this function before trying to do anything else
     # # Init()
     # get_hWnd()
@@ -1748,7 +1815,7 @@ if __name__ == '__main__':
     # accvna.SetFequencies()                # AccessMyVNA(O: click NO; C:OK) MyVNA: need restart
     # # Init()
     # accvna.SingleScan()                # AccessMyVNA(O: click NO; C:OK)
-    # print('pause 2 s...')
+    # logger.info('pause 2 s...')
     # time.sleep(2)
     # # # Autoscale()                 # AccessMyVNA(Open: click NO; Closed:OK) MyVNA: doesn't affect
     # # # Init()
@@ -1764,10 +1831,9 @@ if __name__ == '__main__':
     # get_hWnd()
 
 
-
 # to do
-#region
-'''
+# region
+"""
                                     nWhat   nArraySize
 GETSET_DISPLAY_OPTIONS              0       4
 GETSET_PRINT_OPTIONS                1       4
@@ -1783,18 +1849,19 @@ GETSETSIMULATIONCONFIG              10
 GETSETTRACECALCULATIONOPTIONS       11
 GETSETSWITCHATTENUATORCONFIG        12
 GETSETSWITCHATTENUATORSETTINGS      13
-'''
-#endregion
+"""
+# endregion
+
 
 def MyVNAGetString():
     MyVNAGetString = vna[12]
     # // get miscellaneous double array based data
     # __declspec(dllexport) CString _stdcall MyVNAGetString(int nWhat, int nIndex )
-    
+
 
 def MyVNASetString():
     # // Get or set a string parameter
-    # // The functions need a parameter to say what is to be set/got - see details below, 
+    # // The functions need a parameter to say what is to be set/got - see details below,
     # // a string for the result / parameter
     # // and an index value
     # // OLE equivalents:
@@ -1811,12 +1878,12 @@ def MyVNASetString():
     MyVNASetString = vna[28]
     # // set miscellaneous double array based data
     # __declspec(dllexport) int _stdcall MyVNASetString(int nWhat, int nIndex, _TCHAR * sValue )
-    
+
 
 def MyVNASaveTraceData():
     MyVNASaveTraceData = vna[19]
     # __declspec(dllexport) int _stdcall MyVNASaveTraceData( _TCHAR * fileName )
-    
+
 
 def MyVNAClipboardCopy():
     # // copy whatever is currently being displayed to the clipboard
@@ -1824,20 +1891,20 @@ def MyVNAClipboardCopy():
     # // int ClipboardCopyAutomation(void);
     # __declspec(dllexport) int _stdcall MyVNAClipboardCopy()
     MyVNAClipboardCopy = vna[2]
-    
+
+
 # // when in eq cct view mode (and only then) use these functions to establish a log file and log
 # // the results of a scan. The description is a string added to each log entry
 # // OLE equivalents:
 # // int SetEqCctLogFileAutomation(LPCTSTR fileName);
 # // int EqCctLogFileAutomation(LPCTSTR description);
 
+
 def MyVNASetEqCctLogFile():
     MyVNASetEqCctLogFile = vna[22]
     # __declspec(dllexport) int _stdcall MyVNASetEqCctLogFile(_TCHAR * fileName)
-    
+
 
 def MyVNALogEqCctResults():
     MyVNALogEqCctResults = vna[16]
     # __declspec(dllexport) int _stdcall MyVNALogEqCctResults(_TCHAR * description)
-    
-

@@ -55,14 +55,11 @@ from __future__ import annotations
 
 import logging
 import sys
-from dataclasses import dataclass
-from dataclasses import field
-from pathlib import Path
-from typing import Any
-from typing import Callable
-from typing import Literal
-
 import warnings
+from collections.abc import Callable
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any, Literal
 
 import h5py
 import jax
@@ -73,12 +70,22 @@ with warnings.catch_warnings():
     warnings.filterwarnings("ignore", message="JAXopt is no longer maintained")
     import jaxopt
 
+# Log JAXopt import with version and deprecation status
+_jaxopt_logger = logging.getLogger(__name__)
+try:
+    import importlib.metadata
+
+    _jaxopt_version = importlib.metadata.version("jaxopt")
+except Exception:
+    _jaxopt_version = "unknown"
+_jaxopt_logger.info(
+    f"JAXopt version {_jaxopt_version} loaded (deprecated, migration to Optax planned)"
+)
+
 import numpy as np
 
 from rheoQCM.core import physics
 from rheoQCM.core.jax_config import configure_jax
-from rheoQCM.core.jax_config import get_jax_backend
-from rheoQCM.core.jax_config import is_gpu_available
 
 # Ensure JAX is configured
 configure_jax()
@@ -99,8 +106,7 @@ logger = logging.getLogger(__name__)
 
 # Type alias for residual function signature
 CalctypeResidualFn = Callable[
-    [jnp.ndarray, dict[int, complex], list[int], float, int, float],
-    jnp.ndarray
+    [jnp.ndarray, dict[int, complex], list[int], float, int, float], jnp.ndarray
 ]
 
 
@@ -240,7 +246,7 @@ class BatchResult:
         ]
 
     @classmethod
-    def from_solve_results(cls, results: list[SolveResult]) -> "BatchResult":
+    def from_solve_results(cls, results: list[SolveResult]) -> BatchResult:
         """Create BatchResult from list of SolveResult objects."""
         n = len(results)
         return cls(
@@ -272,21 +278,27 @@ bulk_drho: float = np.inf
 # =============================================================================
 
 
-def _jax_normdelfstar(n: int, refh: int, dlam_refh: jnp.ndarray, phi: jnp.ndarray) -> jnp.ndarray:
+def _jax_normdelfstar(
+    n: int, refh: int, dlam_refh: jnp.ndarray, phi: jnp.ndarray
+) -> jnp.ndarray:
     """Calculate normalized delfstar at harmonic n using JAX."""
     dlam_n = dlam_refh * (n / refh) ** (1 - phi / jnp.pi)
     D = 2 * jnp.pi * dlam_n * (1 - 1j * jnp.tan(phi / 2))
     return -jnp.sin(D) / D / jnp.cos(D)
 
 
-def _jax_rhcalc(n1: int, n2: int, refh: int, dlam_refh: jnp.ndarray, phi: jnp.ndarray) -> jnp.ndarray:
+def _jax_rhcalc(
+    n1: int, n2: int, refh: int, dlam_refh: jnp.ndarray, phi: jnp.ndarray
+) -> jnp.ndarray:
     """Calculate harmonic ratio using JAX."""
     nds1 = _jax_normdelfstar(n1, refh, dlam_refh, phi)
     nds2 = _jax_normdelfstar(n2, refh, dlam_refh, phi)
     return jnp.real(nds1) / jnp.real(nds2)
 
 
-def _jax_rdcalc(n3: int, refh: int, dlam_refh: jnp.ndarray, phi: jnp.ndarray) -> jnp.ndarray:
+def _jax_rdcalc(
+    n3: int, refh: int, dlam_refh: jnp.ndarray, phi: jnp.ndarray
+) -> jnp.ndarray:
     """Calculate dissipation ratio using JAX."""
     nds = _jax_normdelfstar(n3, refh, dlam_refh, phi)
     return -jnp.imag(nds) / jnp.real(nds)
@@ -299,8 +311,12 @@ def _jax_rdcalc(n3: int, refh: int, dlam_refh: jnp.ndarray, phi: jnp.ndarray) ->
 
 
 def _jax_calc_ZL_single_layer(
-    n: int, grho_refh: jnp.ndarray, phi: jnp.ndarray, drho: jnp.ndarray,
-    f1: float, refh: int
+    n: int,
+    grho_refh: jnp.ndarray,
+    phi: jnp.ndarray,
+    drho: jnp.ndarray,
+    f1: float,
+    refh: int,
 ) -> jnp.ndarray:
     """Calculate load impedance for single layer (JAX)."""
     # T017: Use physics.grhostar_from_refh instead of _jax_grhostar_from_refh
@@ -312,8 +328,13 @@ def _jax_calc_ZL_single_layer(
 
 
 def _jax_calc_delfstar(
-    n: int, grho_refh: jnp.ndarray, phi: jnp.ndarray, drho: jnp.ndarray,
-    f1: float, Zq: float, refh: int
+    n: int,
+    grho_refh: jnp.ndarray,
+    phi: jnp.ndarray,
+    drho: jnp.ndarray,
+    f1: float,
+    Zq: float,
+    refh: int,
 ) -> jnp.ndarray:
     """Calculate complex frequency shift for single layer (JAX)."""
     ZL = _jax_calc_ZL_single_layer(n, grho_refh, phi, drho, f1, refh)
@@ -322,13 +343,14 @@ def _jax_calc_delfstar(
 
 
 def _jax_calc_delfstar_bulk(
-    n: int, grho_refh: jnp.ndarray, phi: jnp.ndarray,
-    f1: float, Zq: float, refh: int
+    n: int, grho_refh: jnp.ndarray, phi: jnp.ndarray, f1: float, Zq: float, refh: int
 ) -> jnp.ndarray:
     """Calculate complex frequency shift for bulk material (JAX)."""
     # T016: Use physics.grho instead of _jax_grho
     grho_n = physics.grho(n, grho_refh, phi, refh=refh)
-    return (f1 * jnp.sqrt(grho_n) / (jnp.pi * Zq)) * (-jnp.sin(phi / 2) + 1j * jnp.cos(phi / 2))
+    return (f1 * jnp.sqrt(grho_n) / (jnp.pi * Zq)) * (
+        -jnp.sin(phi / 2) + 1j * jnp.cos(phi / 2)
+    )
 
 
 # =============================================================================
@@ -724,9 +746,7 @@ class QCMModel:
             Keys are harmonic numbers (1, 3, 5, ...).
             Values are complex: delf + 1j * delg.
         """
-        self.delfstars = {
-            int(k): complex(v) for k, v in delfstars.items()
-        }
+        self.delfstars = {int(k): complex(v) for k, v in delfstars.items()}
 
     def load_from_hdf5(self, filepath: str | Path) -> None:
         """
@@ -757,13 +777,15 @@ class QCMModel:
             # Build delfstars dictionary
             self.delfstars = {
                 int(h): complex(f, g)
-                for h, f, g in zip(harmonics, delf, delg)
+                for h, f, g in zip(harmonics, delf, delg, strict=False)
             }
 
             # Load reference frequencies and bandwidths if available
             if "f0" in hf:
                 f0 = np.array(hf["f0"])
-                self.f0s = {int(h): float(f) for h, f in zip(harmonics, f0)}
+                self.f0s = {
+                    int(h): float(f) for h, f in zip(harmonics, f0, strict=False)
+                }
                 # Calculate f1 from first available harmonic
                 for h in sorted(self.f0s.keys()):
                     if not np.isnan(self.f0s[h]):
@@ -772,7 +794,9 @@ class QCMModel:
 
             if "g0" in hf:
                 g0 = np.array(hf["g0"])
-                self.g0s = {int(h): float(g) for h, g in zip(harmonics, g0)}
+                self.g0s = {
+                    int(h): float(g) for h, g in zip(harmonics, g0, strict=False)
+                }
                 # Calculate g1
                 for h in sorted(self.g0s.keys()):
                     if not np.isnan(self.g0s[h]):
@@ -805,18 +829,18 @@ class QCMModel:
         """
         self.delfstars = {
             int(h): complex(f, g)
-            for h, f, g in zip(harmonics, delf, delg)
+            for h, f, g in zip(harmonics, delf, delg, strict=False)
         }
 
         if f0 is not None:
-            self.f0s = {int(h): float(f) for h, f in zip(harmonics, f0)}
+            self.f0s = {int(h): float(f) for h, f in zip(harmonics, f0, strict=False)}
             for h in sorted(self.f0s.keys()):
                 if not np.isnan(self.f0s[h]):
                     self.f1 = self.f0s[h] / h
                     break
 
         if g0 is not None:
-            self.g0s = {int(h): float(g) for h, g in zip(harmonics, g0)}
+            self.g0s = {int(h): float(g) for h, g in zip(harmonics, g0, strict=False)}
             for h in sorted(self.g0s.keys()):
                 if not np.isnan(self.g0s[h]):
                     self.g1 = self.g0s[h] / h
@@ -858,9 +882,7 @@ class QCMModel:
             return np.nan
         return -np.imag(delfstar[n]) / np.real(delfstar[n])
 
-    def _rh_from_delfstar(
-        self, nh: list[int], delfstar: dict[int, complex]
-    ) -> float:
+    def _rh_from_delfstar(self, nh: list[int], delfstar: dict[int, complex]) -> float:
         """Calculate harmonic ratio."""
         n1, n2 = nh[0], nh[1]
         if n2 not in delfstar or np.real(delfstar[n2]) == 0:
@@ -871,9 +893,7 @@ class QCMModel:
         """Check if material is bulk based on dissipation ratio."""
         return rd_exp >= bulklimit
 
-    def _grho_at_harmonic(
-        self, n: int, grho_refh: float, phi: float
-    ) -> float:
+    def _grho_at_harmonic(self, n: int, grho_refh: float, phi: float) -> float:
         """Calculate |G*|*rho at harmonic n using power law.
 
         T029: Uses caching to avoid redundant computations (005-jax-perf).
@@ -889,9 +909,7 @@ class QCMModel:
         self._grho_cache[cache_key] = result
         return result
 
-    def _grhostar_at_harmonic(
-        self, n: int, grho_refh: float, phi: float
-    ) -> complex:
+    def _grhostar_at_harmonic(self, n: int, grho_refh: float, phi: float) -> complex:
         """Calculate complex G*rho at harmonic n."""
         if self.refh is None:
             raise ValueError("Reference harmonic (refh) must be set")
@@ -942,18 +960,15 @@ class QCMModel:
         ZL = self._calc_ZL_single_layer(n, grho_refh, phi, drho)
         return self._calc_delfstar_sla(ZL)
 
-    def _calc_delfstar_bulk(
-        self, n: int, grho_refh: float, phi: float
-    ) -> complex:
+    def _calc_delfstar_bulk(self, n: int, grho_refh: float, phi: float) -> complex:
         """Calculate complex frequency shift for bulk material."""
         if self.f1 is None:
             raise ValueError("f1 must be set")
 
         grho_n = self._grho_at_harmonic(n, grho_refh, phi)
 
-        return (
-            (self.f1 * np.sqrt(grho_n) / (np.pi * self.Zq))
-            * (-np.sin(phi / 2) + 1j * np.cos(phi / 2))
+        return (self.f1 * np.sqrt(grho_n) / (np.pi * self.Zq)) * (
+            -np.sin(phi / 2) + 1j * np.cos(phi / 2)
         )
 
     def _bulk_props(self, delfstar: dict[int, complex]) -> tuple[float, float]:
@@ -1026,9 +1041,9 @@ class QCMModel:
 
         # Calculate grho from dlam
         if drho > 0:
-            grho_refh = float(physics.grho_from_dlam(
-                self.refh, drho, dlam_refh, phi, f1=self.f1
-            ))
+            grho_refh = float(
+                physics.grho_from_dlam(self.refh, drho, dlam_refh, phi, f1=self.f1)
+            )
         else:
             grho_refh = np.nan
 
@@ -1215,11 +1230,13 @@ class QCMModel:
                 calc_n2 = _jax_calc_delfstar(n2, grho, phi_val, d, f1, Zq, refh)
                 calc_n3 = _jax_calc_delfstar(n3, grho, phi_val, d, f1, Zq, refh)
 
-                return jnp.array([
-                    jnp.real(calc_n1) - exp_real_n1,
-                    jnp.real(calc_n2) - exp_real_n2,
-                    jnp.imag(calc_n3) - exp_imag_n3,
-                ])
+                return jnp.array(
+                    [
+                        jnp.real(calc_n1) - exp_real_n1,
+                        jnp.real(calc_n2) - exp_real_n2,
+                        jnp.imag(calc_n3) - exp_imag_n3,
+                    ]
+                )
 
             solver = jaxopt.LevenbergMarquardt(
                 residual_fun=residual_thin,
@@ -1240,9 +1257,9 @@ class QCMModel:
 
             # Calculate dlam_refh
             grho_n = self._grho_at_harmonic(self.refh, grho_refh, phi)
-            dlam_refh = float(physics.calc_dlam(
-                self.refh, grho_n, phi, drho, f1=self.f1
-            ))
+            dlam_refh = float(
+                physics.calc_dlam(self.refh, grho_n, phi, drho, f1=self.f1)
+            )
 
             residuals = np.array(residual_thin(result.params))
 
@@ -1257,19 +1274,23 @@ class QCMModel:
                     jac_np = np.array(jac)
 
                     # Input uncertainties
-                    delfstar_err = np.array([
-                        np.real(self._fstar_err_calc(delfstar[n1])),
-                        np.real(self._fstar_err_calc(delfstar[n2])),
-                        np.imag(self._fstar_err_calc(delfstar[n3])),
-                    ])
+                    delfstar_err = np.array(
+                        [
+                            np.real(self._fstar_err_calc(delfstar[n1])),
+                            np.real(self._fstar_err_calc(delfstar[n2])),
+                            np.imag(self._fstar_err_calc(delfstar[n3])),
+                        ]
+                    )
 
                     # Covariance propagation: cov = J^-1 @ diag(sigma^2) @ (J^-1)^T
                     try:
                         jac_inv = np.linalg.inv(jac_np)
-                        sigma_sq = np.diag(delfstar_err ** 2)
+                        sigma_sq = np.diag(delfstar_err**2)
                         covariance = jac_inv @ sigma_sq @ jac_inv.T
                     except np.linalg.LinAlgError:
-                        logger.warning("Jacobian inversion failed, covariance unavailable")
+                        logger.warning(
+                            "Jacobian inversion failed, covariance unavailable"
+                        )
                 except Exception as e:
                     logger.warning(f"Error calculation failed: {e}")
 
@@ -1538,18 +1559,9 @@ class QCMModel:
         # Define NumPyro model
         def model():
             # Priors
-            grho_refh = numpyro.sample(
-                "grho_refh",
-                dist.LogNormal(np.log(grho0), 1.0)
-            )
-            phi = numpyro.sample(
-                "phi",
-                dist.Uniform(0.0, np.pi / 2)
-            )
-            drho = numpyro.sample(
-                "drho",
-                dist.LogNormal(np.log(drho0), 1.0)
-            )
+            grho_refh = numpyro.sample("grho_refh", dist.LogNormal(np.log(grho0), 1.0))
+            phi = numpyro.sample("phi", dist.Uniform(0.0, np.pi / 2))
+            drho = numpyro.sample("drho", dist.LogNormal(np.log(drho0), 1.0))
 
             # Likelihood
             sigma_f = numpyro.sample("sigma_f", dist.HalfNormal(100.0))

@@ -259,14 +259,14 @@ def print_jax_info() -> None:
     - Float64 status
     - Default dtype
     """
-    print(f"JAX version: {jax.__version__}")
-    print(f"Available devices: {jax.devices()}")
-    print(f"Current platform: {get_jax_backend()}")
-    print(f"GPU available: {is_gpu_available()}")
-    print(f"TPU available: {is_tpu_available()}")
-    print(f"Float64 enabled: {jax.config.jax_enable_x64}")
-    print(f"Default dtype: {get_default_dtype()}")
-    print(f"Float64 verified: {verify_float64()}")
+    logger.info(f"JAX version: {jax.__version__}")
+    logger.info(f"Available devices: {jax.devices()}")
+    logger.info(f"Current platform: {get_jax_backend()}")
+    logger.info(f"GPU available: {is_gpu_available()}")
+    logger.info(f"TPU available: {is_tpu_available()}")
+    logger.info(f"Float64 enabled: {jax.config.jax_enable_x64}")
+    logger.info(f"Default dtype: {get_default_dtype()}")
+    logger.info(f"Float64 verified: {verify_float64()}")
 
 
 def log_platform_status() -> None:
@@ -318,16 +318,17 @@ def check_gpu_availability() -> None:
             )
 
             if not using_gpu:
-                print(f"\n⚠️  GPU ACCELERATION AVAILABLE")
-                print(f"═══════════════════════════════")
-                print(f"NVIDIA GPU detected: {gpu_name}")
-                print(f"JAX is currently using: CPU-only")
-                print(f"\nEnable 150-270x speedup with GPU acceleration:")
-                print(f"  make install-jax-gpu")
-                print(f"\nOr manually:")
-                print(f"  pip uninstall -y jax jaxlib")
-                print(f'  pip install "jax[cuda12-local]==0.8.0" "jaxlib==0.8.0"')
-                print(f"\nSee README.md GPU Installation section for details.\n")
+                logger.warning("GPU ACCELERATION AVAILABLE")
+                logger.warning(f"NVIDIA GPU detected: {gpu_name}")
+                logger.warning("JAX is currently using: CPU-only")
+                logger.warning("Enable 150-270x speedup with GPU acceleration:")
+                logger.warning("  make install-jax-gpu")
+                logger.warning("Or manually:")
+                logger.warning("  pip uninstall -y jax jaxlib")
+                logger.warning(
+                    '  pip install "jax[cuda12-local]==0.8.0" "jaxlib==0.8.0"'
+                )
+                logger.warning("See README.md GPU Installation section for details.")
 
     except (subprocess.TimeoutExpired, FileNotFoundError, ImportError):
         # nvidia-smi not found or JAX not installed - silently skip
