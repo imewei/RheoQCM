@@ -24,6 +24,7 @@ import shutil
 
 import numpy as np
 import pandas as pd
+import UI_source_rc  # Qt resource file for icons  # noqa: F401
 import UISettings  # UI basic settings module
 
 # packages
@@ -63,8 +64,6 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 from UISettings import harm_tree as harm_tree_default
-
-import UI_source_rc  # Qt resource file for icons  # noqa: F401
 
 logger.debug("cwd: %s", os.getcwd())
 
@@ -210,13 +209,32 @@ class VNATracker:
 
 class QCMApp(QMainWindow):
     """
-    The settings of the app is stored in a dict by widget names
+    The settings of the app is stored in a dict by widget names.
+
+    Supports dependency injection for testability:
+        - hardware_service: HardwareService implementation (default: None, uses built-in VNA)
+        - plot_manager: PlotManager implementation (default: None, creates DefaultPlotManager)
+        - settings_repo: SettingsRepository implementation (default: None, uses UISettings)
     """
 
-    def __init__(self):
+    def __init__(
+        self,
+        *,
+        hardware_service=None,
+        plot_manager=None,
+        settings_repo=None,
+    ):
         super(QCMApp, self).__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+
+        # Store injected services (for testability)
+        self._hardware_service = hardware_service
+        self._plot_manager = plot_manager
+        self._settings_repo = settings_repo
+
+        # Lazy-initialized default service instances
+        self._default_plot_manager = None
 
         self.tempPath = ""  # to store the file name before it is initiated
 
@@ -270,9 +288,11 @@ class QCMApp(QMainWindow):
                         pass
                 logger.info(vna)
                 logger.info(vna._nsteps)
-            except:
+            except Exception as e:
                 logger.error(
-                    "Initiating MyVNA failed!\nMake sure analyser is connected and MyVNA is correctly installed!"
+                    "Initiating MyVNA failed: %s\nMake sure analyser is connected and MyVNA is correctly installed!",
+                    e,
+                    exc_info=True,
                 )
         else:  # other system, data analysis only
             # self.vna = AccessMyVNA() # for test only
@@ -900,7 +920,7 @@ class QCMApp(QMainWindow):
             config_default["temp_class_opts_list"] = (
                 TempModules.class_list
             )  # when TempModules is loaded
-        except:
+        except (ImportError, AttributeError, NameError):
             config_default["temp_class_opts_list"] = None  # no temp module is loaded
         self.create_combobox(
             "comboBox_tempmodule",
@@ -2769,13 +2789,10 @@ class QCMApp(QMainWindow):
         # self.ui.label_status_pts.setText(str(self.data_saver.get_npts()))
         logger.info(str(self.data_saver.get_npts()))
         try:
-            # logger.info(10)
             self.ui.label_status_pts.setText(str(self.data_saver.get_npts()))
-            # logger.info(11)
-        except:
-            # logger.info(21)
+        except (AttributeError, RuntimeError) as e:
+            logger.debug("Could not update pts label: %s", e)
             self.ui.label_status_pts.setText("pts")
-            # logger.info(22)
 
     def show_widgets(self, *args):
         """
@@ -5232,7 +5249,7 @@ class QCMApp(QMainWindow):
         elif isinstance(self.sender(), QComboBox):
             try:  # if w/ userData, use userData
                 value = self.sender().itemData(signal)
-            except:  # if w/o userData, use the text
+            except (TypeError, AttributeError):  # if w/o userData, use the text
                 value = self.sender().itemText(signal)
             self.set_mechchndata(self.sender().objectName(), value)
         # if the sender of the signal isA QSpinBox object, udpate QComboBox vals in dict
@@ -6801,9 +6818,9 @@ class QCMApp(QMainWindow):
                     QIcon(":/icon/rc/temp_sensor.svg")
                 )
                 self.ui.pushButton_status_temp_sensor.setToolTip("Temp. sensor is on.")
-            except:
-                # TODO update in statusbar
-                pass
+            except RuntimeError as e:
+                # Qt operation may fail if widget deleted or not ready
+                logger.debug("Temp sensor icon update failed: %s", e)
         else:
             self.ui.pushButton_status_temp_sensor.setIcon(
                 QIcon(":/icon/rc/temp_sensor_off.svg")
@@ -6894,7 +6911,7 @@ class QCMApp(QMainWindow):
         elif isinstance(self.sender(), QComboBox):
             try:  # if w/ userData, use userData
                 value = self.sender().itemData(signal)
-            except:  # if w/o userData, use the text
+            except (TypeError, AttributeError):  # if w/o userData, use the text
                 value = self.sender().itemText(signal)
             self.settings[self.sender().objectName()] = value
             logger.info(self.settings[self.sender().objectName()])
@@ -6919,7 +6936,7 @@ class QCMApp(QMainWindow):
         if isinstance(self.sender(), QLineEdit):
             try:
                 self.set_harmdata(self.sender().objectName(), float(signal), harm=harm)
-            except:
+            except ValueError:
                 self.set_harmdata(self.sender().objectName(), 0, harm=harm)
         # if the sender of the signal isA QCheckBox object, update QCheckBox vals in dict
         elif isinstance(self.sender(), QCheckBox):
@@ -6931,7 +6948,7 @@ class QCMApp(QMainWindow):
         elif isinstance(self.sender(), QComboBox):
             try:  # if w/ userData, use userData
                 value = self.sender().itemData(signal)
-            except:  # if w/o userData, use the text
+            except (TypeError, AttributeError):  # if w/o userData, use the text
                 value = self.sender().itemText(signal)
             self.set_harmdata(self.sender().objectName(), value, harm=harm)
         # if the sender of the signal isA QSpinBox object, udpate QComboBox vals in dict
@@ -7086,7 +7103,7 @@ class QCMApp(QMainWindow):
 
         try:
             return self.settings["harmdata"][chn_name][str(harm)][objname]
-        except:
+        except KeyError:
             self.settings["harmdata"][chn_name][str(harm)][objname] = harm_tree_default[
                 objname
             ]
@@ -7108,7 +7125,7 @@ class QCMApp(QMainWindow):
 
         try:
             self.settings["harmdata"][chn_name][harm][objname] = val
-        except:
+        except KeyError:
             logger.info("%s is not found!", objname)
 
     def update_base_freq(self, base_freq_index):
@@ -7809,9 +7826,8 @@ class QCMApp(QMainWindow):
         )
         try:
             self.load_comboBox(self.ui.comboBox_tempdevice)
-        except:
-            logger.warning("No tempdevice found.")
-            pass
+        except (AttributeError, RuntimeError) as e:
+            logger.warning("No tempdevice found: %s", e)
         # update display on label_temp_devthrmcpl
         self.set_label_temp_devthrmcpl()  # this should be after temp_sensor & thrmcpl
 
@@ -8697,6 +8713,48 @@ class QCMApp(QMainWindow):
 
         else:
             return list(range(1, self.settings["max_harmonic"] + 2, 2))
+
+    # region Service Accessors (for testability via dependency injection)
+
+    @property
+    def hardware_service(self):
+        """
+        Get the hardware service.
+
+        Returns injected service if provided, otherwise None (uses built-in VNA).
+        This enables testing with MockHardwareService.
+        """
+        return self._hardware_service
+
+    @property
+    def plot_manager(self):
+        """
+        Get the plot manager service.
+
+        Returns injected service if provided, otherwise creates default.
+        This enables testing with MockPlotManager.
+        """
+        if self._plot_manager is not None:
+            return self._plot_manager
+
+        # Lazy-create default plot manager
+        if self._default_plot_manager is None:
+            from rheoQCM.services.plotting import DefaultPlotManager
+
+            self._default_plot_manager = DefaultPlotManager()
+        return self._default_plot_manager
+
+    @property
+    def settings_repository(self):
+        """
+        Get the settings repository service.
+
+        Returns injected service if provided, otherwise None (uses UISettings).
+        This enables testing with MockSettingsRepository.
+        """
+        return self._settings_repo
+
+    # endregion Service Accessors
 
 
 # endregion
