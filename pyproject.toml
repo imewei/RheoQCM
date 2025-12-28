@@ -87,6 +87,7 @@ dependencies = [
 
     # Utilities
     "packaging>=24.0",
+    "platformdirs>=3.0.0",
 ]
 
 [project.optional-dependencies]

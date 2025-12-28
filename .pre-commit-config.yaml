@@ -1,0 +1,36 @@
+# Pre-commit hooks configuration for RheoQCM
+# Run `pre-commit install` to install hooks locally
+# Run `pre-commit run --all-files` to run all hooks on the entire codebase
+
+repos:
+  # Standard pre-commit hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: ^(\.venv/|.*\.min\.(js|css)$)
+      - id: end-of-file-fixer
+        exclude: ^(\.venv/|.*\.min\.(js|css)$)
+      - id: check-yaml
+        args: [--unsafe]
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+      - id: check-merge-conflict
+
+  # Ruff for linting and formatting
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.4
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+        exclude: ^(\.venv/|migrations/)
+      - id: ruff-format
+        exclude: ^(\.venv/|migrations/)
+
+# CI configuration
+ci:
+  autofix_commit_msg: |
+    [pre-commit.ci] auto fixes from pre-commit.com hooks
+  autofix_prs: true
+  autoupdate_commit_msg: '[pre-commit.ci] pre-commit autoupdate'
+  autoupdate_schedule: weekly
