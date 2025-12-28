@@ -26,6 +26,7 @@ Functions here use phi in DEGREES, while rheoQCM.core uses RADIANS.
 See rheoQCM.core.analysis for the modern API.
 """
 
+import logging
 import os
 import re
 import sys
@@ -33,6 +34,8 @@ import time
 import warnings
 from copy import copy, deepcopy
 from glob import glob
+
+logger = logging.getLogger(__name__)
 
 import matplotlib.gridspec as gridspec
 
@@ -119,6 +122,29 @@ def _to_numpy(x):
         # Scalar JAX array - convert to Python scalar
         return complex(x) if np.iscomplexobj(x) else float(x)
     return np.asarray(x)
+
+
+# =============================================================================
+# T062/T063: Per-function deprecation warnings with deduplication
+# =============================================================================
+_warned_functions: set[str] = set()
+
+
+def _warn_deprecated(func_name: str, replacement: str) -> None:
+    """
+    Emit a deprecation warning for a function (once per session).
+
+    T063: Uses a set for deduplication instead of lru_cache for simplicity.
+    """
+    if _SUPPRESS_DEPRECATION or func_name in _warned_functions:
+        return
+    _warned_functions.add(func_name)
+    warnings.warn(
+        f"{func_name}() is deprecated. Use {replacement} instead.\n"
+        "Note: rheoQCM.core uses phi in RADIANS (this module uses DEGREES).",
+        DeprecationWarning,
+        stacklevel=3,
+    )
 
 
 def _convert_layers_to_core(layers_legacy):
@@ -480,7 +506,11 @@ def sauerbreyf(n, drho, **kwargs):
     -------
     deltaf : float
         Calculated Sauerbrey frequency shift [Hz].
+
+    .. deprecated::
+        Use ``rheoQCM.core.physics.sauerbreyf(n, drho, f1)`` instead.
     """
+    _warn_deprecated("sauerbreyf", "rheoQCM.core.physics.sauerbreyf(n, drho, f1)")
     f1 = kwargs.get("f1", f1_default)
     return _to_numpy(_core_sauerbreyf(n, drho, f1))
 
@@ -502,7 +532,11 @@ def sauerbreym(n, delf, **kwargs):
     -------
     drho : float
         Sauerbrey mass [kg/m^2].
+
+    .. deprecated::
+        Use ``rheoQCM.core.physics.sauerbreym(n, delf, f1)`` instead.
     """
+    _warn_deprecated("sauerbreym", "rheoQCM.core.physics.sauerbreym(n, delf, f1)")
     f1 = kwargs.get("f1", f1_default)
     return _to_numpy(_core_sauerbreym(n, delf, f1))
 
@@ -561,7 +595,11 @@ def grho(n, props):
     -------
     grho_mag : float
         |G*rho| at harmonic of interest.
+
+    .. deprecated::
+        Use ``rheoQCM.core.physics.grho(n, grho_refh, phi_rad, refh=3)`` instead.
     """
+    _warn_deprecated("grho", "rheoQCM.core.physics.grho(n, grho_refh, phi_rad, refh)")
     grho3 = props["grho3"]
     phi_deg = props["phi"]
     # Convert degrees to radians for core (T025)
@@ -869,7 +907,13 @@ def calc_delfstar(n, layers_in, **kwargs):
     returns:
         delfstar (complex):
             Complex frequency shift (Hz).
+
+    .. deprecated::
+        Use ``rheoQCM.core.multilayer.calc_delfstar_multilayer()`` instead.
     """
+    _warn_deprecated(
+        "calc_delfstar", "rheoQCM.core.multilayer.calc_delfstar_multilayer()"
+    )
     if not layers_in:  # if layers is empty {}
         return np.nan
 
@@ -1277,7 +1321,11 @@ def bulk_props(delfstar, **kwargs):
         |G*|rho at harmonic where delfstar was measured.
     phi : float
         Phase angle in degrees, at harmonic where delfstar was measured.
+
+    .. deprecated::
+        Use ``rheoQCM.core.physics.bulk_props(delfstar, f1)`` instead (returns phi in radians).
     """
+    _warn_deprecated("bulk_props", "rheoQCM.core.physics.bulk_props(delfstar, f1)")
     f1 = kwargs.get("f1", f1_default)
     grho_val, phi_rad = _core_bulk_props(delfstar, f1)
     # Convert radians to degrees for legacy output (T026)
@@ -1801,7 +1849,7 @@ def solve_for_props(delfstar, calc, props_calc_in, layers_in, **kwargs):
             ls = LeastSquares()
             soln = ls.least_squares(ftosolve, guess, bounds=(lb, ub))
         except Exception as e:
-            print(f"error at index {row.Index}: {e}")
+            logger.error("Error at index %s: %s", row.Index, e, exc_info=True)
             continue
 
         # make sure sufficienty accurate solutions was found
@@ -1818,7 +1866,7 @@ def solve_for_props(delfstar, calc, props_calc_in, layers_in, **kwargs):
             valstring = ""
             for i, prop in enumerate(props_calc):
                 valstring.append(f"{prop}: {soln['x']:.2g}")
-            print(valstring)
+            logger.debug("Values: %s", valstring)
 
     return df_soln
 
@@ -1893,7 +1941,7 @@ def solve_all(datadir, calc, **kwargs):
         # remove the .xlsx to get the prefix
         prefix = filename.rsplit(".", 1)[0]
         df[prefix] = read_xlsx(infile, **kwargs)
-        print("solving " + prefix + " - " + calc)
+        logger.info("Solving %s - %s", prefix, calc)
         time.sleep(3)
         soln[prefix] = solve_for_props(df[prefix], calc, **kwargs)
 
@@ -2009,7 +2057,7 @@ def err_fn_correlated_df(df_soln_in, fn_err):
             ls = LeastSquares()
             soln = ls.least_squares(ftosolve, guess)
         except Exception as e:
-            print(f"error at index {row.Index}: {e}")
+            logger.error("Error at index %s: %s", row.Index, e, exc_info=True)
             continue
 
         for i, prop in enumerate(row.props_calc):
@@ -2071,7 +2119,9 @@ def err_fn_correlated_row(row_in, fn_err):
         ls = LeastSquares()
         soln = ls.least_squares(ftosolve, guess)
     except Exception as e:
-        print(f"error at index {row.Index} during fn_err calc): {e}")
+        logger.error(
+            "Error at index %s during fn_err calc: %s", row.Index, e, exc_info=True
+        )
         return
 
     for i, prop in enumerate(row.props_calc):
@@ -2194,11 +2244,11 @@ def calc_prop_error(soln, f_error):
         # extract the jacobian and turn it back into a numpy array of floats
         try:
             jacobian = np.array(row.jac, dtype="float")
-        except:
+        except (ValueError, TypeError, AttributeError):
             jacobian = np.zeros([len(uncertainty_p), len(uncertainty_p)])
         try:
             deriv = np.linalg.inv(jacobian)
-        except:
+        except np.linalg.LinAlgError:
             deriv = np.zeros([len(uncertainty_p), len(uncertainty_p)])
 
         # determine error from Jacobian
@@ -2210,9 +2260,12 @@ def calc_prop_error(soln, f_error):
         row_new = deepcopy(err_fn_correlated_row(row, f_error[2]))
         n = len(props_calc)
         if n != n_all:
-            print(
-                f"{n_all} elements in calc ({calc}) but {n} props"
-                + " {props_calc} Cannot calculate error"
+            logger.warning(
+                "%d elements in calc (%s) but %d props %s Cannot calculate error",
+                n_all,
+                calc,
+                n,
+                props_calc,
             )
             return prop_err
         for p, prop in enumerate(props_calc):
@@ -2221,8 +2274,8 @@ def calc_prop_error(soln, f_error):
             for k in np.arange(n):
                 try:
                     errp = errp + (deriv[p, k] * uncertainty_p[k]) ** 2
-                except:
-                    print(f"error with {prop} in calc_prop_error")
+                except (IndexError, TypeError) as e:
+                    logger.warning("Error with %s in calc_prop_error: %s", prop, e)
             # errors can't exceed actual values of the properties
             prop_err.loc[idx, f"{prop}_err_p"] = min(
                 np.sqrt(errp), soln.loc[idx, f"{prop}"]
@@ -2775,7 +2828,7 @@ def make_data_array(var, soln, prop_error, **kwargs):
         data_array = soln[ext[0]]
 
     else:
-        print(f"no data - not a recognized prop type ({ext[0]})")
+        logger.warning("No data - unrecognized prop type: %s", ext[0])
         data_array = np.array([])
         data_array = np.array([])
 
@@ -2857,7 +2910,7 @@ def plot_props(soln, figdic, **kwargs):
         return None
 
     if len(soln) == 0:
-        print("solution data frame for plotting is empty")
+        logger.warning("Solution dataframe for plotting is empty")
         return
     fmt = kwargs.get("fmt", "x")
 
@@ -3430,7 +3483,9 @@ def read_xlsx(infile, **kwargs):
                 if T_coef[val][n][3] == 0:
                     if len(df_ref["temp"].unique()) != 1:
                         # check to make sure its okay to average
-                        print("averaging ref. vals over non-constant temp.")
+                        logger.info(
+                            "Averaging reference values over non-constant temperature"
+                        )
                     avg = df_ref[val + str(n)].mean()
                     T_coef[val][n][3] = avg - np.polyval(T_coef[val][n], Tref)
                 # add absolute frequency and reference values to dataframe
@@ -3475,7 +3530,7 @@ def read_xlsx(infile, **kwargs):
         df_tmp = df.query("temp >= @T_ref_range[0] & temp <= @T_ref_range[1]")
         # determine number of deleted points
         n_del = len(df) - len(df_tmp)
-        print(f"deleting {n_del} points that are outside the ref T range")
+        logger.info("Deleting %d points outside reference T range", n_del)
         df = df_tmp
 
     # eliminate rows with nan at n=3
@@ -3498,7 +3553,7 @@ def fit_T_coef(df, nvals, varvals):
     df = df.drop_duplicates(subset="temp", keep="first")
     temp = df["temp"]
     if len(temp.unique()) < 5:
-        print("using default T_coef values")
+        logger.info("Using default T_coef values")
         return T_coef_default
 
     for n in nvals:
@@ -3518,7 +3573,9 @@ def fit_T_coef(df, nvals, varvals):
                 ax.set_xlabel(r"$T$ $^\circ$C")
                 ax.set_ylabel(f"{var}{n}")
                 fig.show()
-                print("Temp. coefs could not be obtained - see plot")
+                logger.warning(
+                    "Temperature coefficients could not be obtained - see plot"
+                )
                 sys.exit()
 
     return T_coef
@@ -3573,7 +3630,7 @@ def cull_df(df_in, **kwargs):
         return df.drop(remove_idx)
 
     else:
-        print("need 't_diff' or 't_ratio' in kwargs")
+        logger.error("Missing 't_diff' or 't_ratio' in kwargs")
 
 
 def plot_bare_tempshift(df_ref, T_coef, Tref, nvals, T_range):
