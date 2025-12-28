@@ -5,6 +5,7 @@ This module provides the PlotManager interface for matplotlib widget
 coordination, enabling independent testing and alternative visualization backends.
 
 T052-T053: Implement PlotManager interface and MockPlotManager.
+T020: Implement plot_fit_with_uncertainty() for uncertainty visualization.
 """
 
 from __future__ import annotations
@@ -12,11 +13,391 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Protocol
+from typing import TYPE_CHECKING, Any, Protocol
 
+import matplotlib.pyplot as plt
 import numpy as np
+import numpy.typing as npt
+
+if TYPE_CHECKING:
+    from matplotlib.axes import Axes
+    from matplotlib.figure import Figure
+
+    from rheoQCM.core.uncertainty import UncertaintyBand
 
 logger = logging.getLogger(__name__)
+
+# Type aliases
+Float64Array = npt.NDArray[np.float64]
+
+
+def plot_fit_with_uncertainty(
+    x_data: Float64Array,
+    y_data: Float64Array,
+    band: UncertaintyBand,
+    *,
+    ax: Axes | None = None,
+    data_color: str = "black",
+    fit_color: str = "blue",
+    band_color: str = "blue",
+    band_alpha: float = 0.3,
+    data_label: str = "Data",
+    fit_label: str = "Fit",
+    band_label: str | None = None,
+    xlabel: str = "x",
+    ylabel: str = "y",
+    title: str | None = None,
+) -> Figure:
+    """Plot data with fitted curve and uncertainty band.
+
+    Creates a publication-quality plot showing raw data points,
+    the fitted curve, and a shaded confidence band.
+
+    Parameters
+    ----------
+    x_data : Float64Array
+        Original x-data points
+    y_data : Float64Array
+        Original y-data points
+    band : UncertaintyBand
+        Computed uncertainty band from UncertaintyCalculator
+    ax : Axes | None
+        Matplotlib axes (creates new if None)
+    data_color : str
+        Color for data points (default: "black")
+    fit_color : str
+        Color for fitted curve (default: "blue")
+    band_color : str
+        Color for confidence band (default: "blue")
+    band_alpha : float
+        Transparency for confidence band (default: 0.3)
+    data_label : str
+        Label for data points (default: "Data")
+    fit_label : str
+        Label for fitted curve (default: "Fit")
+    band_label : str | None
+        Label for confidence band (default: auto from confidence_level)
+    xlabel : str
+        X-axis label (default: "x")
+    ylabel : str
+        Y-axis label (default: "y")
+    title : str | None
+        Plot title (optional)
+
+    Returns
+    -------
+    Figure
+        Matplotlib Figure object
+
+    Examples
+    --------
+    >>> from rheoQCM.core.uncertainty import UncertaintyCalculator
+    >>> from rheoQCM.services.plotting import plot_fit_with_uncertainty
+    >>> import numpy as np
+    >>> def model(x, a, b): return a * np.exp(-b * x)
+    >>> calc = UncertaintyCalculator()
+    >>> band = calc.compute_band(model, x_pred, popt, pcov)
+    >>> fig = plot_fit_with_uncertainty(x_data, y_data, band)
+    >>> fig.savefig("fit_with_uncertainty.pdf", dpi=300)
+    """
+    if ax is None:
+        fig, ax = plt.subplots(figsize=(8, 5))
+    else:
+        fig = ax.figure
+
+    ax.scatter(x_data, y_data, color=data_color, alpha=0.6, label=data_label, zorder=3)
+
+    ax.plot(band.x, band.y_fit, color=fit_color, linewidth=2, label=fit_label, zorder=2)
+
+    if band_label is None:
+        band_label = f"{band.confidence_level:.0%} CI"
+
+    ax.fill_between(
+        band.x,
+        band.y_lower,
+        band.y_upper,
+        color=band_color,
+        alpha=band_alpha,
+        label=band_label,
+        zorder=1,
+    )
+
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    if title:
+        ax.set_title(title)
+    ax.legend()
+
+    fig.tight_layout()
+    return fig
+
+
+def plot_bayesian_fit(
+    x_data: Float64Array,
+    y_data: Float64Array,
+    x_pred: Float64Array,
+    median: Float64Array,
+    lower: Float64Array,
+    upper: Float64Array,
+    credible_level: float = 0.95,
+    *,
+    ax: Axes | None = None,
+    nlsq_fit: Float64Array | None = None,
+    data_color: str = "black",
+    bayesian_color: str = "red",
+    nlsq_color: str = "blue",
+    band_alpha: float = 0.3,
+    xlabel: str = "x",
+    ylabel: str = "y",
+    title: str | None = None,
+) -> Figure:
+    """Plot Bayesian fit with posterior credible intervals.
+
+    Integrates with PlotManager by providing a standalone plotting function
+    for Bayesian posterior predictive visualization.
+
+    Parameters
+    ----------
+    x_data : Float64Array
+        Original x-data points
+    y_data : Float64Array
+        Original y-data points
+    x_pred : Float64Array
+        X values for predictions
+    median : Float64Array
+        Posterior median predictions
+    lower : Float64Array
+        Lower credible interval bound
+    upper : Float64Array
+        Upper credible interval bound
+    credible_level : float
+        Credible interval level (default: 0.95)
+    ax : Axes | None
+        Matplotlib axes (creates new if None)
+    nlsq_fit : Float64Array | None
+        NLSQ point estimate predictions (optional overlay)
+    data_color : str
+        Color for data points (default: "black")
+    bayesian_color : str
+        Color for Bayesian fit and band (default: "red")
+    nlsq_color : str
+        Color for NLSQ overlay (default: "blue")
+    band_alpha : float
+        Transparency for credible band (default: 0.3)
+    xlabel : str
+        X-axis label (default: "x")
+    ylabel : str
+        Y-axis label (default: "y")
+    title : str | None
+        Plot title (optional)
+
+    Returns
+    -------
+    Figure
+        Matplotlib Figure object
+    """
+    if ax is None:
+        fig, ax = plt.subplots(figsize=(8, 5))
+    else:
+        fig = ax.figure
+
+    ax.scatter(x_data, y_data, color=data_color, alpha=0.6, label="Data", zorder=3)
+
+    ax.plot(x_pred, median, color=bayesian_color, linewidth=2, label="Median", zorder=2)
+
+    ax.fill_between(
+        x_pred,
+        lower,
+        upper,
+        color=bayesian_color,
+        alpha=band_alpha,
+        label=f"{credible_level:.0%} CI",
+        zorder=1,
+    )
+
+    if nlsq_fit is not None:
+        ax.plot(
+            x_pred,
+            nlsq_fit,
+            color=nlsq_color,
+            linestyle="--",
+            linewidth=1.5,
+            label="NLSQ",
+            zorder=2,
+        )
+
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    if title:
+        ax.set_title(title)
+    ax.legend()
+
+    fig.tight_layout()
+    return fig
+
+
+def plot_uncertainty_comparison(
+    x_data: Float64Array,
+    y_data: Float64Array,
+    x_pred: Float64Array,
+    nlsq_fit: Float64Array,
+    nlsq_lower: Float64Array,
+    nlsq_upper: Float64Array,
+    bayesian_median: Float64Array,
+    bayesian_lower: Float64Array,
+    bayesian_upper: Float64Array,
+    confidence_level: float = 0.95,
+    *,
+    ax: Axes | None = None,
+    data_color: str = "black",
+    nlsq_color: str = "blue",
+    bayesian_color: str = "red",
+    band_alpha: float = 0.25,
+    xlabel: str = "x",
+    ylabel: str = "y",
+    title: str | None = None,
+) -> Figure:
+    """Plot comparison of frequentist CI and Bayesian credible interval.
+
+    Standalone function for PlotManager integration.
+
+    Parameters
+    ----------
+    x_data : Float64Array
+        Original x-data points
+    y_data : Float64Array
+        Original y-data points
+    x_pred : Float64Array
+        X values for predictions
+    nlsq_fit : Float64Array
+        NLSQ point estimate predictions
+    nlsq_lower : Float64Array
+        NLSQ lower confidence bound
+    nlsq_upper : Float64Array
+        NLSQ upper confidence bound
+    bayesian_median : Float64Array
+        Bayesian posterior median
+    bayesian_lower : Float64Array
+        Bayesian lower credible bound
+    bayesian_upper : Float64Array
+        Bayesian upper credible bound
+    confidence_level : float
+        Confidence/credible level (default: 0.95)
+    ax : Axes | None
+        Matplotlib axes (creates new if None)
+    data_color : str
+        Color for data points (default: "black")
+    nlsq_color : str
+        Color for NLSQ fit and CI (default: "blue")
+    bayesian_color : str
+        Color for Bayesian fit and CI (default: "red")
+    band_alpha : float
+        Transparency for bands (default: 0.25)
+    xlabel : str
+        X-axis label
+    ylabel : str
+        Y-axis label
+    title : str | None
+        Plot title (optional)
+
+    Returns
+    -------
+    Figure
+        Matplotlib Figure
+    """
+    if ax is None:
+        fig, ax = plt.subplots(figsize=(10, 6))
+    else:
+        fig = ax.figure
+
+    # Data points
+    ax.scatter(x_data, y_data, color=data_color, alpha=0.6, label="Data", zorder=4)
+
+    # NLSQ fit and CI
+    ax.plot(x_pred, nlsq_fit, color=nlsq_color, linewidth=2, label="NLSQ fit", zorder=3)
+    ax.fill_between(
+        x_pred,
+        nlsq_lower,
+        nlsq_upper,
+        color=nlsq_color,
+        alpha=band_alpha,
+        label=f"NLSQ {confidence_level:.0%} CI",
+        zorder=1,
+    )
+
+    # Bayesian fit and CI
+    ax.plot(
+        x_pred,
+        bayesian_median,
+        color=bayesian_color,
+        linewidth=2,
+        linestyle="--",
+        label="Bayesian median",
+        zorder=3,
+    )
+    ax.fill_between(
+        x_pred,
+        bayesian_lower,
+        bayesian_upper,
+        color=bayesian_color,
+        alpha=band_alpha,
+        label=f"Bayesian {confidence_level:.0%} CI",
+        zorder=2,
+    )
+
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    if title:
+        ax.set_title(title)
+    else:
+        ax.set_title("Frequentist vs Bayesian Uncertainty Comparison")
+    ax.legend(loc="best")
+
+    fig.tight_layout()
+    return fig
+
+
+def export_uncertainty_plot(
+    fig: Figure,
+    output_path: Path | str,
+    *,
+    formats: list[str] | None = None,
+    dpi: int = 300,
+) -> list[Path]:
+    """Export uncertainty plot to multiple formats.
+
+    Parameters
+    ----------
+    fig : Figure
+        Matplotlib figure to export
+    output_path : Path | str
+        Base output path (extension will be added)
+    formats : list[str] | None
+        Output formats (default: ["pdf", "png"])
+    dpi : int
+        Resolution for raster formats (default: 300)
+
+    Returns
+    -------
+    list[Path]
+        List of created file paths
+    """
+    if formats is None:
+        formats = ["pdf", "png"]
+
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    created = []
+    base = output_path.with_suffix("")
+
+    for fmt in formats:
+        path = base.with_suffix(f".{fmt}")
+        fig.savefig(path, format=fmt, dpi=dpi, bbox_inches="tight")
+        created.append(path)
+        logger.info("Exported uncertainty plot to %s", path)
+
+    return created
 
 
 @dataclass

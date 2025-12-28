@@ -72,8 +72,9 @@ dependencies = [
     # Curve fitting (replaces lmfit)
     "nlsq>=0.4.1",
 
-    # Bayesian inference
-    "numpyro",
+    # Bayesian inference and diagnostics
+    "numpyro>=0.14.0",
+    "arviz>=0.18.0",
 
     # Interpolation (cubic/spline replacement for scipy.interpolate)
     "interpax",

@@ -147,6 +147,15 @@ from rheoQCM.core.analysis import (
     batch_analyze,
     batch_analyze_vmap,  # T044: Export vmap-enabled batch processing
 )
+
+# Bayesian fitting exports
+from rheoQCM.core.bayesian import (
+    BayesianFitResult,
+    BayesianFitter,
+    DiagnosticPlot,
+    PriorSpec,
+    plot_comparison,
+)
 from rheoQCM.core.jax_config import (
     check_gpu_availability,
     configure_jax,
@@ -236,6 +245,14 @@ from rheoQCM.core.signal import (
     peak_widths,
 )
 
+# Uncertainty calculation exports
+from rheoQCM.core.uncertainty import (
+    UncertaintyBand,
+    UncertaintyCalculator,
+    check_degrees_of_freedom,
+    regularize_covariance,
+)
+
 __all__ = [
     # JAX configuration
     "configure_jax",
@@ -311,4 +328,15 @@ __all__ = [
     "analyze_delfstar",
     "batch_analyze",
     "batch_analyze_vmap",  # T044: vmap-enabled batch processing for GPU acceleration
+    # Uncertainty calculation
+    "UncertaintyBand",
+    "UncertaintyCalculator",
+    "regularize_covariance",
+    "check_degrees_of_freedom",
+    # Bayesian fitting
+    "BayesianFitResult",
+    "BayesianFitter",
+    "DiagnosticPlot",
+    "PriorSpec",
+    "plot_comparison",
 ]
