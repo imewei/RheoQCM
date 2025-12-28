@@ -367,7 +367,14 @@ class QCM:
         """Calculate normalized delfstar."""
         dlam_n = self.dlam(n, dlam_refh, phi)
         D = 2 * np.pi * dlam_n * (1 - 1j * np.tan(phi / 2))
-        return -np.tan(D) / D
+        # Handle D=0 case: limit of tan(D)/D as D→0 is 1, so -tan(D)/D → -1
+        with np.errstate(divide="ignore", invalid="ignore"):
+            result = -np.tan(D) / D
+        # For D=0, the limit is -1 (thin film Sauerbrey limit)
+        if np.isscalar(D):
+            if D == 0:
+                return -1.0 + 0j
+        return result
 
     def calc_drho(
         self, n1: int, delfstar: dict, dlam_refh: float, phi: float

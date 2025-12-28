@@ -814,7 +814,7 @@ class MatplotlibWidget(QWidget):
             cmap=cmap,
         ) # contour
 
-        self.l['colorbar'] = plt.colorbar(self.l['C'], cax=self.ax[1]) # colorbar
+        self.l['colorbar'] = self.fig.colorbar(self.l['C'], cax=self.ax[1])  # colorbar
         self.l['colorbar'].locator = ticker.MaxNLocator(nbins=6)
         self.l['colorbar'].update_ticks()
 

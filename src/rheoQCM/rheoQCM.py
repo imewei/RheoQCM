@@ -88,10 +88,9 @@ if UIModules.system_check() == 'win32': # windows
     else: # 64-bit version Python which doesn't work with AccessMyVNA
         # A 32-bit server may help 64-bit Python work with 32-bit dll
         logger.warning('Current version of MyVNA does not work with 64-bit Python!\nData analysis only!')
-else: # linux or MacOS
-    # for test only
-    # from modules.AccessMyVNA_dummy import AccessMyVNA
-        logger.warning('Current version of MyVNA does not work with MacOS and Linux!\nData analysis only!')
+else:  # linux or MacOS
+    # MyVNA hardware interface not available on non-Windows platforms
+    logger.warning('Current version of MyVNA does not work with MacOS and Linux! Data analysis only.')
 
 
 ############# end of importing modules ####################
