@@ -64,6 +64,8 @@ from PyQt6.QtWidgets import (
 )
 from UISettings import harm_tree as harm_tree_default
 
+import UI_source_rc  # Qt resource file for icons  # noqa: F401
+
 logger.debug("cwd: %s", os.getcwd())
 
 
