@@ -1026,7 +1026,7 @@ def update_dict(file_path, default_dict):
                     if key in default_dict:
                         default_dict[key] = val
             complete = True
-        except:
+        except (OSError, json.JSONDecodeError, KeyError):
             complete = False
     else:
         complete = False

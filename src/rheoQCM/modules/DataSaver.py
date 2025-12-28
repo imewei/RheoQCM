@@ -503,8 +503,8 @@ class DataSaver:
                 settings["max_harmonic"] = 9
                 ver = fh.attrs["ver"]
             return settings
-        except:  # failed to load settings
-            logger.warning("Failed to load settings!\nPlease check data file.")
+        except (OSError, KeyError, ValueError, json.JSONDecodeError) as e:
+            logger.warning("Failed to load settings: %s\nPlease check data file.", e)
             return {}
 
     def update_refit_data(

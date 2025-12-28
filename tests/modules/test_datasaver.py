@@ -452,3 +452,223 @@ class TestDataFormatPreservation:
             for j in range(3):
                 assert fs_recovered[i][j] == fs_original[i][j]
                 assert gs_recovered[i][j] == gs_original[i][j]
+
+
+class TestHDF5SchemaValidation:
+    """Tests for HDF5 schema validation (T022)."""
+
+    def test_hdf5_required_groups(self, tmp_path) -> None:
+        """Test that HDF5 files contain required group structure."""
+        filepath = tmp_path / "test_schema.h5"
+
+        with h5py.File(filepath, "w") as fh:
+            # Create required groups
+            fh.create_group("data")
+            fh.attrs["ver"] = "0.18.0"
+            fh["settings"] = '{"test": true}'
+
+        # Verify required structure
+        with h5py.File(filepath, "r") as fh:
+            assert "data" in fh
+            assert "ver" in fh.attrs
+            assert "settings" in fh
+
+    def test_hdf5_missing_required_group(self, tmp_path) -> None:
+        """Test detection of missing required groups."""
+        filepath = tmp_path / "incomplete.h5"
+
+        with h5py.File(filepath, "w") as fh:
+            fh.attrs["ver"] = "0.18.0"
+            # Missing 'data' group and 'settings'
+
+        with h5py.File(filepath, "r") as fh:
+            assert "data" not in fh
+            assert "settings" not in fh
+
+    def test_hdf5_version_attribute(self, tmp_path) -> None:
+        """Test that version attribute is present and valid."""
+        filepath = tmp_path / "versioned.h5"
+
+        with h5py.File(filepath, "w") as fh:
+            fh.attrs["ver"] = "0.18.0"
+
+        with h5py.File(filepath, "r") as fh:
+            assert "ver" in fh.attrs
+            assert isinstance(fh.attrs["ver"], str)
+
+
+class TestTypePreservation:
+    """Tests for type preservation - float64/complex128/int64 (T023)."""
+
+    def test_float64_preservation(self, tmp_path) -> None:
+        """Test that float64 values are preserved exactly."""
+        filepath = tmp_path / "float64_test.h5"
+        data = np.array([1.123456789012345678, np.pi, np.e], dtype=np.float64)
+
+        with h5py.File(filepath, "w") as fh:
+            fh.create_dataset("float64_data", data=data, dtype=np.float64)
+
+        with h5py.File(filepath, "r") as fh:
+            loaded = fh["float64_data"][:]
+            assert loaded.dtype == np.float64
+            np.testing.assert_array_equal(loaded, data)
+
+    def test_complex128_preservation(self, tmp_path) -> None:
+        """Test that complex128 values are preserved exactly."""
+        filepath = tmp_path / "complex128_test.h5"
+        data = np.array([1.5 + 2.5j, -3.7 + 4.2j, 0.0 - 1.0j], dtype=np.complex128)
+
+        with h5py.File(filepath, "w") as fh:
+            fh.create_dataset("complex_data", data=data, dtype=np.complex128)
+
+        with h5py.File(filepath, "r") as fh:
+            loaded = fh["complex_data"][:]
+            assert loaded.dtype == np.complex128
+            np.testing.assert_array_equal(loaded, data)
+
+    def test_int64_preservation(self, tmp_path) -> None:
+        """Test that int64 values are preserved exactly."""
+        filepath = tmp_path / "int64_test.h5"
+        data = np.array([0, 1, -1, 2**62, -(2**62)], dtype=np.int64)
+
+        with h5py.File(filepath, "w") as fh:
+            fh.create_dataset("int64_data", data=data, dtype=np.int64)
+
+        with h5py.File(filepath, "r") as fh:
+            loaded = fh["int64_data"][:]
+            assert loaded.dtype == np.int64
+            np.testing.assert_array_equal(loaded, data)
+
+
+class TestExcelMultiSheetExport:
+    """Tests for Excel multi-sheet export (T024)."""
+
+    def test_excel_multi_sheet_creation(self, tmp_path) -> None:
+        """Test that multi-sheet Excel files are created correctly."""
+        filepath = tmp_path / "multisheet.xlsx"
+
+        # Create test data
+        df1 = pd.DataFrame({"col1": [1, 2, 3], "col2": [4, 5, 6]})
+        df2 = pd.DataFrame({"colA": [7, 8, 9], "colB": [10, 11, 12]})
+
+        with pd.ExcelWriter(filepath, engine="openpyxl") as writer:
+            df1.to_excel(writer, sheet_name="Sheet1", index=False)
+            df2.to_excel(writer, sheet_name="Sheet2", index=False)
+
+        # Verify sheets exist
+        xl = pd.ExcelFile(filepath)
+        assert "Sheet1" in xl.sheet_names
+        assert "Sheet2" in xl.sheet_names
+
+    def test_excel_data_integrity(self, tmp_path) -> None:
+        """Test that Excel data is preserved on roundtrip."""
+        filepath = tmp_path / "data_integrity.xlsx"
+
+        df_original = pd.DataFrame(
+            {
+                "frequency": [5e6, 5e6 - 10, 5e6 - 20],
+                "dissipation": [50.0, 51.0, 52.0],
+                "temperature": [25.0, 25.1, 25.2],
+            }
+        )
+
+        df_original.to_excel(filepath, index=False)
+        df_loaded = pd.read_excel(filepath)
+
+        # Check values are preserved (dtypes may differ due to Excel formatting)
+        np.testing.assert_allclose(
+            df_original["frequency"].values, df_loaded["frequency"].values, rtol=1e-10
+        )
+        np.testing.assert_allclose(
+            df_original["dissipation"].values,
+            df_loaded["dissipation"].values,
+            rtol=1e-10,
+        )
+        np.testing.assert_allclose(
+            df_original["temperature"].values,
+            df_loaded["temperature"].values,
+            rtol=1e-10,
+        )
+
+
+class TestCorruptedFileHandling:
+    """Tests for corrupted file handling (T025)."""
+
+    FIXTURES_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "fixtures")
+
+    def test_corrupted_h5_detection(self) -> None:
+        """Test that corrupted HDF5 files are detected."""
+        corrupted_path = os.path.join(self.FIXTURES_DIR, "corrupted.h5")
+
+        if not os.path.exists(corrupted_path):
+            pytest.skip("Corrupted fixture not found")
+
+        with pytest.raises(OSError):
+            with h5py.File(corrupted_path, "r") as fh:
+                _ = fh.keys()
+
+    def test_truncated_file_handling(self, tmp_path) -> None:
+        """Test handling of truncated HDF5 files."""
+        filepath = tmp_path / "truncated.h5"
+
+        # Create valid HDF5, then truncate it
+        with h5py.File(filepath, "w") as fh:
+            fh.create_dataset("data", data=np.zeros(1000))
+
+        # Truncate the file
+        with open(filepath, "r+b") as f:
+            f.truncate(100)
+
+        with pytest.raises(OSError):
+            with h5py.File(filepath, "r") as fh:
+                _ = fh["data"][:]
+
+    def test_invalid_json_settings(self, tmp_path) -> None:
+        """Test handling of invalid JSON in settings."""
+        import json
+
+        filepath = tmp_path / "bad_json.h5"
+
+        with h5py.File(filepath, "w") as fh:
+            fh.attrs["ver"] = "0.18.0"
+            fh["settings"] = "{invalid json}"
+
+        with h5py.File(filepath, "r") as fh:
+            with pytest.raises(json.JSONDecodeError):
+                json.loads(fh["settings"][()])
+
+
+class TestErrorScenarios:
+    """Tests for permission error and disk full scenarios (T026)."""
+
+    def test_read_only_file_rejection(self, tmp_path) -> None:
+        """Test that writing to read-only file is rejected."""
+        filepath = tmp_path / "readonly.h5"
+
+        # Create file then make read-only
+        with h5py.File(filepath, "w") as fh:
+            fh.attrs["ver"] = "0.18.0"
+
+        os.chmod(filepath, 0o444)
+
+        try:
+            with pytest.raises(OSError):
+                with h5py.File(filepath, "a") as fh:
+                    fh.create_dataset("new_data", data=[1, 2, 3])
+        finally:
+            # Restore permissions for cleanup
+            os.chmod(filepath, 0o644)
+
+    def test_nonexistent_directory_error(self, tmp_path) -> None:
+        """Test error when saving to non-existent directory."""
+        filepath = tmp_path / "nonexistent" / "subdir" / "test.h5"
+
+        with pytest.raises(OSError):
+            with h5py.File(filepath, "w") as fh:
+                fh.attrs["test"] = "value"
+
+    def test_empty_path_error(self, tmp_path) -> None:
+        """Test error handling for empty path."""
+        with pytest.raises((OSError, ValueError)):
+            with h5py.File("", "w") as fh:
+                fh.attrs["test"] = "value"

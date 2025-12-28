@@ -707,7 +707,7 @@ class PeakTracker:
                 pre_method = self.harmoutput[chn_name][harm]["method"]
                 if pre_method == "prev":
                     pre_method = "gmax"
-            except:
+            except KeyError:
                 pre_method = "gmax"
 
             self.init_active_val(harm=harm, chn_name=chn_name, method=pre_method)
