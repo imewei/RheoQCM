@@ -2297,7 +2297,7 @@ class QCMApp(QMainWindow):
         msg_text.append(f"License: {_version.__license__}")
         msg_text.append(f"Date: {_version.__date__}")
 
-        buttons = QMessageBox.Ok
+        buttons = QMessageBox.StandardButton.Ok
 
         msg = QMessageBox()
         msg.setTextFormat(Qt.TextFormat.RichText)
@@ -2340,11 +2340,7 @@ class QCMApp(QMainWindow):
     def openFileNameDialog(
         self, title, path="", filetype=config_default["default_datafiletype"]
     ):
-        options = QFileDialog.Options()
-        # options |= QFileDialog.DontUseNativeDialog
-        fileName, _ = QFileDialog.getOpenFileName(
-            self, title, path, filetype, options=options
-        )
+        fileName, _ = QFileDialog.getOpenFileName(self, title, path, filetype)
         if fileName:
             logger.info(fileName)
         else:
@@ -2361,10 +2357,8 @@ class QCMApp(QMainWindow):
     def saveFileDialog(
         self, title, path="", filetype=config_default["default_datafiletype"]
     ):
-        options = QFileDialog.Options()
-        # options |= QFileDialog.DontUseNativeDialog
         fileName, _ = QFileDialog.getSaveFileName(
-            self, title, os.path.splitext(path)[0], filetype, options=options
+            self, title, os.path.splitext(path)[0], filetype
         )
         if fileName:
             logger.info(fileName)
@@ -2587,23 +2581,26 @@ class QCMApp(QMainWindow):
                 message.append("There is data unsaved!")
             if self.timer.isActive():
                 message.append("Test is Running! You may stop the test first.")
-                buttons = QMessageBox.Ok
+                buttons = QMessageBox.StandardButton.Ok
             else:
                 if not opts:
-                    buttons = QMessageBox.Ok
+                    buttons = QMessageBox.StandardButton.Ok
                 else:
                     message.append("Do you want to continue anyway?")
-                    buttons = QMessageBox.Yes | QMessageBox.Cancel
+                    buttons = (
+                        QMessageBox.StandardButton.Yes
+                        | QMessageBox.StandardButton.Cancel
+                    )
 
             msg = QMessageBox()
-            msg.setIcon(QMessageBox.Information)
+            msg.setIcon(QMessageBox.Icon.Information)
             msg.setText(text)
             msg.setInformativeText("\n".join(message))
             msg.setWindowTitle(_version.__projectname__ + " Message")
             msg.setStandardButtons(buttons)
             retval = msg.exec()
 
-            if retval == QMessageBox.Yes:
+            if retval == QMessageBox.StandardButton.Yes:
                 if self.timer.isActive():
                     # stop test
                     self.ui.pushButton_runstop.setChecked(False)
@@ -4802,7 +4799,7 @@ class QCMApp(QMainWindow):
         selmenu.addMenu(menuRefit)
 
         # else, find out the indices and do mark/unmark/delete
-        selmenu.exec_(mpl.canvas.mapToGlobal(position))
+        selmenu.exec(mpl.canvas.mapToGlobal(position))
 
     def mpl_data_open_picker_menu(self, position, mpl, plt_str):
         """
@@ -4855,7 +4852,7 @@ class QCMApp(QMainWindow):
             pkmenu.addAction(actionManual_fit)
             pkmenu.addAction(actionExport_raw)
 
-            pkmenu.exec_(mpl.canvas.mapToGlobal(position))
+            pkmenu.exec(mpl.canvas.mapToGlobal(position))
 
         else:
             # nothing to do

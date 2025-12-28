@@ -236,5 +236,72 @@ class TestQActionLocation:
         assert file_menu.actions()[0].text() == "Test Action"
 
 
+class TestPyQt6CompatibilityPatterns:
+    """Regression tests for PyQt6 compatibility patterns.
+
+    These tests verify that correct PyQt6 patterns are used and prevent
+    reintroduction of deprecated PyQt5 patterns.
+    """
+
+    def test_qmenu_method_signature(self, qapp) -> None:
+        """Test that QMenu uses PyQt6 method signature (not underscore suffix)."""
+        from PyQt6.QtWidgets import QMenu
+
+        menu = QMenu()
+
+        # PyQt6 uses the standard method name without underscore
+        assert hasattr(menu, "exec"), "QMenu should have 'exec' method in PyQt6"
+
+        # PyQt5 underscore version should NOT exist
+        assert not hasattr(
+            menu, "exec_"
+        ), "QMenu should NOT have 'exec_' method in PyQt6"
+
+    def test_qmessagebox_standardbutton_enum(self, qapp) -> None:
+        """Test that QMessageBox uses StandardButton namespace for button enums."""
+        from PyQt6.QtWidgets import QMessageBox
+
+        # PyQt6 requires fully-qualified enum namespace
+        assert hasattr(
+            QMessageBox, "StandardButton"
+        ), "QMessageBox should have StandardButton enum"
+        assert hasattr(
+            QMessageBox.StandardButton, "Ok"
+        ), "StandardButton should have Ok"
+        assert hasattr(
+            QMessageBox.StandardButton, "Yes"
+        ), "StandardButton should have Yes"
+        assert hasattr(
+            QMessageBox.StandardButton, "No"
+        ), "StandardButton should have No"
+        assert hasattr(
+            QMessageBox.StandardButton, "Cancel"
+        ), "StandardButton should have Cancel"
+
+        # PyQt5 style direct access should NOT exist
+        assert not hasattr(
+            QMessageBox, "Ok"
+        ), "QMessageBox should NOT have direct 'Ok' attribute"
+        assert not hasattr(
+            QMessageBox, "Yes"
+        ), "QMessageBox should NOT have direct 'Yes' attribute"
+
+    def test_qmessagebox_icon_enum(self, qapp) -> None:
+        """Test that QMessageBox uses Icon namespace for icon enums."""
+        from PyQt6.QtWidgets import QMessageBox
+
+        # PyQt6 requires fully-qualified enum namespace
+        assert hasattr(QMessageBox, "Icon"), "QMessageBox should have Icon enum"
+        assert hasattr(QMessageBox.Icon, "Information"), "Icon should have Information"
+        assert hasattr(QMessageBox.Icon, "Warning"), "Icon should have Warning"
+        assert hasattr(QMessageBox.Icon, "Critical"), "Icon should have Critical"
+        assert hasattr(QMessageBox.Icon, "Question"), "Icon should have Question"
+
+        # PyQt5 style direct access should NOT exist
+        assert not hasattr(
+            QMessageBox, "Information"
+        ), "QMessageBox should NOT have direct 'Information' attribute"
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
