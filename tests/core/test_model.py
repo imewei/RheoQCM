@@ -530,8 +530,9 @@ class TestCalctypeExtensibility:
 
     def test_custom_calctype_with_custom_residual(self) -> None:
         """Test solving with a registered custom calctype."""
-        from rheoQCM.core.model import QCMModel
         import jax.numpy as jnp
+
+        from rheoQCM.core.model import QCMModel
 
         model = QCMModel(f1=5e6, refh=3)
 

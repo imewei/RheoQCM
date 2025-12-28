@@ -250,12 +250,8 @@ class TestHDF5SaveLoadRoundtrip:
                     harm_group.create_dataset(
                         "f", data=np.array([5e6 * harm, 5e6 * harm + 100])
                     )
-                    harm_group.create_dataset(
-                        "G", data=np.array([0.001, 0.002])
-                    )
-                    harm_group.create_dataset(
-                        "B", data=np.array([0.0001, 0.0002])
-                    )
+                    harm_group.create_dataset("G", data=np.array([0.001, 0.002]))
+                    harm_group.create_dataset("B", data=np.array([0.0001, 0.0002]))
 
             # Load and verify structure
             with h5py.File(temp_path, "r") as hf:
@@ -304,15 +300,17 @@ class TestExcelExportFunctionality:
     def test_pandas_to_excel(self) -> None:
         """Test that pandas DataFrame can be exported to Excel."""
         # Create test DataFrame similar to DataSaver's format
-        df = pd.DataFrame({
-            "queue_id": [0, 1, 2, 3, 4],
-            "t": [0.0, 1.0, 2.0, 3.0, 4.0],
-            "temp": [25.0, 25.1, 25.2, 25.3, 25.4],
-            "f1": [5e6, 5e6 - 10, 5e6 - 20, 5e6 - 30, 5e6 - 40],
-            "f3": [15e6, 15e6 - 30, 15e6 - 60, 15e6 - 90, 15e6 - 120],
-            "g1": [50.0, 51.0, 52.0, 53.0, 54.0],
-            "g3": [150.0, 151.0, 152.0, 153.0, 154.0],
-        })
+        df = pd.DataFrame(
+            {
+                "queue_id": [0, 1, 2, 3, 4],
+                "t": [0.0, 1.0, 2.0, 3.0, 4.0],
+                "temp": [25.0, 25.1, 25.2, 25.3, 25.4],
+                "f1": [5e6, 5e6 - 10, 5e6 - 20, 5e6 - 30, 5e6 - 40],
+                "f3": [15e6, 15e6 - 30, 15e6 - 60, 15e6 - 90, 15e6 - 120],
+                "g1": [50.0, 51.0, 52.0, 53.0, 54.0],
+                "g3": [150.0, 151.0, 152.0, 153.0, 154.0],
+            }
+        )
 
         with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as f:
             temp_path = f.name
@@ -339,18 +337,24 @@ class TestExcelExportFunctionality:
     def test_multi_sheet_excel_export(self) -> None:
         """Test multi-sheet Excel export (like DataSaver's prop export)."""
         sheets = {
-            "samp_data": pd.DataFrame({
-                "t": [0.0, 1.0, 2.0],
-                "f3": [15e6, 15e6 - 30, 15e6 - 60],
-            }),
-            "ref_data": pd.DataFrame({
-                "t": [0.0, 1.0, 2.0],
-                "f3_ref": [15e6, 15e6, 15e6],
-            }),
-            "props": pd.DataFrame({
-                "drho": [1e-6, 2e-6, 3e-6],
-                "phi": [0.5, 0.6, 0.7],
-            }),
+            "samp_data": pd.DataFrame(
+                {
+                    "t": [0.0, 1.0, 2.0],
+                    "f3": [15e6, 15e6 - 30, 15e6 - 60],
+                }
+            ),
+            "ref_data": pd.DataFrame(
+                {
+                    "t": [0.0, 1.0, 2.0],
+                    "f3_ref": [15e6, 15e6, 15e6],
+                }
+            ),
+            "props": pd.DataFrame(
+                {
+                    "drho": [1e-6, 2e-6, 3e-6],
+                    "phi": [0.5, 0.6, 0.7],
+                }
+            ),
         }
 
         with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as f:

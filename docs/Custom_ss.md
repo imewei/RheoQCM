@@ -18,11 +18,11 @@
 
 ### on_dateTimeChanged_dateTimeEdit_reftime
 
-get time in dateTimeEdit_reftime and save it to self.settings  
+get time in dateTimeEdit_reftime and save it to self.settings
 
 ### update_vnachannel
 
-update vna channels (sample and reference) if ref == sample: sample = 'none'  
+update vna channels (sample and reference) if ref == sample: sample = 'none'
 
 ### on_triggered_new_data(self)
 

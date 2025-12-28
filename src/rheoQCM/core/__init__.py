@@ -140,97 +140,100 @@ rheoQCM.core.physics : Layer 1 physics module documentation
 rheoQCM.core.model : Layer 2 model class documentation
 """
 
-from rheoQCM.core.jax_config import configure_jax
-from rheoQCM.core.jax_config import get_jax_backend
-from rheoQCM.core.jax_config import is_gpu_available
-from rheoQCM.core.jax_config import check_gpu_availability
-
-# Signal processing module exports (JAX-based, scipy-compatible)
-from rheoQCM.core.signal import (
-    find_peaks as signal_find_peaks,
-    peak_prominences,
-    peak_widths,
-)
-
-# Physics module exports - Layer 1
-from rheoQCM.core.physics import (
-    # Constants
-    Zq,
-    f1_default,
-    e26,
-    d26,
-    g0_default,
-    epsq,
-    eps0,
-    dq,
-    C0byA,
-    electrode_default,
-    water_default,
-    air_default,
-    dlam_refh_range,
-    drho_range,
-    grho_refh_range,
-    phi_range,
-    # Sauerbrey equations
-    sauerbreyf,
-    sauerbreym,
-    # Complex modulus calculations
-    grho,
-    grhostar,
-    grhostar_from_refh,
-    grho_from_dlam,
-    calc_dlam,
-    calc_lamrho,
-    calc_deltarho,
-    etarho,
-    zstar_bulk,
-    # SLA equations
-    calc_delfstar_sla,
-    calc_D,
-    normdelfstar,
-    bulk_props,
-    deltarho_bulk,
-    # Kotula model
-    kotula_gstar,
-    kotula_xi,
-    # Utility functions
-    find_peaks,
-    interp_linear,
-    interp_cubic,
-    create_interp_func,
-    savgol_filter,
-)
-
-# Multilayer module exports - Layer 1
-from rheoQCM.core.multilayer import (
-    # Validation
-    LayerValidationError,
-    validate_layers,
-    # Utilities
-    delete_layer,
-    # Core functions
-    calc_ZL,
-    calc_delfstar_multilayer,
-    calc_Zmot,
-)
-
-# Model module exports - Layer 2
-from rheoQCM.core.model import (
-    QCMModel,
-    SolveResult,
-    BatchResult,
-    CalctypeResidualFn,  # T048: Type alias for custom residual functions
-    register_global_calctype,  # T048: Global calctype registration
-    get_global_calctypes,  # T048: List globally registered calctypes
-    bulk_drho,
-)
-
 # Analysis module exports - Layer 3
 from rheoQCM.core.analysis import (
     QCMAnalyzer,
     analyze_delfstar,
     batch_analyze,
     batch_analyze_vmap,  # T044: Export vmap-enabled batch processing
+)
+from rheoQCM.core.jax_config import (
+    check_gpu_availability,
+    configure_jax,
+    get_jax_backend,
+    is_gpu_available,
+)
+
+# Model module exports - Layer 2
+from rheoQCM.core.model import (
+    BatchResult,
+    CalctypeResidualFn,  # T048: Type alias for custom residual functions
+    QCMModel,
+    SolveResult,
+    bulk_drho,
+    get_global_calctypes,  # T048: List globally registered calctypes
+    register_global_calctype,  # T048: Global calctype registration
+)
+
+# Multilayer module exports - Layer 1
+from rheoQCM.core.multilayer import (
+    # Validation
+    LayerValidationError,
+    calc_delfstar_multilayer,
+    # Core functions
+    calc_ZL,
+    calc_Zmot,
+    # Utilities
+    delete_layer,
+    validate_layers,
+)
+
+# Physics module exports - Layer 1
+from rheoQCM.core.physics import (
+    C0byA,
+    # Constants
+    Zq,
+    air_default,
+    bulk_props,
+    calc_D,
+    # SLA equations
+    calc_delfstar_sla,
+    calc_deltarho,
+    calc_dlam,
+    calc_lamrho,
+    create_interp_func,
+    d26,
+    deltarho_bulk,
+    dlam_refh_range,
+    dq,
+    drho_range,
+    e26,
+    electrode_default,
+    eps0,
+    epsq,
+    etarho,
+    f1_default,
+    # Utility functions
+    find_peaks,
+    g0_default,
+    # Complex modulus calculations
+    grho,
+    grho_from_dlam,
+    grho_refh_range,
+    grhostar,
+    grhostar_from_refh,
+    interp_cubic,
+    interp_linear,
+    # Kotula model
+    kotula_gstar,
+    kotula_xi,
+    normdelfstar,
+    phi_range,
+    # Sauerbrey equations
+    sauerbreyf,
+    sauerbreym,
+    savgol_filter,
+    water_default,
+    zstar_bulk,
+)
+
+# Signal processing module exports (JAX-based, scipy-compatible)
+from rheoQCM.core.signal import (
+    find_peaks as signal_find_peaks,
+)
+from rheoQCM.core.signal import (
+    peak_prominences,
+    peak_widths,
 )
 
 __all__ = [

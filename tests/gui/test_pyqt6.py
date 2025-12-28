@@ -12,7 +12,6 @@ Tests cover:
 
 import pytest
 
-
 pytestmark = pytest.mark.gui
 
 
@@ -21,12 +20,17 @@ class TestPyQt6Imports:
 
     def test_pyqt6_imports(self) -> None:
         """Test that all PyQt6 imports work correctly."""
-        from PyQt6.QtCore import Qt, pyqtSlot, QTimer, QSize
+        from PyQt6.QtCore import QSize, Qt, QTimer, pyqtSlot
+        from PyQt6.QtGui import QAction, QIcon, QPixmap
         from PyQt6.QtWidgets import (
-            QApplication, QMainWindow, QWidget, QPushButton,
-            QVBoxLayout, QLabel, QSizePolicy
+            QApplication,
+            QLabel,
+            QMainWindow,
+            QPushButton,
+            QSizePolicy,
+            QVBoxLayout,
+            QWidget,
         )
-        from PyQt6.QtGui import QIcon, QPixmap, QAction
 
         # Verify Qt enums use new namespace format
         assert hasattr(Qt, "CheckState")
@@ -69,7 +73,7 @@ class TestWindowCreation:
 
     def test_main_window_creation(self, qapp) -> None:
         """Test that main window can be created with PyQt6."""
-        from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QPushButton
+        from PyQt6.QtWidgets import QMainWindow, QPushButton, QVBoxLayout, QWidget
 
         # Create main window
         window = QMainWindow()
@@ -90,11 +94,16 @@ class TestWindowCreation:
 
     def test_widget_initialization(self, qapp) -> None:
         """Test that widgets initialize correctly with PyQt6."""
-        from PyQt6.QtWidgets import (
-            QWidget, QLabel, QLineEdit, QCheckBox, QComboBox,
-            QPushButton, QVBoxLayout
-        )
         from PyQt6.QtCore import Qt
+        from PyQt6.QtWidgets import (
+            QCheckBox,
+            QComboBox,
+            QLabel,
+            QLineEdit,
+            QPushButton,
+            QVBoxLayout,
+            QWidget,
+        )
 
         # Create container widget
         widget = QWidget()
@@ -128,8 +137,8 @@ class TestSignalSlot:
 
     def test_signal_slot_connections(self, qapp) -> None:
         """Test that signal/slot connections work with PyQt6."""
+        from PyQt6.QtCore import QObject, pyqtSignal
         from PyQt6.QtWidgets import QPushButton
-        from PyQt6.QtCore import pyqtSignal, QObject
 
         # Track clicks
         click_count = [0]
@@ -169,12 +178,13 @@ class TestMatplotlibIntegration:
     def test_matplotlib_pyqt6_integration(self, qapp) -> None:
         """Test matplotlib integration with PyQt6 backend."""
         import matplotlib
+
         matplotlib.use("QtAgg")  # PyQt6 backend
 
         from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
         from matplotlib.backends.backend_qtagg import NavigationToolbar2QT
         from matplotlib.figure import Figure
-        from PyQt6.QtWidgets import QWidget, QVBoxLayout
+        from PyQt6.QtWidgets import QVBoxLayout, QWidget
 
         # Create widget with matplotlib canvas
         widget = QWidget()

@@ -47,14 +47,14 @@ import jax.numpy as jnp
 import numpy as np
 from jax import lax
 
+from rheoQCM.core.jax_config import configure_jax
 from rheoQCM.core.physics import (
     Zq,
+    calc_delfstar_sla,
+    electrode_default,
     f1_default,
     g0_default,
-    electrode_default,
-    calc_delfstar_sla,
 )
-from rheoQCM.core.jax_config import configure_jax
 
 # Ensure JAX is configured for Float64
 configure_jax()
@@ -517,10 +517,14 @@ def _calc_ZL_jit(
         # Build S matrix
         S = jnp.array(
             [
-                [1 + zstar_all[next_layer_idx] / zstar_all[layer_idx],
-                 1 - zstar_all[next_layer_idx] / zstar_all[layer_idx]],
-                [1 - zstar_all[next_layer_idx] / zstar_all[layer_idx],
-                 1 + zstar_all[next_layer_idx] / zstar_all[layer_idx]],
+                [
+                    1 + zstar_all[next_layer_idx] / zstar_all[layer_idx],
+                    1 - zstar_all[next_layer_idx] / zstar_all[layer_idx],
+                ],
+                [
+                    1 - zstar_all[next_layer_idx] / zstar_all[layer_idx],
+                    1 + zstar_all[next_layer_idx] / zstar_all[layer_idx],
+                ],
             ],
             dtype=jnp.complex128,
         )
@@ -529,8 +533,10 @@ def _calc_ZL_jit(
         cos_D_i = jnp.cos(D_all[layer_idx])
         sin_D_i = jnp.sin(D_all[layer_idx])
         L_i = jnp.array(
-            [[cos_D_i + 1j * sin_D_i, 0.0 + 0.0j],
-             [0.0 + 0.0j, cos_D_i - 1j * sin_D_i]],
+            [
+                [cos_D_i + 1j * sin_D_i, 0.0 + 0.0j],
+                [0.0 + 0.0j, cos_D_i - 1j * sin_D_i],
+            ],
             dtype=jnp.complex128,
         )
 
@@ -628,8 +634,16 @@ def calc_ZL(
     if not has_AF and not has_Zf:
         grho_arr, phi_arr, drho_arr, n_ref_arr, _ = _layers_to_arrays(layers, refh)
         return _calc_ZL_jit(
-            n, grho_arr, phi_arr, drho_arr, n_ref_arr,
-            delfstar, f1, num_layers=N, calctype=calctype, has_Zf_top=False
+            n,
+            grho_arr,
+            phi_arr,
+            drho_arr,
+            n_ref_arr,
+            delfstar,
+            f1,
+            num_layers=N,
+            calctype=calctype,
+            has_Zf_top=False,
         )
 
     # Fallback to original implementation for special cases
@@ -683,8 +697,14 @@ def calc_ZL(
         next_layer_num = layer_nums[idx + 1]
         S = jnp.array(
             [
-                [1 + Z[next_layer_num] / Z[layer_num], 1 - Z[next_layer_num] / Z[layer_num]],
-                [1 - Z[next_layer_num] / Z[layer_num], 1 + Z[next_layer_num] / Z[layer_num]],
+                [
+                    1 + Z[next_layer_num] / Z[layer_num],
+                    1 - Z[next_layer_num] / Z[layer_num],
+                ],
+                [
+                    1 - Z[next_layer_num] / Z[layer_num],
+                    1 + Z[next_layer_num] / Z[layer_num],
+                ],
             ],
             dtype=jnp.complex128,
         )
@@ -888,7 +908,9 @@ def _solve_ll_delfstar(
         # Newton step using finite differences
         eps = 1e-8 * jnp.maximum(1.0, jnp.abs(delfstar))
         Zmot_plus_real = calc_Zmot(n, layers, delfstar + eps, f1, calctype, refh, g0)
-        Zmot_plus_imag = calc_Zmot(n, layers, delfstar + eps * 1j, f1, calctype, refh, g0)
+        Zmot_plus_imag = calc_Zmot(
+            n, layers, delfstar + eps * 1j, f1, calctype, refh, g0
+        )
 
         dZmot_dreal = (Zmot_plus_real - Zmot) / eps
         dZmot_dimag = (Zmot_plus_imag - Zmot) / eps

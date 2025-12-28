@@ -41,13 +41,13 @@ class TestImportAndInstantiation:
         """Test that physics functions are accessible from analysis module."""
         from rheoQCM.core.analysis import (
             Zq,
+            calc_delfstar_sla,
             f1_default,
-            sauerbreyf,
-            sauerbreym,
             grho,
             grhostar,
-            calc_delfstar_sla,
             kotula_gstar,
+            sauerbreyf,
+            sauerbreym,
         )
 
         # Check constants are correct
@@ -168,8 +168,8 @@ class TestBackwardCompatibility:
     def test_legacy_function_aliases(self) -> None:
         """Test that legacy function aliases work and raise deprecation warnings."""
         from rheoQCM.core.analysis import (
-            calc_drho_from_delf,
             calc_delf_from_drho,
+            calc_drho_from_delf,
         )
 
         # Test calc_drho_from_delf (alias for sauerbreym)
@@ -217,11 +217,11 @@ class TestBackwardCompatibility:
     def test_physics_functions_accessible(self) -> None:
         """Test that physics functions work correctly from analysis module."""
         from rheoQCM.core.analysis import (
+            grho,
+            grho_from_dlam,
+            grhostar,
             sauerbreyf,
             sauerbreym,
-            grho,
-            grhostar,
-            grho_from_dlam,
         )
 
         # Test Sauerbrey equations
@@ -337,8 +337,9 @@ class TestCurveFittingIntegration:
 
     def test_curve_fit_from_analyzer(self) -> None:
         """Test curve fitting through QCMAnalyzer."""
-        from rheoQCM.core.analysis import QCMAnalyzer
         import jax
+
+        from rheoQCM.core.analysis import QCMAnalyzer
 
         analyzer = QCMAnalyzer(f1=5e6, refh=3)
 
@@ -417,10 +418,9 @@ class TestBatchProcessingCorrectness:
 
         # Process using vmap-enabled batch_analyze
         harmonics = [3, 5]
-        delfstars_array = jnp.array([
-            [batch_delfstars[i][h] for h in harmonics]
-            for i in range(n_measurements)
-        ])
+        delfstars_array = jnp.array(
+            [[batch_delfstars[i][h] for h in harmonics] for i in range(n_measurements)]
+        )
 
         batch_result = batch_analyze_vmap(
             delfstars=delfstars_array,
@@ -451,19 +451,19 @@ class TestBatchProcessingCorrectness:
                     float(batch_result.drho[i]),
                     float(ind_result.drho),
                     rtol=1e-2,
-                    err_msg=f"drho mismatch at index {i}"
+                    err_msg=f"drho mismatch at index {i}",
                 )
                 np.testing.assert_allclose(
                     float(batch_result.grho_refh[i]),
                     float(ind_result.grho_refh),
                     rtol=1e-2,
-                    err_msg=f"grho_refh mismatch at index {i}"
+                    err_msg=f"grho_refh mismatch at index {i}",
                 )
                 np.testing.assert_allclose(
                     float(batch_result.phi[i]),
                     float(ind_result.phi),
                     rtol=1e-2,
-                    err_msg=f"phi mismatch at index {i}"
+                    err_msg=f"phi mismatch at index {i}",
                 )
 
     def test_batch_analyze_varying_input_sizes(self) -> None:
@@ -478,10 +478,12 @@ class TestBatchProcessingCorrectness:
             delfstars_list = []
             for i in range(n):
                 scale = 1.0 + 0.05 * (i % 20)  # Cycle through scales
-                delfstars_list.append([
-                    (-87768.0 * scale) + (155.7 * scale) * 1j,  # n=3
-                    (-159742.7 * scale) + (888.7 * scale) * 1j,  # n=5
-                ])
+                delfstars_list.append(
+                    [
+                        (-87768.0 * scale) + (155.7 * scale) * 1j,  # n=3
+                        (-159742.7 * scale) + (888.7 * scale) * 1j,  # n=5
+                    ]
+                )
 
             delfstars_array = jnp.array(delfstars_list)
 
@@ -543,10 +545,12 @@ class TestBatchProcessingCorrectness:
         delfstars_list = []
         for i in range(n):
             scale = 1.0 + 0.1 * i
-            delfstars_list.append([
-                (-87768.0 * scale) + (155.7 * scale) * 1j,
-                (-159742.7 * scale) + (888.7 * scale) * 1j,
-            ])
+            delfstars_list.append(
+                [
+                    (-87768.0 * scale) + (155.7 * scale) * 1j,
+                    (-159742.7 * scale) + (888.7 * scale) * 1j,
+                ]
+            )
 
         delfstars_array = jnp.array(delfstars_list)
 
@@ -569,9 +573,11 @@ class TestBatchProcessingCorrectness:
         from rheoQCM.core.jax_config import get_jax_backend
 
         harmonics = [3, 5]
-        delfstars_array = jnp.array([
-            [(-87768.0) + (155.7) * 1j, (-159742.7) + (888.7) * 1j],
-        ])
+        delfstars_array = jnp.array(
+            [
+                [(-87768.0) + (155.7) * 1j, (-159742.7) + (888.7) * 1j],
+            ]
+        )
 
         # Just verify it runs and we can check the backend
         backend = get_jax_backend()

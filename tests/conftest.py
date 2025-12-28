@@ -134,6 +134,7 @@ def thin_film_properties() -> dict[str, Any]:
 def qcm_model():
     """Return initialized QCMModel instance."""
     from rheoQCM.core.model import QCMModel
+
     return QCMModel(f1=5e6, refh=3)
 
 
@@ -141,6 +142,7 @@ def qcm_model():
 def qcm_analyzer():
     """Return initialized QCMAnalyzer instance."""
     from rheoQCM.core.analysis import QCMAnalyzer
+
     return QCMAnalyzer(f1=5e6, refh=3)
 
 
@@ -148,6 +150,7 @@ def qcm_analyzer():
 def qcm_wrapper():
     """Return initialized QCM wrapper instance."""
     from rheoQCM.modules.QCM import QCM
+
     qcm = QCM()
     qcm.f1 = 5e6
     qcm.refh = 3
@@ -185,9 +188,9 @@ def verify_float64_enabled():
     """
     # Check that Float64 is enabled
     test_val = jnp.array(1.0)
-    assert test_val.dtype == jnp.float64, (
-        "JAX Float64 not enabled. Tests require x64 precision."
-    )
+    assert (
+        test_val.dtype == jnp.float64
+    ), "JAX Float64 not enabled. Tests require x64 precision."
     yield
 
 
@@ -201,18 +204,10 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "slow: marks tests as slow (deselect with '-m \"not slow\"')"
     )
-    config.addinivalue_line(
-        "markers", "integration: marks as integration test"
-    )
-    config.addinivalue_line(
-        "markers", "gui: marks tests requiring PyQt6"
-    )
+    config.addinivalue_line("markers", "integration: marks as integration test")
+    config.addinivalue_line("markers", "gui: marks tests requiring PyQt6")
     config.addinivalue_line(
         "markers", "hardware: marks tests requiring hardware (NI DAQ, myVNA)"
     )
-    config.addinivalue_line(
-        "markers", "physics: marks physics core tests"
-    )
-    config.addinivalue_line(
-        "markers", "model: marks model layer tests"
-    )
+    config.addinivalue_line("markers", "physics: marks physics core tests")
+    config.addinivalue_line("markers", "model: marks model layer tests")

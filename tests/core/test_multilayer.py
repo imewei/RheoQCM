@@ -15,26 +15,25 @@ and verify physics constraints.
 from __future__ import annotations
 
 import re
+
+import jax.numpy as jnp
 import numpy as np
 import pytest
 
-import jax.numpy as jnp
-
 from rheoQCM.core.multilayer import (
-    calc_ZL,
+    LayerValidationError,
     calc_delfstar_multilayer,
+    calc_ZL,
     calc_Zmot,
     delete_layer,
     validate_layers,
-    LayerValidationError,
 )
 from rheoQCM.core.physics import (
     Zq,
-    f1_default,
     electrode_default,
+    f1_default,
     water_default,
 )
-
 
 # =============================================================================
 # Test Fixtures
@@ -133,7 +132,9 @@ class TestValidateLayers:
 
     def test_empty_layers_raises(self):
         """Empty layers dict should raise."""
-        with pytest.raises(LayerValidationError, match=re.compile("at least one layer", re.IGNORECASE)):
+        with pytest.raises(
+            LayerValidationError, match=re.compile("at least one layer", re.IGNORECASE)
+        ):
             validate_layers({})
 
     def test_missing_required_key_raises(self):
@@ -145,7 +146,12 @@ class TestValidateLayers:
     def test_inf_thickness_not_at_top_raises(self):
         """Infinite thickness in non-outermost layer should raise."""
         layers = {
-            1: {"grho": 1e8, "phi": np.pi / 2, "drho": np.inf, "n": 3},  # inf NOT at top
+            1: {
+                "grho": 1e8,
+                "phi": np.pi / 2,
+                "drho": np.inf,
+                "n": 3,
+            },  # inf NOT at top
             2: {"grho": 1e10, "phi": 0.5, "drho": 1e-6, "n": 3},
         }
         with pytest.raises(LayerValidationError, match="Only the outermost layer"):
@@ -519,21 +525,23 @@ class TestMultilayerCalcDelfstarUS1:
 
             assert np.isfinite(delfstar), f"Non-finite result at n={n}"
 
-    @pytest.mark.xfail(reason="LL calctype Newton-Raphson solver needs tuning for edge cases")
+    @pytest.mark.xfail(
+        reason="LL calctype Newton-Raphson solver needs tuning for edge cases"
+    )
     def test_multilayer_ll_calctype(self, three_layer_system):
         """Lu-Lewis calctype should work for multi-layer systems."""
         delfstar_sla = calc_delfstar_multilayer(3, three_layer_system, calctype="SLA")
-        
+
         # SLA should be finite
         assert np.isfinite(complex(delfstar_sla))
-        
+
         # LL with finite layers
         finite_layer_system = {
             0: three_layer_system[0],  # electrode
             1: three_layer_system[1],  # thin film
         }
         delfstar_ll = calc_delfstar_multilayer(3, finite_layer_system, calctype="LL")
-        
+
         # LL with finite layers should work
         assert np.isfinite(complex(delfstar_ll))
 
@@ -613,8 +621,9 @@ class TestMultilayerCalcDelfstarUS1:
         delfstar_direct = complex(calc_delfstar_multilayer(n, single_thin_layer))
 
         # Should match for SLA calctype
-        assert np.isclose(delfstar_from_ZL, delfstar_direct, rtol=1e-10), \
-            f"ZL method: {delfstar_from_ZL}, Direct: {delfstar_direct}"
+        assert np.isclose(
+            delfstar_from_ZL, delfstar_direct, rtol=1e-10
+        ), f"ZL method: {delfstar_from_ZL}, Direct: {delfstar_direct}"
 
     def test_multilayer_voigt_calctype(self, two_layer_system):
         """Voigt calctype should produce different results than SLA."""
@@ -631,7 +640,9 @@ class TestMultilayerCalcDelfstarUS1:
     def test_overlayer_reference_removes_bulk_contribution(self, two_layer_system):
         """Overlayer reference should remove bulk layer contribution."""
         delfstar_bare = calc_delfstar_multilayer(3, two_layer_system, reftype="bare")
-        delfstar_over = calc_delfstar_multilayer(3, two_layer_system, reftype="overlayer")
+        delfstar_over = calc_delfstar_multilayer(
+            3, two_layer_system, reftype="overlayer"
+        )
 
         # With overlayer reference, we subtract the bulk water contribution
         # So the result should be closer to just the film contribution

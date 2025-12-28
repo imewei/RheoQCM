@@ -9,17 +9,24 @@
 from PyQt6 import QtCore, QtGui, QtWidgets
 
 
-class Ui_MainWindow(object):
+class Ui_MainWindow:
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(986, 1122)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Preferred)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred,
+            QtWidgets.QSizePolicy.Policy.Preferred,
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(MainWindow.sizePolicy().hasHeightForWidth())
         MainWindow.setSizePolicy(sizePolicy)
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap(":/icon/rc/logo_2.svg"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
+        icon.addPixmap(
+            QtGui.QPixmap(":/icon/rc/logo_2.svg"),
+            QtGui.QIcon.Mode.Normal,
+            QtGui.QIcon.State.Off,
+        )
         MainWindow.setWindowIcon(icon)
         MainWindow.setAutoFillBackground(False)
         self.centralwidget = QtWidgets.QWidget(parent=MainWindow)
@@ -29,7 +36,10 @@ class Ui_MainWindow(object):
         self.horizontalLayout_33.setSpacing(4)
         self.horizontalLayout_33.setObjectName("horizontalLayout_33")
         self.splitter = QtWidgets.QSplitter(parent=self.centralwidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Preferred)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred,
+            QtWidgets.QSizePolicy.Policy.Preferred,
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.splitter.sizePolicy().hasHeightForWidth())
@@ -41,10 +51,15 @@ class Ui_MainWindow(object):
         self.splitter.setHandleWidth(2)
         self.splitter.setObjectName("splitter")
         self.groupBox_settings = QtWidgets.QGroupBox(parent=self.splitter)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Preferred)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred,
+            QtWidgets.QSizePolicy.Policy.Preferred,
+        )
         sizePolicy.setHorizontalStretch(1)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.groupBox_settings.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.groupBox_settings.sizePolicy().hasHeightForWidth()
+        )
         self.groupBox_settings.setSizePolicy(sizePolicy)
         self.groupBox_settings.setMinimumSize(QtCore.QSize(240, 0))
         self.groupBox_settings.setMaximumSize(QtCore.QSize(16777215, 16777215))
@@ -59,38 +74,50 @@ class Ui_MainWindow(object):
         self.verticalLayout_12.setObjectName("verticalLayout_12")
         self.horizontalLayout_9 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_9.setObjectName("horizontalLayout_9")
-        self.pushButton_settings_control_stop_refit = QtWidgets.QPushButton(parent=self.groupBox_settings)
+        self.pushButton_settings_control_stop_refit = QtWidgets.QPushButton(
+            parent=self.groupBox_settings
+        )
         font = QtGui.QFont()
         font.setBold(True)
         font.setWeight(75)
         self.pushButton_settings_control_stop_refit.setFont(font)
-        self.pushButton_settings_control_stop_refit.setStyleSheet("#pushButton_settings_control_stop_refit\n"
-"{\n"
-"background-color: red;\n"
-"}")
+        self.pushButton_settings_control_stop_refit.setStyleSheet(
+            "#pushButton_settings_control_stop_refit\n"
+            "{\n"
+            "background-color: red;\n"
+            "}"
+        )
         self.pushButton_settings_control_stop_refit.setCheckable(True)
-        self.pushButton_settings_control_stop_refit.setObjectName("pushButton_settings_control_stop_refit")
+        self.pushButton_settings_control_stop_refit.setObjectName(
+            "pushButton_settings_control_stop_refit"
+        )
         self.horizontalLayout_9.addWidget(self.pushButton_settings_control_stop_refit)
         self.pushButton_runstop = QtWidgets.QPushButton(parent=self.groupBox_settings)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.pushButton_runstop.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.pushButton_runstop.sizePolicy().hasHeightForWidth()
+        )
         self.pushButton_runstop.setSizePolicy(sizePolicy)
         font = QtGui.QFont()
         font.setPointSize(8)
         font.setBold(True)
         font.setWeight(75)
         self.pushButton_runstop.setFont(font)
-        self.pushButton_runstop.setStyleSheet("#pushButton_runstop\n"
-"{\n"
-"background-color: green;\n"
-"}\n"
-"\n"
-"#pushButton_runstop:checked\n"
-"{\n"
-"background-color: red;\n"
-"}")
+        self.pushButton_runstop.setStyleSheet(
+            "#pushButton_runstop\n"
+            "{\n"
+            "background-color: green;\n"
+            "}\n"
+            "\n"
+            "#pushButton_runstop:checked\n"
+            "{\n"
+            "background-color: red;\n"
+            "}"
+        )
         self.pushButton_runstop.setCheckable(True)
         self.pushButton_runstop.setObjectName("pushButton_runstop")
         self.horizontalLayout_9.addWidget(self.pushButton_runstop)
@@ -98,57 +125,92 @@ class Ui_MainWindow(object):
         self.horizontalLayout_5 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_5.setObjectName("horizontalLayout_5")
         self.lineEdit_datafilestr = QtWidgets.QLineEdit(parent=self.groupBox_settings)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.lineEdit_datafilestr.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.lineEdit_datafilestr.sizePolicy().hasHeightForWidth()
+        )
         self.lineEdit_datafilestr.setSizePolicy(sizePolicy)
         self.lineEdit_datafilestr.setText("")
-        self.lineEdit_datafilestr.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight|QtCore.Qt.AlignmentFlag.AlignTrailing|QtCore.Qt.AlignmentFlag.AlignVCenter)
+        self.lineEdit_datafilestr.setAlignment(
+            QtCore.Qt.AlignmentFlag.AlignRight
+            | QtCore.Qt.AlignmentFlag.AlignTrailing
+            | QtCore.Qt.AlignmentFlag.AlignVCenter
+        )
         self.lineEdit_datafilestr.setReadOnly(True)
         self.lineEdit_datafilestr.setObjectName("lineEdit_datafilestr")
         self.horizontalLayout_5.addWidget(self.lineEdit_datafilestr)
-        self.pushButton_gotofolder = QtWidgets.QPushButton(parent=self.groupBox_settings)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed)
+        self.pushButton_gotofolder = QtWidgets.QPushButton(
+            parent=self.groupBox_settings
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.pushButton_gotofolder.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.pushButton_gotofolder.sizePolicy().hasHeightForWidth()
+        )
         self.pushButton_gotofolder.setSizePolicy(sizePolicy)
         self.pushButton_gotofolder.setMaximumSize(QtCore.QSize(40, 16777215))
         self.pushButton_gotofolder.setObjectName("pushButton_gotofolder")
         self.horizontalLayout_5.addWidget(self.pushButton_gotofolder)
         self.verticalLayout_12.addLayout(self.horizontalLayout_5)
         self.tabWidget_settings = QtWidgets.QTabWidget(parent=self.groupBox_settings)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Expanding)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred,
+            QtWidgets.QSizePolicy.Policy.Expanding,
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.tabWidget_settings.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.tabWidget_settings.sizePolicy().hasHeightForWidth()
+        )
         self.tabWidget_settings.setSizePolicy(sizePolicy)
         self.tabWidget_settings.setAutoFillBackground(False)
         self.tabWidget_settings.setObjectName("tabWidget_settings")
         self.tab_settings_control = QtWidgets.QWidget()
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Preferred)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred,
+            QtWidgets.QSizePolicy.Policy.Preferred,
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.tab_settings_control.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.tab_settings_control.sizePolicy().hasHeightForWidth()
+        )
         self.tab_settings_control.setSizePolicy(sizePolicy)
         self.tab_settings_control.setObjectName("tab_settings_control")
         self.verticalLayout_11 = QtWidgets.QVBoxLayout(self.tab_settings_control)
         self.verticalLayout_11.setContentsMargins(0, 6, 0, 0)
         self.verticalLayout_11.setSpacing(6)
         self.verticalLayout_11.setObjectName("verticalLayout_11")
-        self.groupBox_settings_harmonics = QtWidgets.QGroupBox(parent=self.tab_settings_control)
+        self.groupBox_settings_harmonics = QtWidgets.QGroupBox(
+            parent=self.tab_settings_control
+        )
         self.groupBox_settings_harmonics.setEnabled(True)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Preferred)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred,
+            QtWidgets.QSizePolicy.Policy.Preferred,
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.groupBox_settings_harmonics.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.groupBox_settings_harmonics.sizePolicy().hasHeightForWidth()
+        )
         self.groupBox_settings_harmonics.setSizePolicy(sizePolicy)
         font = QtGui.QFont()
         font.setBold(False)
         font.setWeight(50)
         self.groupBox_settings_harmonics.setFont(font)
-        self.groupBox_settings_harmonics.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeading|QtCore.Qt.AlignmentFlag.AlignLeft|QtCore.Qt.AlignmentFlag.AlignVCenter)
+        self.groupBox_settings_harmonics.setAlignment(
+            QtCore.Qt.AlignmentFlag.AlignLeading
+            | QtCore.Qt.AlignmentFlag.AlignLeft
+            | QtCore.Qt.AlignmentFlag.AlignVCenter
+        )
         self.groupBox_settings_harmonics.setFlat(True)
         self.groupBox_settings_harmonics.setCheckable(False)
         self.groupBox_settings_harmonics.setObjectName("groupBox_settings_harmonics")
@@ -158,94 +220,204 @@ class Ui_MainWindow(object):
         self.gridLayout_5.setObjectName("gridLayout_5")
         self.horizontalLayout_23 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_23.setObjectName("horizontalLayout_23")
-        spacerItem = QtWidgets.QSpacerItem(38, 20, QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Minimum)
+        spacerItem = QtWidgets.QSpacerItem(
+            38,
+            20,
+            QtWidgets.QSizePolicy.Policy.Preferred,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+        )
         self.horizontalLayout_23.addItem(spacerItem)
         self.label_9 = QtWidgets.QLabel(parent=self.groupBox_settings_harmonics)
         self.label_9.setObjectName("label_9")
         self.horizontalLayout_23.addWidget(self.label_9)
-        self.comboBox_settings_control_dispmode = QtWidgets.QComboBox(parent=self.groupBox_settings_harmonics)
-        self.comboBox_settings_control_dispmode.setObjectName("comboBox_settings_control_dispmode")
+        self.comboBox_settings_control_dispmode = QtWidgets.QComboBox(
+            parent=self.groupBox_settings_harmonics
+        )
+        self.comboBox_settings_control_dispmode.setObjectName(
+            "comboBox_settings_control_dispmode"
+        )
         self.horizontalLayout_23.addWidget(self.comboBox_settings_control_dispmode)
-        spacerItem1 = QtWidgets.QSpacerItem(0, 20, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
+        spacerItem1 = QtWidgets.QSpacerItem(
+            0,
+            20,
+            QtWidgets.QSizePolicy.Policy.Expanding,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+        )
         self.horizontalLayout_23.addItem(spacerItem1)
         self.gridLayout_5.addLayout(self.horizontalLayout_23, 0, 0, 1, 1)
         self.horizontalLayout_settings_control_sampref = QtWidgets.QHBoxLayout()
         self.horizontalLayout_settings_control_sampref.setSpacing(0)
-        self.horizontalLayout_settings_control_sampref.setObjectName("horizontalLayout_settings_control_sampref")
-        spacerItem2 = QtWidgets.QSpacerItem(20, 20, QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Minimum)
+        self.horizontalLayout_settings_control_sampref.setObjectName(
+            "horizontalLayout_settings_control_sampref"
+        )
+        spacerItem2 = QtWidgets.QSpacerItem(
+            20,
+            20,
+            QtWidgets.QSizePolicy.Policy.Fixed,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+        )
         self.horizontalLayout_settings_control_sampref.addItem(spacerItem2)
-        self.label_settings_control_samp = QtWidgets.QLabel(parent=self.groupBox_settings_harmonics)
+        self.label_settings_control_samp = QtWidgets.QLabel(
+            parent=self.groupBox_settings_harmonics
+        )
         font = QtGui.QFont()
         font.setBold(True)
         font.setWeight(75)
         self.label_settings_control_samp.setFont(font)
-        self.label_settings_control_samp.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.label_settings_control_samp.setAlignment(
+            QtCore.Qt.AlignmentFlag.AlignCenter
+        )
         self.label_settings_control_samp.setObjectName("label_settings_control_samp")
-        self.horizontalLayout_settings_control_sampref.addWidget(self.label_settings_control_samp)
-        self.label_settings_control_ref = QtWidgets.QLabel(parent=self.groupBox_settings_harmonics)
+        self.horizontalLayout_settings_control_sampref.addWidget(
+            self.label_settings_control_samp
+        )
+        self.label_settings_control_ref = QtWidgets.QLabel(
+            parent=self.groupBox_settings_harmonics
+        )
         font = QtGui.QFont()
         font.setBold(True)
         font.setWeight(75)
         self.label_settings_control_ref.setFont(font)
-        self.label_settings_control_ref.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.label_settings_control_ref.setAlignment(
+            QtCore.Qt.AlignmentFlag.AlignCenter
+        )
         self.label_settings_control_ref.setObjectName("label_settings_control_ref")
-        self.horizontalLayout_settings_control_sampref.addWidget(self.label_settings_control_ref)
-        self.gridLayout_5.addLayout(self.horizontalLayout_settings_control_sampref, 1, 0, 1, 1)
+        self.horizontalLayout_settings_control_sampref.addWidget(
+            self.label_settings_control_ref
+        )
+        self.gridLayout_5.addLayout(
+            self.horizontalLayout_settings_control_sampref, 1, 0, 1, 1
+        )
         self.gridLayout_settings_control_harms = QtWidgets.QGridLayout()
         self.gridLayout_settings_control_harms.setContentsMargins(0, 0, 0, 0)
         self.gridLayout_settings_control_harms.setSpacing(0)
-        self.gridLayout_settings_control_harms.setObjectName("gridLayout_settings_control_harms")
-        self.lineEdit_endf1_r = QtWidgets.QLineEdit(parent=self.groupBox_settings_harmonics)
+        self.gridLayout_settings_control_harms.setObjectName(
+            "gridLayout_settings_control_harms"
+        )
+        self.lineEdit_endf1_r = QtWidgets.QLineEdit(
+            parent=self.groupBox_settings_harmonics
+        )
         self.lineEdit_endf1_r.setReadOnly(True)
         self.lineEdit_endf1_r.setObjectName("lineEdit_endf1_r")
-        self.gridLayout_settings_control_harms.addWidget(self.lineEdit_endf1_r, 1, 5, 1, 1)
-        self.label_settings_control_label1 = QtWidgets.QLabel(parent=self.groupBox_settings_harmonics)
-        self.label_settings_control_label1.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        self.label_settings_control_label1.setObjectName("label_settings_control_label1")
-        self.gridLayout_settings_control_harms.addWidget(self.label_settings_control_label1, 0, 1, 1, 1)
-        self.label_settings_control_label2_r = QtWidgets.QLabel(parent=self.groupBox_settings_harmonics)
-        self.label_settings_control_label2_r.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        self.label_settings_control_label2_r.setObjectName("label_settings_control_label2_r")
-        self.gridLayout_settings_control_harms.addWidget(self.label_settings_control_label2_r, 0, 5, 1, 1)
-        self.lineEdit_endf1 = QtWidgets.QLineEdit(parent=self.groupBox_settings_harmonics)
+        self.gridLayout_settings_control_harms.addWidget(
+            self.lineEdit_endf1_r, 1, 5, 1, 1
+        )
+        self.label_settings_control_label1 = QtWidgets.QLabel(
+            parent=self.groupBox_settings_harmonics
+        )
+        self.label_settings_control_label1.setAlignment(
+            QtCore.Qt.AlignmentFlag.AlignCenter
+        )
+        self.label_settings_control_label1.setObjectName(
+            "label_settings_control_label1"
+        )
+        self.gridLayout_settings_control_harms.addWidget(
+            self.label_settings_control_label1, 0, 1, 1, 1
+        )
+        self.label_settings_control_label2_r = QtWidgets.QLabel(
+            parent=self.groupBox_settings_harmonics
+        )
+        self.label_settings_control_label2_r.setAlignment(
+            QtCore.Qt.AlignmentFlag.AlignCenter
+        )
+        self.label_settings_control_label2_r.setObjectName(
+            "label_settings_control_label2_r"
+        )
+        self.gridLayout_settings_control_harms.addWidget(
+            self.label_settings_control_label2_r, 0, 5, 1, 1
+        )
+        self.lineEdit_endf1 = QtWidgets.QLineEdit(
+            parent=self.groupBox_settings_harmonics
+        )
         self.lineEdit_endf1.setReadOnly(True)
         self.lineEdit_endf1.setObjectName("lineEdit_endf1")
-        self.gridLayout_settings_control_harms.addWidget(self.lineEdit_endf1, 1, 2, 1, 1)
-        self.checkBox_harm1 = QtWidgets.QCheckBox(parent=self.groupBox_settings_harmonics)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed)
+        self.gridLayout_settings_control_harms.addWidget(
+            self.lineEdit_endf1, 1, 2, 1, 1
+        )
+        self.checkBox_harm1 = QtWidgets.QCheckBox(
+            parent=self.groupBox_settings_harmonics
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.checkBox_harm1.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.checkBox_harm1.sizePolicy().hasHeightForWidth()
+        )
         self.checkBox_harm1.setSizePolicy(sizePolicy)
         self.checkBox_harm1.setObjectName("checkBox_harm1")
-        self.gridLayout_settings_control_harms.addWidget(self.checkBox_harm1, 1, 0, 1, 1)
-        spacerItem3 = QtWidgets.QSpacerItem(4, 20, QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Minimum)
+        self.gridLayout_settings_control_harms.addWidget(
+            self.checkBox_harm1, 1, 0, 1, 1
+        )
+        spacerItem3 = QtWidgets.QSpacerItem(
+            4,
+            20,
+            QtWidgets.QSizePolicy.Policy.Fixed,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+        )
         self.gridLayout_settings_control_harms.addItem(spacerItem3, 0, 3, 1, 1)
-        self.label_settings_control_label1_r = QtWidgets.QLabel(parent=self.groupBox_settings_harmonics)
-        self.label_settings_control_label1_r.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        self.label_settings_control_label1_r.setObjectName("label_settings_control_label1_r")
-        self.gridLayout_settings_control_harms.addWidget(self.label_settings_control_label1_r, 0, 4, 1, 1)
-        self.lineEdit_startf1_r = QtWidgets.QLineEdit(parent=self.groupBox_settings_harmonics)
+        self.label_settings_control_label1_r = QtWidgets.QLabel(
+            parent=self.groupBox_settings_harmonics
+        )
+        self.label_settings_control_label1_r.setAlignment(
+            QtCore.Qt.AlignmentFlag.AlignCenter
+        )
+        self.label_settings_control_label1_r.setObjectName(
+            "label_settings_control_label1_r"
+        )
+        self.gridLayout_settings_control_harms.addWidget(
+            self.label_settings_control_label1_r, 0, 4, 1, 1
+        )
+        self.lineEdit_startf1_r = QtWidgets.QLineEdit(
+            parent=self.groupBox_settings_harmonics
+        )
         self.lineEdit_startf1_r.setReadOnly(True)
         self.lineEdit_startf1_r.setObjectName("lineEdit_startf1_r")
-        self.gridLayout_settings_control_harms.addWidget(self.lineEdit_startf1_r, 1, 4, 1, 1)
-        self.label_settings_control_label2 = QtWidgets.QLabel(parent=self.groupBox_settings_harmonics)
-        self.label_settings_control_label2.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        self.label_settings_control_label2.setObjectName("label_settings_control_label2")
-        self.gridLayout_settings_control_harms.addWidget(self.label_settings_control_label2, 0, 2, 1, 1)
-        self.lineEdit_startf1 = QtWidgets.QLineEdit(parent=self.groupBox_settings_harmonics)
+        self.gridLayout_settings_control_harms.addWidget(
+            self.lineEdit_startf1_r, 1, 4, 1, 1
+        )
+        self.label_settings_control_label2 = QtWidgets.QLabel(
+            parent=self.groupBox_settings_harmonics
+        )
+        self.label_settings_control_label2.setAlignment(
+            QtCore.Qt.AlignmentFlag.AlignCenter
+        )
+        self.label_settings_control_label2.setObjectName(
+            "label_settings_control_label2"
+        )
+        self.gridLayout_settings_control_harms.addWidget(
+            self.label_settings_control_label2, 0, 2, 1, 1
+        )
+        self.lineEdit_startf1 = QtWidgets.QLineEdit(
+            parent=self.groupBox_settings_harmonics
+        )
         self.lineEdit_startf1.setReadOnly(True)
         self.lineEdit_startf1.setObjectName("lineEdit_startf1")
-        self.gridLayout_settings_control_harms.addWidget(self.lineEdit_startf1, 1, 1, 1, 1)
+        self.gridLayout_settings_control_harms.addWidget(
+            self.lineEdit_startf1, 1, 1, 1, 1
+        )
         self.gridLayout_5.addLayout(self.gridLayout_settings_control_harms, 3, 0, 1, 1)
         self.verticalLayout_11.addWidget(self.groupBox_settings_harmonics)
-        spacerItem4 = QtWidgets.QSpacerItem(20, 10, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed)
+        spacerItem4 = QtWidgets.QSpacerItem(
+            20,
+            10,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+            QtWidgets.QSizePolicy.Policy.Fixed,
+        )
         self.verticalLayout_11.addItem(spacerItem4)
-        self.groupBox_settingstime = QtWidgets.QGroupBox(parent=self.tab_settings_control)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Preferred)
+        self.groupBox_settingstime = QtWidgets.QGroupBox(
+            parent=self.tab_settings_control
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred,
+            QtWidgets.QSizePolicy.Policy.Preferred,
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.groupBox_settingstime.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.groupBox_settingstime.sizePolicy().hasHeightForWidth()
+        )
         self.groupBox_settingstime.setSizePolicy(sizePolicy)
         self.groupBox_settingstime.setFlat(True)
         self.groupBox_settingstime.setObjectName("groupBox_settingstime")
@@ -256,82 +428,140 @@ class Ui_MainWindow(object):
         self.gridLayout_4 = QtWidgets.QGridLayout()
         self.gridLayout_4.setSpacing(0)
         self.gridLayout_4.setObjectName("gridLayout_4")
-        self.dateTimeEdit_reftime = QtWidgets.QDateTimeEdit(parent=self.groupBox_settingstime)
+        self.dateTimeEdit_reftime = QtWidgets.QDateTimeEdit(
+            parent=self.groupBox_settingstime
+        )
         self.dateTimeEdit_reftime.setEnabled(True)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.dateTimeEdit_reftime.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.dateTimeEdit_reftime.sizePolicy().hasHeightForWidth()
+        )
         self.dateTimeEdit_reftime.setSizePolicy(sizePolicy)
         self.dateTimeEdit_reftime.setWrapping(False)
         self.dateTimeEdit_reftime.setReadOnly(False)
-        self.dateTimeEdit_reftime.setButtonSymbols(QtWidgets.QAbstractSpinBox.ButtonSymbols.UpDownArrows)
+        self.dateTimeEdit_reftime.setButtonSymbols(
+            QtWidgets.QAbstractSpinBox.ButtonSymbols.UpDownArrows
+        )
         self.dateTimeEdit_reftime.setAccelerated(False)
-        self.dateTimeEdit_reftime.setDateTime(QtCore.QDateTime(QtCore.QDate(2000, 1, 1), QtCore.QTime(0, 0, 0)))
-        self.dateTimeEdit_reftime.setCurrentSection(QtWidgets.QDateTimeEdit.Section.YearSection)
+        self.dateTimeEdit_reftime.setDateTime(
+            QtCore.QDateTime(QtCore.QDate(2000, 1, 1), QtCore.QTime(0, 0, 0))
+        )
+        self.dateTimeEdit_reftime.setCurrentSection(
+            QtWidgets.QDateTimeEdit.Section.YearSection
+        )
         self.dateTimeEdit_reftime.setCalendarPopup(False)
         self.dateTimeEdit_reftime.setCurrentSectionIndex(0)
         self.dateTimeEdit_reftime.setObjectName("dateTimeEdit_reftime")
         self.gridLayout_4.addWidget(self.dateTimeEdit_reftime, 0, 4, 1, 1)
-        spacerItem5 = QtWidgets.QSpacerItem(40, 0, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
+        spacerItem5 = QtWidgets.QSpacerItem(
+            40,
+            0,
+            QtWidgets.QSizePolicy.Policy.Expanding,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+        )
         self.gridLayout_4.addItem(spacerItem5, 0, 3, 1, 1)
         self.label_reftime = QtWidgets.QLabel(parent=self.groupBox_settingstime)
         self.label_reftime.setObjectName("label_reftime")
         self.gridLayout_4.addWidget(self.label_reftime, 0, 2, 1, 1)
-        self.pushButton_resetreftime = QtWidgets.QPushButton(parent=self.groupBox_settingstime)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed)
+        self.pushButton_resetreftime = QtWidgets.QPushButton(
+            parent=self.groupBox_settingstime
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.pushButton_resetreftime.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.pushButton_resetreftime.sizePolicy().hasHeightForWidth()
+        )
         self.pushButton_resetreftime.setSizePolicy(sizePolicy)
         self.pushButton_resetreftime.setMaximumSize(QtCore.QSize(16777215, 16777215))
         self.pushButton_resetreftime.setObjectName("pushButton_resetreftime")
         self.gridLayout_4.addWidget(self.pushButton_resetreftime, 1, 4, 1, 1)
-        spacerItem6 = QtWidgets.QSpacerItem(40, 0, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
+        spacerItem6 = QtWidgets.QSpacerItem(
+            40,
+            0,
+            QtWidgets.QSizePolicy.Policy.Expanding,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+        )
         self.gridLayout_4.addItem(spacerItem6, 0, 5, 1, 1)
         self.verticalLayout_36.addLayout(self.gridLayout_4)
         self.gridLayout_3 = QtWidgets.QGridLayout()
         self.gridLayout_3.setSpacing(0)
         self.gridLayout_3.setObjectName("gridLayout_3")
-        spacerItem7 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
+        spacerItem7 = QtWidgets.QSpacerItem(
+            40,
+            20,
+            QtWidgets.QSizePolicy.Policy.Expanding,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+        )
         self.gridLayout_3.addItem(spacerItem7, 1, 2, 1, 1)
         self.label_3 = QtWidgets.QLabel(parent=self.groupBox_settingstime)
         self.label_3.setObjectName("label_3")
         self.gridLayout_3.addWidget(self.label_3, 0, 0, 1, 1)
         self.label_8 = QtWidgets.QLabel(parent=self.groupBox_settingstime)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Preferred)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred,
+            QtWidgets.QSizePolicy.Policy.Preferred,
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.label_8.sizePolicy().hasHeightForWidth())
         self.label_8.setSizePolicy(sizePolicy)
         self.label_8.setObjectName("label_8")
         self.gridLayout_3.addWidget(self.label_8, 2, 0, 1, 1)
-        spacerItem8 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
+        spacerItem8 = QtWidgets.QSpacerItem(
+            40,
+            20,
+            QtWidgets.QSizePolicy.Policy.Expanding,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+        )
         self.gridLayout_3.addItem(spacerItem8, 0, 2, 1, 1)
         self.label = QtWidgets.QLabel(parent=self.groupBox_settingstime)
         self.label.setObjectName("label")
         self.gridLayout_3.addWidget(self.label, 1, 0, 1, 1)
-        spacerItem9 = QtWidgets.QSpacerItem(22, 17, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
+        spacerItem9 = QtWidgets.QSpacerItem(
+            22,
+            17,
+            QtWidgets.QSizePolicy.Policy.Expanding,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+        )
         self.gridLayout_3.addItem(spacerItem9, 2, 2, 1, 1)
-        self.spinBox_recordinterval = QtWidgets.QSpinBox(parent=self.groupBox_settingstime)
+        self.spinBox_recordinterval = QtWidgets.QSpinBox(
+            parent=self.groupBox_settingstime
+        )
         self.spinBox_recordinterval.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        self.spinBox_recordinterval.setButtonSymbols(QtWidgets.QAbstractSpinBox.ButtonSymbols.NoButtons)
+        self.spinBox_recordinterval.setButtonSymbols(
+            QtWidgets.QAbstractSpinBox.ButtonSymbols.NoButtons
+        )
         self.spinBox_recordinterval.setMinimum(1)
         self.spinBox_recordinterval.setMaximum(2147483647)
         self.spinBox_recordinterval.setProperty("value", 15)
         self.spinBox_recordinterval.setObjectName("spinBox_recordinterval")
         self.gridLayout_3.addWidget(self.spinBox_recordinterval, 0, 1, 1, 1)
-        self.spinBox_refreshresolution = QtWidgets.QSpinBox(parent=self.groupBox_settingstime)
+        self.spinBox_refreshresolution = QtWidgets.QSpinBox(
+            parent=self.groupBox_settingstime
+        )
         self.spinBox_refreshresolution.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        self.spinBox_refreshresolution.setButtonSymbols(QtWidgets.QAbstractSpinBox.ButtonSymbols.NoButtons)
+        self.spinBox_refreshresolution.setButtonSymbols(
+            QtWidgets.QAbstractSpinBox.ButtonSymbols.NoButtons
+        )
         self.spinBox_refreshresolution.setMinimum(1)
         self.spinBox_refreshresolution.setMaximum(2147483647)
         self.spinBox_refreshresolution.setProperty("value", 1)
         self.spinBox_refreshresolution.setObjectName("spinBox_refreshresolution")
         self.gridLayout_3.addWidget(self.spinBox_refreshresolution, 1, 1, 1, 1)
-        self.spinBox_scaninterval = QtWidgets.QSpinBox(parent=self.groupBox_settingstime)
+        self.spinBox_scaninterval = QtWidgets.QSpinBox(
+            parent=self.groupBox_settingstime
+        )
         self.spinBox_scaninterval.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        self.spinBox_scaninterval.setButtonSymbols(QtWidgets.QAbstractSpinBox.ButtonSymbols.NoButtons)
+        self.spinBox_scaninterval.setButtonSymbols(
+            QtWidgets.QAbstractSpinBox.ButtonSymbols.NoButtons
+        )
         self.spinBox_scaninterval.setProperty("showGroupSeparator", False)
         self.spinBox_scaninterval.setMinimum(1)
         self.spinBox_scaninterval.setMaximum(2147483647)
@@ -340,7 +570,12 @@ class Ui_MainWindow(object):
         self.gridLayout_3.addWidget(self.spinBox_scaninterval, 2, 1, 1, 1)
         self.verticalLayout_36.addLayout(self.gridLayout_3)
         self.verticalLayout_11.addWidget(self.groupBox_settingstime)
-        spacerItem10 = QtWidgets.QSpacerItem(20, 10, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed)
+        spacerItem10 = QtWidgets.QSpacerItem(
+            20,
+            10,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+            QtWidgets.QSizePolicy.Policy.Fixed,
+        )
         self.verticalLayout_11.addItem(spacerItem10)
         self.groupBox_2 = QtWidgets.QGroupBox(parent=self.tab_settings_control)
         self.groupBox_2.setFlat(True)
@@ -354,20 +589,37 @@ class Ui_MainWindow(object):
         self.verticalLayout_45.addWidget(self.checkBox_control_rectemp)
         self.horizontalLayout_28 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_28.setObjectName("horizontalLayout_28")
-        spacerItem11 = QtWidgets.QSpacerItem(13, 20, QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Minimum)
+        spacerItem11 = QtWidgets.QSpacerItem(
+            13,
+            20,
+            QtWidgets.QSizePolicy.Policy.Fixed,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+        )
         self.horizontalLayout_28.addItem(spacerItem11)
         self.label_temp_devthrmcpl = QtWidgets.QLabel(parent=self.groupBox_2)
         self.label_temp_devthrmcpl.setObjectName("label_temp_devthrmcpl")
         self.horizontalLayout_28.addWidget(self.label_temp_devthrmcpl)
         self.verticalLayout_45.addLayout(self.horizontalLayout_28)
         self.verticalLayout_11.addWidget(self.groupBox_2)
-        spacerItem12 = QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed)
+        spacerItem12 = QtWidgets.QSpacerItem(
+            10,
+            10,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+            QtWidgets.QSizePolicy.Policy.Fixed,
+        )
         self.verticalLayout_11.addItem(spacerItem12)
-        self.groupBox_settings_fitting = QtWidgets.QGroupBox(parent=self.tab_settings_control)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Preferred)
+        self.groupBox_settings_fitting = QtWidgets.QGroupBox(
+            parent=self.tab_settings_control
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred,
+            QtWidgets.QSizePolicy.Policy.Preferred,
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.groupBox_settings_fitting.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.groupBox_settings_fitting.sizePolicy().hasHeightForWidth()
+        )
         self.groupBox_settings_fitting.setSizePolicy(sizePolicy)
         self.groupBox_settings_fitting.setFlat(True)
         self.groupBox_settings_fitting.setObjectName("groupBox_settings_fitting")
@@ -375,43 +627,72 @@ class Ui_MainWindow(object):
         self.gridLayout_2.setContentsMargins(2, 2, 2, 2)
         self.gridLayout_2.setSpacing(2)
         self.gridLayout_2.setObjectName("gridLayout_2")
-        self.checkBox_dynamicfit = QtWidgets.QCheckBox(parent=self.groupBox_settings_fitting)
+        self.checkBox_dynamicfit = QtWidgets.QCheckBox(
+            parent=self.groupBox_settings_fitting
+        )
         self.checkBox_dynamicfit.setObjectName("checkBox_dynamicfit")
         self.gridLayout_2.addWidget(self.checkBox_dynamicfit, 0, 0, 1, 1)
-        self.checkBox_dynamicfitbyharm = QtWidgets.QCheckBox(parent=self.groupBox_settings_fitting)
+        self.checkBox_dynamicfitbyharm = QtWidgets.QCheckBox(
+            parent=self.groupBox_settings_fitting
+        )
         self.checkBox_dynamicfitbyharm.setObjectName("checkBox_dynamicfitbyharm")
         self.gridLayout_2.addWidget(self.checkBox_dynamicfitbyharm, 0, 1, 1, 1)
         self.horizontalLayout_fitfactor = QtWidgets.QHBoxLayout()
         self.horizontalLayout_fitfactor.setObjectName("horizontalLayout_fitfactor")
         self.label_fitfactor = QtWidgets.QLabel(parent=self.groupBox_settings_fitting)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.label_fitfactor.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.label_fitfactor.sizePolicy().hasHeightForWidth()
+        )
         self.label_fitfactor.setSizePolicy(sizePolicy)
         self.label_fitfactor.setObjectName("label_fitfactor")
         self.horizontalLayout_fitfactor.addWidget(self.label_fitfactor)
-        self.spinBox_fitfactor = QtWidgets.QSpinBox(parent=self.groupBox_settings_fitting)
+        self.spinBox_fitfactor = QtWidgets.QSpinBox(
+            parent=self.groupBox_settings_fitting
+        )
         self.spinBox_fitfactor.setMinimum(1)
         self.spinBox_fitfactor.setMaximum(10)
         self.spinBox_fitfactor.setProperty("value", 6)
         self.spinBox_fitfactor.setObjectName("spinBox_fitfactor")
         self.horizontalLayout_fitfactor.addWidget(self.spinBox_fitfactor)
-        spacerItem13 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
+        spacerItem13 = QtWidgets.QSpacerItem(
+            40,
+            20,
+            QtWidgets.QSizePolicy.Policy.Expanding,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+        )
         self.horizontalLayout_fitfactor.addItem(spacerItem13)
         self.gridLayout_2.addLayout(self.horizontalLayout_fitfactor, 1, 0, 1, 1)
-        self.checkBox_fitfactorbyharm = QtWidgets.QCheckBox(parent=self.groupBox_settings_fitting)
+        self.checkBox_fitfactorbyharm = QtWidgets.QCheckBox(
+            parent=self.groupBox_settings_fitting
+        )
         self.checkBox_fitfactorbyharm.setObjectName("checkBox_fitfactorbyharm")
         self.gridLayout_2.addWidget(self.checkBox_fitfactorbyharm, 1, 1, 1, 1)
         self.verticalLayout_11.addWidget(self.groupBox_settings_fitting)
-        spacerItem14 = QtWidgets.QSpacerItem(20, 10, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed)
+        spacerItem14 = QtWidgets.QSpacerItem(
+            20,
+            10,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+            QtWidgets.QSizePolicy.Policy.Fixed,
+        )
         self.verticalLayout_11.addItem(spacerItem14)
-        self.groupBox_settings_output = QtWidgets.QGroupBox(parent=self.tab_settings_control)
+        self.groupBox_settings_output = QtWidgets.QGroupBox(
+            parent=self.tab_settings_control
+        )
         self.groupBox_settings_output.setEnabled(True)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Preferred)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred,
+            QtWidgets.QSizePolicy.Policy.Preferred,
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.groupBox_settings_output.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.groupBox_settings_output.sizePolicy().hasHeightForWidth()
+        )
         self.groupBox_settings_output.setSizePolicy(sizePolicy)
         self.groupBox_settings_output.setFlat(True)
         self.groupBox_settings_output.setObjectName("groupBox_settings_output")
@@ -421,26 +702,41 @@ class Ui_MainWindow(object):
         self.verticalLayout_10.setObjectName("verticalLayout_10")
         self.horizontalLayout_6 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_6.setObjectName("horizontalLayout_6")
-        self.pushButton_newfile = QtWidgets.QPushButton(parent=self.groupBox_settings_output)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed)
+        self.pushButton_newfile = QtWidgets.QPushButton(
+            parent=self.groupBox_settings_output
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.pushButton_newfile.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.pushButton_newfile.sizePolicy().hasHeightForWidth()
+        )
         self.pushButton_newfile.setSizePolicy(sizePolicy)
         self.pushButton_newfile.setObjectName("pushButton_newfile")
         self.horizontalLayout_6.addWidget(self.pushButton_newfile)
-        self.pushButton_appendfile = QtWidgets.QPushButton(parent=self.groupBox_settings_output)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed)
+        self.pushButton_appendfile = QtWidgets.QPushButton(
+            parent=self.groupBox_settings_output
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.pushButton_appendfile.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.pushButton_appendfile.sizePolicy().hasHeightForWidth()
+        )
         self.pushButton_appendfile.setSizePolicy(sizePolicy)
         self.pushButton_appendfile.setObjectName("pushButton_appendfile")
         self.horizontalLayout_6.addWidget(self.pushButton_appendfile)
         self.verticalLayout_10.addLayout(self.horizontalLayout_6)
         self.verticalLayout_11.addWidget(self.groupBox_settings_output)
         self.groupBox_3 = QtWidgets.QGroupBox(parent=self.tab_settings_control)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Expanding)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred,
+            QtWidgets.QSizePolicy.Policy.Expanding,
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.groupBox_3.sizePolicy().hasHeightForWidth())
@@ -452,12 +748,20 @@ class Ui_MainWindow(object):
         self.verticalLayout_16.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_16.setSpacing(0)
         self.verticalLayout_16.setObjectName("verticalLayout_16")
-        self.plainTextEdit_settings_sampledescription = QtWidgets.QPlainTextEdit(parent=self.groupBox_3)
-        self.plainTextEdit_settings_sampledescription.setMaximumSize(QtCore.QSize(16777215, 16777215))
-        self.plainTextEdit_settings_sampledescription.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.SizeAdjustPolicy.AdjustIgnored)
+        self.plainTextEdit_settings_sampledescription = QtWidgets.QPlainTextEdit(
+            parent=self.groupBox_3
+        )
+        self.plainTextEdit_settings_sampledescription.setMaximumSize(
+            QtCore.QSize(16777215, 16777215)
+        )
+        self.plainTextEdit_settings_sampledescription.setSizeAdjustPolicy(
+            QtWidgets.QAbstractScrollArea.SizeAdjustPolicy.AdjustIgnored
+        )
         self.plainTextEdit_settings_sampledescription.setDocumentTitle("")
         self.plainTextEdit_settings_sampledescription.setPlainText("")
-        self.plainTextEdit_settings_sampledescription.setObjectName("plainTextEdit_settings_sampledescription")
+        self.plainTextEdit_settings_sampledescription.setObjectName(
+            "plainTextEdit_settings_sampledescription"
+        )
         self.verticalLayout_16.addWidget(self.plainTextEdit_settings_sampledescription)
         self.verticalLayout_11.addWidget(self.groupBox_3)
         self.groupBox_settings_harmonics.raise_()
@@ -468,77 +772,131 @@ class Ui_MainWindow(object):
         self.groupBox_3.raise_()
         self.tabWidget_settings.addTab(self.tab_settings_control, "")
         self.tab_settings_settings = QtWidgets.QWidget()
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Preferred)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred,
+            QtWidgets.QSizePolicy.Policy.Preferred,
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.tab_settings_settings.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.tab_settings_settings.sizePolicy().hasHeightForWidth()
+        )
         self.tab_settings_settings.setSizePolicy(sizePolicy)
         self.tab_settings_settings.setObjectName("tab_settings_settings")
         self.verticalLayout_14 = QtWidgets.QVBoxLayout(self.tab_settings_settings)
         self.verticalLayout_14.setContentsMargins(0, 6, 0, 0)
         self.verticalLayout_14.setSpacing(0)
         self.verticalLayout_14.setObjectName("verticalLayout_14")
-        self.groupBox_settings_settings_harm = QtWidgets.QGroupBox(parent=self.tab_settings_settings)
+        self.groupBox_settings_settings_harm = QtWidgets.QGroupBox(
+            parent=self.tab_settings_settings
+        )
         self.groupBox_settings_settings_harm.setFlat(True)
-        self.groupBox_settings_settings_harm.setObjectName("groupBox_settings_settings_harm")
-        self.verticalLayout_46 = QtWidgets.QVBoxLayout(self.groupBox_settings_settings_harm)
+        self.groupBox_settings_settings_harm.setObjectName(
+            "groupBox_settings_settings_harm"
+        )
+        self.verticalLayout_46 = QtWidgets.QVBoxLayout(
+            self.groupBox_settings_settings_harm
+        )
         self.verticalLayout_46.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_46.setSpacing(0)
         self.verticalLayout_46.setObjectName("verticalLayout_46")
-        self.tabWidget_settings_settings_samprefchn = QtWidgets.QTabWidget(parent=self.groupBox_settings_settings_harm)
+        self.tabWidget_settings_settings_samprefchn = QtWidgets.QTabWidget(
+            parent=self.groupBox_settings_settings_harm
+        )
         self.tabWidget_settings_settings_samprefchn.setEnabled(True)
-        self.tabWidget_settings_settings_samprefchn.setMaximumSize(QtCore.QSize(16777215, 21))
+        self.tabWidget_settings_settings_samprefchn.setMaximumSize(
+            QtCore.QSize(16777215, 21)
+        )
         self.tabWidget_settings_settings_samprefchn.setDocumentMode(False)
         self.tabWidget_settings_settings_samprefchn.setTabBarAutoHide(False)
-        self.tabWidget_settings_settings_samprefchn.setObjectName("tabWidget_settings_settings_samprefchn")
+        self.tabWidget_settings_settings_samprefchn.setObjectName(
+            "tabWidget_settings_settings_samprefchn"
+        )
         self.tab_settings_settings_harmchnsamp = QtWidgets.QWidget()
-        self.tab_settings_settings_harmchnsamp.setObjectName("tab_settings_settings_harmchnsamp")
-        self.tabWidget_settings_settings_samprefchn.addTab(self.tab_settings_settings_harmchnsamp, "")
+        self.tab_settings_settings_harmchnsamp.setObjectName(
+            "tab_settings_settings_harmchnsamp"
+        )
+        self.tabWidget_settings_settings_samprefchn.addTab(
+            self.tab_settings_settings_harmchnsamp, ""
+        )
         self.tab_settings_settings_harmchnref = QtWidgets.QWidget()
-        self.tab_settings_settings_harmchnref.setObjectName("tab_settings_settings_harmchnref")
-        self.tabWidget_settings_settings_samprefchn.addTab(self.tab_settings_settings_harmchnref, "")
+        self.tab_settings_settings_harmchnref.setObjectName(
+            "tab_settings_settings_harmchnref"
+        )
+        self.tabWidget_settings_settings_samprefchn.addTab(
+            self.tab_settings_settings_harmchnref, ""
+        )
         self.tab_settings_settings_harmchnrefit = QtWidgets.QWidget()
-        self.tab_settings_settings_harmchnrefit.setObjectName("tab_settings_settings_harmchnrefit")
-        self.tabWidget_settings_settings_samprefchn.addTab(self.tab_settings_settings_harmchnrefit, "")
+        self.tab_settings_settings_harmchnrefit.setObjectName(
+            "tab_settings_settings_harmchnrefit"
+        )
+        self.tabWidget_settings_settings_samprefchn.addTab(
+            self.tab_settings_settings_harmchnrefit, ""
+        )
         self.verticalLayout_46.addWidget(self.tabWidget_settings_settings_samprefchn)
-        self.tabWidget_settings_settings_harm = QtWidgets.QTabWidget(parent=self.groupBox_settings_settings_harm)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Fixed)
+        self.tabWidget_settings_settings_harm = QtWidgets.QTabWidget(
+            parent=self.groupBox_settings_settings_harm
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.tabWidget_settings_settings_harm.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.tabWidget_settings_settings_harm.sizePolicy().hasHeightForWidth()
+        )
         self.tabWidget_settings_settings_harm.setSizePolicy(sizePolicy)
         self.tabWidget_settings_settings_harm.setMaximumSize(QtCore.QSize(16777215, 21))
-        self.tabWidget_settings_settings_harm.setTabShape(QtWidgets.QTabWidget.TabShape.Rounded)
+        self.tabWidget_settings_settings_harm.setTabShape(
+            QtWidgets.QTabWidget.TabShape.Rounded
+        )
         self.tabWidget_settings_settings_harm.setIconSize(QtCore.QSize(16, 16))
         self.tabWidget_settings_settings_harm.setUsesScrollButtons(True)
         self.tabWidget_settings_settings_harm.setDocumentMode(False)
         self.tabWidget_settings_settings_harm.setTabsClosable(False)
         self.tabWidget_settings_settings_harm.setTabBarAutoHide(True)
-        self.tabWidget_settings_settings_harm.setObjectName("tabWidget_settings_settings_harm")
+        self.tabWidget_settings_settings_harm.setObjectName(
+            "tabWidget_settings_settings_harm"
+        )
         self.tab_settings_settings_harm1 = QtWidgets.QWidget()
         self.tab_settings_settings_harm1.setObjectName("tab_settings_settings_harm1")
         self.verticalLayout_18 = QtWidgets.QVBoxLayout(self.tab_settings_settings_harm1)
         self.verticalLayout_18.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_18.setSpacing(0)
         self.verticalLayout_18.setObjectName("verticalLayout_18")
-        self.tabWidget_settings_settings_harm.addTab(self.tab_settings_settings_harm1, "")
+        self.tabWidget_settings_settings_harm.addTab(
+            self.tab_settings_settings_harm1, ""
+        )
         self.verticalLayout_46.addWidget(self.tabWidget_settings_settings_harm)
-        self.treeWidget_settings_settings_harmtree = QtWidgets.QTreeWidget(parent=self.groupBox_settings_settings_harm)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Preferred)
+        self.treeWidget_settings_settings_harmtree = QtWidgets.QTreeWidget(
+            parent=self.groupBox_settings_settings_harm
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Expanding,
+            QtWidgets.QSizePolicy.Policy.Preferred,
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.treeWidget_settings_settings_harmtree.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.treeWidget_settings_settings_harmtree.sizePolicy().hasHeightForWidth()
+        )
         self.treeWidget_settings_settings_harmtree.setSizePolicy(sizePolicy)
         self.treeWidget_settings_settings_harmtree.setAutoFillBackground(False)
-        self.treeWidget_settings_settings_harmtree.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.treeWidget_settings_settings_harmtree.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents)
+        self.treeWidget_settings_settings_harmtree.setVerticalScrollBarPolicy(
+            QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        )
+        self.treeWidget_settings_settings_harmtree.setSizeAdjustPolicy(
+            QtWidgets.QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents
+        )
         self.treeWidget_settings_settings_harmtree.setAlternatingRowColors(True)
         self.treeWidget_settings_settings_harmtree.setIndentation(6)
         self.treeWidget_settings_settings_harmtree.setRootIsDecorated(True)
         self.treeWidget_settings_settings_harmtree.setAllColumnsShowFocus(False)
         self.treeWidget_settings_settings_harmtree.setWordWrap(False)
         self.treeWidget_settings_settings_harmtree.setExpandsOnDoubleClick(True)
-        self.treeWidget_settings_settings_harmtree.setObjectName("treeWidget_settings_settings_harmtree")
+        self.treeWidget_settings_settings_harmtree.setObjectName(
+            "treeWidget_settings_settings_harmtree"
+        )
         item_0 = QtWidgets.QTreeWidgetItem(self.treeWidget_settings_settings_harmtree)
         item_1 = QtWidgets.QTreeWidgetItem(item_0)
         item_1 = QtWidgets.QTreeWidgetItem(item_0)
@@ -559,30 +917,54 @@ class Ui_MainWindow(object):
         self.treeWidget_settings_settings_harmtree.header().setMinimumSectionSize(110)
         self.verticalLayout_46.addWidget(self.treeWidget_settings_settings_harmtree)
         self.verticalLayout_14.addWidget(self.groupBox_settings_settings_harm)
-        spacerItem15 = QtWidgets.QSpacerItem(20, 10, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed)
+        spacerItem15 = QtWidgets.QSpacerItem(
+            20,
+            10,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+            QtWidgets.QSizePolicy.Policy.Fixed,
+        )
         self.verticalLayout_14.addItem(spacerItem15)
         self.toolBox = QtWidgets.QToolBox(parent=self.tab_settings_settings)
         self.toolBox.setObjectName("toolBox")
         self.page_settings_settings_hardwares = QtWidgets.QWidget()
         self.page_settings_settings_hardwares.setGeometry(QtCore.QRect(0, 0, 377, 225))
-        self.page_settings_settings_hardwares.setObjectName("page_settings_settings_hardwares")
-        self.verticalLayout = QtWidgets.QVBoxLayout(self.page_settings_settings_hardwares)
+        self.page_settings_settings_hardwares.setObjectName(
+            "page_settings_settings_hardwares"
+        )
+        self.verticalLayout = QtWidgets.QVBoxLayout(
+            self.page_settings_settings_hardwares
+        )
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout.setSpacing(0)
         self.verticalLayout.setObjectName("verticalLayout")
-        self.treeWidget_settings_settings_hardware = QtWidgets.QTreeWidget(parent=self.page_settings_settings_hardwares)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Preferred)
+        self.treeWidget_settings_settings_hardware = QtWidgets.QTreeWidget(
+            parent=self.page_settings_settings_hardwares
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Expanding,
+            QtWidgets.QSizePolicy.Policy.Preferred,
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.treeWidget_settings_settings_hardware.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.treeWidget_settings_settings_hardware.sizePolicy().hasHeightForWidth()
+        )
         self.treeWidget_settings_settings_hardware.setSizePolicy(sizePolicy)
-        self.treeWidget_settings_settings_hardware.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.treeWidget_settings_settings_hardware.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.treeWidget_settings_settings_hardware.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents)
+        self.treeWidget_settings_settings_hardware.setVerticalScrollBarPolicy(
+            QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        )
+        self.treeWidget_settings_settings_hardware.setHorizontalScrollBarPolicy(
+            QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        )
+        self.treeWidget_settings_settings_hardware.setSizeAdjustPolicy(
+            QtWidgets.QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents
+        )
         self.treeWidget_settings_settings_hardware.setAlternatingRowColors(True)
         self.treeWidget_settings_settings_hardware.setIndentation(6)
         self.treeWidget_settings_settings_hardware.setRootIsDecorated(True)
-        self.treeWidget_settings_settings_hardware.setObjectName("treeWidget_settings_settings_hardware")
+        self.treeWidget_settings_settings_hardware.setObjectName(
+            "treeWidget_settings_settings_hardware"
+        )
         item_0 = QtWidgets.QTreeWidgetItem(self.treeWidget_settings_settings_hardware)
         item_0 = QtWidgets.QTreeWidgetItem(self.treeWidget_settings_settings_hardware)
         item_1 = QtWidgets.QTreeWidgetItem(item_0)
@@ -597,7 +979,9 @@ class Ui_MainWindow(object):
         item_1 = QtWidgets.QTreeWidgetItem(item_0)
         item_1 = QtWidgets.QTreeWidgetItem(item_0)
         self.treeWidget_settings_settings_hardware.header().setVisible(False)
-        self.treeWidget_settings_settings_hardware.header().setCascadingSectionResizes(True)
+        self.treeWidget_settings_settings_hardware.header().setCascadingSectionResizes(
+            True
+        )
         self.treeWidget_settings_settings_hardware.header().setDefaultSectionSize(125)
         self.treeWidget_settings_settings_hardware.header().setMinimumSectionSize(125)
         self.verticalLayout.addWidget(self.treeWidget_settings_settings_hardware)
@@ -605,22 +989,39 @@ class Ui_MainWindow(object):
         self.page_settings_settings_plots = QtWidgets.QWidget()
         self.page_settings_settings_plots.setGeometry(QtCore.QRect(0, 0, 83, 71))
         self.page_settings_settings_plots.setObjectName("page_settings_settings_plots")
-        self.verticalLayout_24 = QtWidgets.QVBoxLayout(self.page_settings_settings_plots)
+        self.verticalLayout_24 = QtWidgets.QVBoxLayout(
+            self.page_settings_settings_plots
+        )
         self.verticalLayout_24.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_24.setSpacing(0)
         self.verticalLayout_24.setObjectName("verticalLayout_24")
-        self.treeWidget_settings_settings_plots = QtWidgets.QTreeWidget(parent=self.page_settings_settings_plots)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Preferred)
+        self.treeWidget_settings_settings_plots = QtWidgets.QTreeWidget(
+            parent=self.page_settings_settings_plots
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Expanding,
+            QtWidgets.QSizePolicy.Policy.Preferred,
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.treeWidget_settings_settings_plots.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.treeWidget_settings_settings_plots.sizePolicy().hasHeightForWidth()
+        )
         self.treeWidget_settings_settings_plots.setSizePolicy(sizePolicy)
-        self.treeWidget_settings_settings_plots.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.treeWidget_settings_settings_plots.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.treeWidget_settings_settings_plots.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents)
+        self.treeWidget_settings_settings_plots.setVerticalScrollBarPolicy(
+            QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        )
+        self.treeWidget_settings_settings_plots.setHorizontalScrollBarPolicy(
+            QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        )
+        self.treeWidget_settings_settings_plots.setSizeAdjustPolicy(
+            QtWidgets.QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents
+        )
         self.treeWidget_settings_settings_plots.setAlternatingRowColors(True)
         self.treeWidget_settings_settings_plots.setIndentation(6)
-        self.treeWidget_settings_settings_plots.setObjectName("treeWidget_settings_settings_plots")
+        self.treeWidget_settings_settings_plots.setObjectName(
+            "treeWidget_settings_settings_plots"
+        )
         item_0 = QtWidgets.QTreeWidgetItem(self.treeWidget_settings_settings_plots)
         item_1 = QtWidgets.QTreeWidgetItem(item_0)
         item_1 = QtWidgets.QTreeWidgetItem(item_0)
@@ -633,25 +1034,44 @@ class Ui_MainWindow(object):
         self.verticalLayout_24.addWidget(self.treeWidget_settings_settings_plots)
         self.toolBox.addItem(self.page_settings_settings_plots, "")
         self.verticalLayout_14.addWidget(self.toolBox)
-        spacerItem16 = QtWidgets.QSpacerItem(20, 10, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed)
+        spacerItem16 = QtWidgets.QSpacerItem(
+            20,
+            10,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+            QtWidgets.QSizePolicy.Policy.Fixed,
+        )
         self.verticalLayout_14.addItem(spacerItem16)
-        self.pushButton_settings_harm_cntr = QtWidgets.QPushButton(parent=self.tab_settings_settings)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed)
+        self.pushButton_settings_harm_cntr = QtWidgets.QPushButton(
+            parent=self.tab_settings_settings
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.pushButton_settings_harm_cntr.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.pushButton_settings_harm_cntr.sizePolicy().hasHeightForWidth()
+        )
         self.pushButton_settings_harm_cntr.setSizePolicy(sizePolicy)
-        self.pushButton_settings_harm_cntr.setObjectName("pushButton_settings_harm_cntr")
+        self.pushButton_settings_harm_cntr.setObjectName(
+            "pushButton_settings_harm_cntr"
+        )
         self.verticalLayout_14.addWidget(self.pushButton_settings_harm_cntr)
-        self.lineEdit_scan_harmstart = QtWidgets.QLineEdit(parent=self.tab_settings_settings)
+        self.lineEdit_scan_harmstart = QtWidgets.QLineEdit(
+            parent=self.tab_settings_settings
+        )
         self.lineEdit_scan_harmstart.setMaximumSize(QtCore.QSize(16777215, 18))
         self.lineEdit_scan_harmstart.setObjectName("lineEdit_scan_harmstart")
         self.verticalLayout_14.addWidget(self.lineEdit_scan_harmstart)
-        self.lineEdit_scan_harmend = QtWidgets.QLineEdit(parent=self.tab_settings_settings)
+        self.lineEdit_scan_harmend = QtWidgets.QLineEdit(
+            parent=self.tab_settings_settings
+        )
         self.lineEdit_scan_harmend.setMaximumSize(QtCore.QSize(16777215, 18))
         self.lineEdit_scan_harmend.setObjectName("lineEdit_scan_harmend")
         self.verticalLayout_14.addWidget(self.lineEdit_scan_harmend)
-        self.lineEdit_scan_harmsteps = QtWidgets.QLineEdit(parent=self.tab_settings_settings)
+        self.lineEdit_scan_harmsteps = QtWidgets.QLineEdit(
+            parent=self.tab_settings_settings
+        )
         self.lineEdit_scan_harmsteps.setMaximumSize(QtCore.QSize(16777215, 18))
         self.lineEdit_scan_harmsteps.setObjectName("lineEdit_scan_harmsteps")
         self.verticalLayout_14.addWidget(self.lineEdit_scan_harmsteps)
@@ -660,17 +1080,23 @@ class Ui_MainWindow(object):
         self.checkBox_harmfit.setText("")
         self.checkBox_harmfit.setObjectName("checkBox_harmfit")
         self.verticalLayout_14.addWidget(self.checkBox_harmfit)
-        self.spinBox_harmfitfactor = QtWidgets.QSpinBox(parent=self.tab_settings_settings)
+        self.spinBox_harmfitfactor = QtWidgets.QSpinBox(
+            parent=self.tab_settings_settings
+        )
         self.spinBox_harmfitfactor.setMinimum(1)
         self.spinBox_harmfitfactor.setMaximum(10)
         self.spinBox_harmfitfactor.setProperty("value", 3)
         self.spinBox_harmfitfactor.setObjectName("spinBox_harmfitfactor")
         self.verticalLayout_14.addWidget(self.spinBox_harmfitfactor)
-        self.lineEdit_peaks_threshold = QtWidgets.QLineEdit(parent=self.tab_settings_settings)
+        self.lineEdit_peaks_threshold = QtWidgets.QLineEdit(
+            parent=self.tab_settings_settings
+        )
         self.lineEdit_peaks_threshold.setMaximumSize(QtCore.QSize(16777215, 18))
         self.lineEdit_peaks_threshold.setObjectName("lineEdit_peaks_threshold")
         self.verticalLayout_14.addWidget(self.lineEdit_peaks_threshold)
-        self.lineEdit_peaks_prominence = QtWidgets.QLineEdit(parent=self.tab_settings_settings)
+        self.lineEdit_peaks_prominence = QtWidgets.QLineEdit(
+            parent=self.tab_settings_settings
+        )
         self.lineEdit_peaks_prominence.setMaximumSize(QtCore.QSize(16777215, 18))
         self.lineEdit_peaks_prominence.setObjectName("lineEdit_peaks_prominence")
         self.verticalLayout_14.addWidget(self.lineEdit_peaks_prominence)
@@ -683,15 +1109,21 @@ class Ui_MainWindow(object):
         self.horizontalLayout_7.setSpacing(2)
         self.horizontalLayout_7.setObjectName("horizontalLayout_7")
         self.spinBox_peaks_num = QtWidgets.QSpinBox(parent=self.frame_peaks_num)
-        self.spinBox_peaks_num.setButtonSymbols(QtWidgets.QAbstractSpinBox.ButtonSymbols.UpDownArrows)
+        self.spinBox_peaks_num.setButtonSymbols(
+            QtWidgets.QAbstractSpinBox.ButtonSymbols.UpDownArrows
+        )
         self.spinBox_peaks_num.setMinimum(1)
         self.spinBox_peaks_num.setMaximum(5)
         self.spinBox_peaks_num.setObjectName("spinBox_peaks_num")
         self.horizontalLayout_7.addWidget(self.spinBox_peaks_num)
-        self.radioButton_peaks_num_max = QtWidgets.QRadioButton(parent=self.frame_peaks_num)
+        self.radioButton_peaks_num_max = QtWidgets.QRadioButton(
+            parent=self.frame_peaks_num
+        )
         self.radioButton_peaks_num_max.setObjectName("radioButton_peaks_num_max")
         self.horizontalLayout_7.addWidget(self.radioButton_peaks_num_max)
-        self.radioButton_peaks_num_fixed = QtWidgets.QRadioButton(parent=self.frame_peaks_num)
+        self.radioButton_peaks_num_fixed = QtWidgets.QRadioButton(
+            parent=self.frame_peaks_num
+        )
         self.radioButton_peaks_num_fixed.setObjectName("radioButton_peaks_num_fixed")
         self.horizontalLayout_7.addWidget(self.radioButton_peaks_num_fixed)
         self.verticalLayout_14.addWidget(self.frame_peaks_num)
@@ -703,142 +1135,245 @@ class Ui_MainWindow(object):
         self.horizontalLayout_29.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout_29.setSpacing(2)
         self.horizontalLayout_29.setObjectName("horizontalLayout_29")
-        self.radioButton_peaks_policy_minf = QtWidgets.QRadioButton(parent=self.frame_peaks_policy)
-        self.radioButton_peaks_policy_minf.setObjectName("radioButton_peaks_policy_minf")
+        self.radioButton_peaks_policy_minf = QtWidgets.QRadioButton(
+            parent=self.frame_peaks_policy
+        )
+        self.radioButton_peaks_policy_minf.setObjectName(
+            "radioButton_peaks_policy_minf"
+        )
         self.horizontalLayout_29.addWidget(self.radioButton_peaks_policy_minf)
-        self.radioButton_peaks_policy_maxamp = QtWidgets.QRadioButton(parent=self.frame_peaks_policy)
-        self.radioButton_peaks_policy_maxamp.setObjectName("radioButton_peaks_policy_maxamp")
+        self.radioButton_peaks_policy_maxamp = QtWidgets.QRadioButton(
+            parent=self.frame_peaks_policy
+        )
+        self.radioButton_peaks_policy_maxamp.setObjectName(
+            "radioButton_peaks_policy_maxamp"
+        )
         self.horizontalLayout_29.addWidget(self.radioButton_peaks_policy_maxamp)
-        self.spinBox_peaks_policy_peakidx = QtWidgets.QSpinBox(parent=self.frame_peaks_policy)
-        self.spinBox_peaks_policy_peakidx.setButtonSymbols(QtWidgets.QAbstractSpinBox.ButtonSymbols.NoButtons)
+        self.spinBox_peaks_policy_peakidx = QtWidgets.QSpinBox(
+            parent=self.frame_peaks_policy
+        )
+        self.spinBox_peaks_policy_peakidx.setButtonSymbols(
+            QtWidgets.QAbstractSpinBox.ButtonSymbols.NoButtons
+        )
         self.spinBox_peaks_policy_peakidx.setMinimum(-1)
         self.spinBox_peaks_policy_peakidx.setMaximum(4)
         self.spinBox_peaks_policy_peakidx.setObjectName("spinBox_peaks_policy_peakidx")
         self.horizontalLayout_29.addWidget(self.spinBox_peaks_policy_peakidx)
         self.verticalLayout_14.addWidget(self.frame_peaks_policy)
-        self.checkBox_settings_temp_sensor = QtWidgets.QCheckBox(parent=self.tab_settings_settings)
-        self.checkBox_settings_temp_sensor.setObjectName("checkBox_settings_temp_sensor")
+        self.checkBox_settings_temp_sensor = QtWidgets.QCheckBox(
+            parent=self.tab_settings_settings
+        )
+        self.checkBox_settings_temp_sensor.setObjectName(
+            "checkBox_settings_temp_sensor"
+        )
         self.verticalLayout_14.addWidget(self.checkBox_settings_temp_sensor)
         self.checkBox_linkx = QtWidgets.QCheckBox(parent=self.tab_settings_settings)
         self.checkBox_linkx.setText("")
         self.checkBox_linkx.setObjectName("checkBox_linkx")
         self.verticalLayout_14.addWidget(self.checkBox_linkx)
-        self.frame_settings_settings_harmphase = QtWidgets.QFrame(parent=self.tab_settings_settings)
-        self.frame_settings_settings_harmphase.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
-        self.frame_settings_settings_harmphase.setFrameShadow(QtWidgets.QFrame.Shadow.Raised)
+        self.frame_settings_settings_harmphase = QtWidgets.QFrame(
+            parent=self.tab_settings_settings
+        )
+        self.frame_settings_settings_harmphase.setFrameShape(
+            QtWidgets.QFrame.Shape.NoFrame
+        )
+        self.frame_settings_settings_harmphase.setFrameShadow(
+            QtWidgets.QFrame.Shadow.Raised
+        )
         self.frame_settings_settings_harmphase.setLineWidth(1)
-        self.frame_settings_settings_harmphase.setObjectName("frame_settings_settings_harmphase")
-        self.horizontalLayout_18 = QtWidgets.QHBoxLayout(self.frame_settings_settings_harmphase)
+        self.frame_settings_settings_harmphase.setObjectName(
+            "frame_settings_settings_harmphase"
+        )
+        self.horizontalLayout_18 = QtWidgets.QHBoxLayout(
+            self.frame_settings_settings_harmphase
+        )
         self.horizontalLayout_18.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout_18.setSpacing(0)
         self.horizontalLayout_18.setObjectName("horizontalLayout_18")
-        self.checkBox_settings_settings_harmlockphase = QtWidgets.QCheckBox(parent=self.frame_settings_settings_harmphase)
+        self.checkBox_settings_settings_harmlockphase = QtWidgets.QCheckBox(
+            parent=self.frame_settings_settings_harmphase
+        )
         self.checkBox_settings_settings_harmlockphase.setEnabled(True)
-        self.checkBox_settings_settings_harmlockphase.setObjectName("checkBox_settings_settings_harmlockphase")
-        self.horizontalLayout_18.addWidget(self.checkBox_settings_settings_harmlockphase)
-        self.doubleSpinBox_settings_settings_harmlockphase = QtWidgets.QDoubleSpinBox(parent=self.frame_settings_settings_harmphase)
-        self.doubleSpinBox_settings_settings_harmlockphase.setButtonSymbols(QtWidgets.QAbstractSpinBox.ButtonSymbols.NoButtons)
+        self.checkBox_settings_settings_harmlockphase.setObjectName(
+            "checkBox_settings_settings_harmlockphase"
+        )
+        self.horizontalLayout_18.addWidget(
+            self.checkBox_settings_settings_harmlockphase
+        )
+        self.doubleSpinBox_settings_settings_harmlockphase = QtWidgets.QDoubleSpinBox(
+            parent=self.frame_settings_settings_harmphase
+        )
+        self.doubleSpinBox_settings_settings_harmlockphase.setButtonSymbols(
+            QtWidgets.QAbstractSpinBox.ButtonSymbols.NoButtons
+        )
         self.doubleSpinBox_settings_settings_harmlockphase.setMinimum(-90.0)
         self.doubleSpinBox_settings_settings_harmlockphase.setMaximum(90.0)
         self.doubleSpinBox_settings_settings_harmlockphase.setSingleStep(0.1)
-        self.doubleSpinBox_settings_settings_harmlockphase.setObjectName("doubleSpinBox_settings_settings_harmlockphase")
-        self.horizontalLayout_18.addWidget(self.doubleSpinBox_settings_settings_harmlockphase)
+        self.doubleSpinBox_settings_settings_harmlockphase.setObjectName(
+            "doubleSpinBox_settings_settings_harmlockphase"
+        )
+        self.horizontalLayout_18.addWidget(
+            self.doubleSpinBox_settings_settings_harmlockphase
+        )
         self.verticalLayout_14.addWidget(self.frame_settings_settings_harmphase)
-        self.checkBox_activechn_samp = QtWidgets.QCheckBox(parent=self.tab_settings_settings)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed)
+        self.checkBox_activechn_samp = QtWidgets.QCheckBox(
+            parent=self.tab_settings_settings
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.checkBox_activechn_samp.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.checkBox_activechn_samp.sizePolicy().hasHeightForWidth()
+        )
         self.checkBox_activechn_samp.setSizePolicy(sizePolicy)
         self.checkBox_activechn_samp.setText("")
         self.checkBox_activechn_samp.setObjectName("checkBox_activechn_samp")
         self.verticalLayout_14.addWidget(self.checkBox_activechn_samp)
-        self.checkBox_activechn_ref = QtWidgets.QCheckBox(parent=self.tab_settings_settings)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed)
+        self.checkBox_activechn_ref = QtWidgets.QCheckBox(
+            parent=self.tab_settings_settings
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.checkBox_activechn_ref.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.checkBox_activechn_ref.sizePolicy().hasHeightForWidth()
+        )
         self.checkBox_activechn_ref.setSizePolicy(sizePolicy)
         self.checkBox_activechn_ref.setText("")
         self.checkBox_activechn_ref.setObjectName("checkBox_activechn_ref")
         self.verticalLayout_14.addWidget(self.checkBox_activechn_ref)
         self.label_status_f0RNG = QtWidgets.QLabel(parent=self.tab_settings_settings)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Preferred)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred,
+            QtWidgets.QSizePolicy.Policy.Preferred,
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.label_status_f0RNG.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.label_status_f0RNG.sizePolicy().hasHeightForWidth()
+        )
         self.label_status_f0RNG.setSizePolicy(sizePolicy)
         self.label_status_f0RNG.setMaximumSize(QtCore.QSize(16777215, 16777215))
         self.label_status_f0RNG.setObjectName("label_status_f0RNG")
         self.verticalLayout_14.addWidget(self.label_status_f0RNG)
-        self.pushButton_status_reftype = QtWidgets.QPushButton(parent=self.tab_settings_settings)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed)
+        self.pushButton_status_reftype = QtWidgets.QPushButton(
+            parent=self.tab_settings_settings
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.pushButton_status_reftype.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.pushButton_status_reftype.sizePolicy().hasHeightForWidth()
+        )
         self.pushButton_status_reftype.setSizePolicy(sizePolicy)
-        self.pushButton_status_reftype.setStyleSheet("#pushButton_status_reftype\n"
-"{\n"
-"background-color: transparent;\n"
-"background: none;\n"
-"border: none;\n"
-"}")
+        self.pushButton_status_reftype.setStyleSheet(
+            "#pushButton_status_reftype\n"
+            "{\n"
+            "background-color: transparent;\n"
+            "background: none;\n"
+            "border: none;\n"
+            "}"
+        )
         self.pushButton_status_reftype.setText("")
         icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap(":/icon/rc/ref_0.svg"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
+        icon1.addPixmap(
+            QtGui.QPixmap(":/icon/rc/ref_0.svg"),
+            QtGui.QIcon.Mode.Normal,
+            QtGui.QIcon.State.Off,
+        )
         self.pushButton_status_reftype.setIcon(icon1)
         self.pushButton_status_reftype.setFlat(True)
         self.pushButton_status_reftype.setObjectName("pushButton_status_reftype")
         self.verticalLayout_14.addWidget(self.pushButton_status_reftype)
-        self.progressBar_status_interval_time = QtWidgets.QProgressBar(parent=self.tab_settings_settings)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed)
+        self.progressBar_status_interval_time = QtWidgets.QProgressBar(
+            parent=self.tab_settings_settings
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.progressBar_status_interval_time.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.progressBar_status_interval_time.sizePolicy().hasHeightForWidth()
+        )
         self.progressBar_status_interval_time.setSizePolicy(sizePolicy)
         self.progressBar_status_interval_time.setMaximumSize(QtCore.QSize(80, 16777215))
         self.progressBar_status_interval_time.setProperty("value", 0)
         self.progressBar_status_interval_time.setInvertedAppearance(False)
         self.progressBar_status_interval_time.setFormat("")
-        self.progressBar_status_interval_time.setObjectName("progressBar_status_interval_time")
+        self.progressBar_status_interval_time.setObjectName(
+            "progressBar_status_interval_time"
+        )
         self.verticalLayout_14.addWidget(self.progressBar_status_interval_time)
-        self.pushButton_status_temp_sensor = QtWidgets.QPushButton(parent=self.tab_settings_settings)
+        self.pushButton_status_temp_sensor = QtWidgets.QPushButton(
+            parent=self.tab_settings_settings
+        )
         self.pushButton_status_temp_sensor.setEnabled(True)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.pushButton_status_temp_sensor.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.pushButton_status_temp_sensor.sizePolicy().hasHeightForWidth()
+        )
         self.pushButton_status_temp_sensor.setSizePolicy(sizePolicy)
         self.pushButton_status_temp_sensor.setMinimumSize(QtCore.QSize(16, 16))
-        self.pushButton_status_temp_sensor.setStyleSheet("#pushButton_status_temp_sensor\n"
-"{\n"
-"background-color: transparent;\n"
-"background: none;\n"
-"border: none;\n"
-"}\n"
-"")
+        self.pushButton_status_temp_sensor.setStyleSheet(
+            "#pushButton_status_temp_sensor\n"
+            "{\n"
+            "background-color: transparent;\n"
+            "background: none;\n"
+            "border: none;\n"
+            "}\n"
+            ""
+        )
         self.pushButton_status_temp_sensor.setText("")
         icon2 = QtGui.QIcon()
-        icon2.addPixmap(QtGui.QPixmap(":/icon/rc/temp_sensor_off.svg"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
+        icon2.addPixmap(
+            QtGui.QPixmap(":/icon/rc/temp_sensor_off.svg"),
+            QtGui.QIcon.Mode.Normal,
+            QtGui.QIcon.State.Off,
+        )
         self.pushButton_status_temp_sensor.setIcon(icon2)
         self.pushButton_status_temp_sensor.setFlat(True)
-        self.pushButton_status_temp_sensor.setObjectName("pushButton_status_temp_sensor")
+        self.pushButton_status_temp_sensor.setObjectName(
+            "pushButton_status_temp_sensor"
+        )
         self.verticalLayout_14.addWidget(self.pushButton_status_temp_sensor)
-        self.pushButton_status_signal_ch = QtWidgets.QPushButton(parent=self.tab_settings_settings)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed)
+        self.pushButton_status_signal_ch = QtWidgets.QPushButton(
+            parent=self.tab_settings_settings
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.pushButton_status_signal_ch.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.pushButton_status_signal_ch.sizePolicy().hasHeightForWidth()
+        )
         self.pushButton_status_signal_ch.setSizePolicy(sizePolicy)
-        self.pushButton_status_signal_ch.setStyleSheet("#pushButton_status_signal_ch\n"
-"{\n"
-"background-color: transparent;\n"
-"background: none;\n"
-"border: none;\n"
-"}")
+        self.pushButton_status_signal_ch.setStyleSheet(
+            "#pushButton_status_signal_ch\n"
+            "{\n"
+            "background-color: transparent;\n"
+            "background: none;\n"
+            "border: none;\n"
+            "}"
+        )
         self.pushButton_status_signal_ch.setText("")
         icon3 = QtGui.QIcon()
-        icon3.addPixmap(QtGui.QPixmap(":/icon/rc/signal_ch_off.svg"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
+        icon3.addPixmap(
+            QtGui.QPixmap(":/icon/rc/signal_ch_off.svg"),
+            QtGui.QIcon.Mode.Normal,
+            QtGui.QIcon.State.Off,
+        )
         self.pushButton_status_signal_ch.setIcon(icon3)
         self.pushButton_status_signal_ch.setFlat(True)
         self.pushButton_status_signal_ch.setObjectName("pushButton_status_signal_ch")
@@ -853,52 +1388,111 @@ class Ui_MainWindow(object):
         self.verticalLayout_52.setContentsMargins(0, 6, 0, 0)
         self.verticalLayout_52.setSpacing(6)
         self.verticalLayout_52.setObjectName("verticalLayout_52")
-        self.toolButton_settings_data_regenerate_from_raw = QtWidgets.QToolButton(parent=self.tab_settings_data)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed)
+        self.toolButton_settings_data_regenerate_from_raw = QtWidgets.QToolButton(
+            parent=self.tab_settings_data
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.toolButton_settings_data_regenerate_from_raw.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.toolButton_settings_data_regenerate_from_raw.sizePolicy().hasHeightForWidth()
+        )
         self.toolButton_settings_data_regenerate_from_raw.setSizePolicy(sizePolicy)
-        self.toolButton_settings_data_regenerate_from_raw.setMaximumSize(QtCore.QSize(16777215, 16777215))
-        self.toolButton_settings_data_regenerate_from_raw.setPopupMode(QtWidgets.QToolButton.ToolButtonPopupMode.InstantPopup)
-        self.toolButton_settings_data_regenerate_from_raw.setToolButtonStyle(QtCore.Qt.ToolButtonStyle.ToolButtonTextOnly)
+        self.toolButton_settings_data_regenerate_from_raw.setMaximumSize(
+            QtCore.QSize(16777215, 16777215)
+        )
+        self.toolButton_settings_data_regenerate_from_raw.setPopupMode(
+            QtWidgets.QToolButton.ToolButtonPopupMode.InstantPopup
+        )
+        self.toolButton_settings_data_regenerate_from_raw.setToolButtonStyle(
+            QtCore.Qt.ToolButtonStyle.ToolButtonTextOnly
+        )
         self.toolButton_settings_data_regenerate_from_raw.setAutoRaise(False)
-        self.toolButton_settings_data_regenerate_from_raw.setArrowType(QtCore.Qt.ArrowType.NoArrow)
-        self.toolButton_settings_data_regenerate_from_raw.setObjectName("toolButton_settings_data_regenerate_from_raw")
-        self.verticalLayout_52.addWidget(self.toolButton_settings_data_regenerate_from_raw)
-        self.groupBox_settings_data_settings = QtWidgets.QGroupBox(parent=self.tab_settings_data)
+        self.toolButton_settings_data_regenerate_from_raw.setArrowType(
+            QtCore.Qt.ArrowType.NoArrow
+        )
+        self.toolButton_settings_data_regenerate_from_raw.setObjectName(
+            "toolButton_settings_data_regenerate_from_raw"
+        )
+        self.verticalLayout_52.addWidget(
+            self.toolButton_settings_data_regenerate_from_raw
+        )
+        self.groupBox_settings_data_settings = QtWidgets.QGroupBox(
+            parent=self.tab_settings_data
+        )
         self.groupBox_settings_data_settings.setFlat(True)
-        self.groupBox_settings_data_settings.setObjectName("groupBox_settings_data_settings")
-        self.verticalLayout_33 = QtWidgets.QVBoxLayout(self.groupBox_settings_data_settings)
+        self.groupBox_settings_data_settings.setObjectName(
+            "groupBox_settings_data_settings"
+        )
+        self.verticalLayout_33 = QtWidgets.QVBoxLayout(
+            self.groupBox_settings_data_settings
+        )
         self.verticalLayout_33.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_33.setSpacing(6)
         self.verticalLayout_33.setObjectName("verticalLayout_33")
-        self.treeWidget_settings_data_refs = QtWidgets.QTreeWidget(parent=self.groupBox_settings_data_settings)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Preferred)
+        self.treeWidget_settings_data_refs = QtWidgets.QTreeWidget(
+            parent=self.groupBox_settings_data_settings
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Expanding,
+            QtWidgets.QSizePolicy.Policy.Preferred,
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.treeWidget_settings_data_refs.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.treeWidget_settings_data_refs.sizePolicy().hasHeightForWidth()
+        )
         self.treeWidget_settings_data_refs.setSizePolicy(sizePolicy)
-        self.treeWidget_settings_data_refs.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.treeWidget_settings_data_refs.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.treeWidget_settings_data_refs.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents)
+        self.treeWidget_settings_data_refs.setVerticalScrollBarPolicy(
+            QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        )
+        self.treeWidget_settings_data_refs.setHorizontalScrollBarPolicy(
+            QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        )
+        self.treeWidget_settings_data_refs.setSizeAdjustPolicy(
+            QtWidgets.QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents
+        )
         self.treeWidget_settings_data_refs.setAlternatingRowColors(True)
-        self.treeWidget_settings_data_refs.setTextElideMode(QtCore.Qt.TextElideMode.ElideRight)
+        self.treeWidget_settings_data_refs.setTextElideMode(
+            QtCore.Qt.TextElideMode.ElideRight
+        )
         self.treeWidget_settings_data_refs.setIndentation(6)
         self.treeWidget_settings_data_refs.setRootIsDecorated(True)
-        self.treeWidget_settings_data_refs.setObjectName("treeWidget_settings_data_refs")
+        self.treeWidget_settings_data_refs.setObjectName(
+            "treeWidget_settings_data_refs"
+        )
         item_0 = QtWidgets.QTreeWidgetItem(self.treeWidget_settings_data_refs)
         item_1 = QtWidgets.QTreeWidgetItem(item_0)
         item_1 = QtWidgets.QTreeWidgetItem(item_0)
-        item_1.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable|QtCore.Qt.ItemFlag.ItemIsEditable|QtCore.Qt.ItemFlag.ItemIsDragEnabled|QtCore.Qt.ItemFlag.ItemIsUserCheckable|QtCore.Qt.ItemFlag.ItemIsEnabled)
+        item_1.setFlags(
+            QtCore.Qt.ItemFlag.ItemIsSelectable
+            | QtCore.Qt.ItemFlag.ItemIsEditable
+            | QtCore.Qt.ItemFlag.ItemIsDragEnabled
+            | QtCore.Qt.ItemFlag.ItemIsUserCheckable
+            | QtCore.Qt.ItemFlag.ItemIsEnabled
+        )
         item_0 = QtWidgets.QTreeWidgetItem(self.treeWidget_settings_data_refs)
         item_1 = QtWidgets.QTreeWidgetItem(item_0)
         item_1 = QtWidgets.QTreeWidgetItem(item_0)
         item_0 = QtWidgets.QTreeWidgetItem(self.treeWidget_settings_data_refs)
         item_1 = QtWidgets.QTreeWidgetItem(item_0)
-        item_1.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable|QtCore.Qt.ItemFlag.ItemIsEditable|QtCore.Qt.ItemFlag.ItemIsDragEnabled|QtCore.Qt.ItemFlag.ItemIsUserCheckable|QtCore.Qt.ItemFlag.ItemIsEnabled)
+        item_1.setFlags(
+            QtCore.Qt.ItemFlag.ItemIsSelectable
+            | QtCore.Qt.ItemFlag.ItemIsEditable
+            | QtCore.Qt.ItemFlag.ItemIsDragEnabled
+            | QtCore.Qt.ItemFlag.ItemIsUserCheckable
+            | QtCore.Qt.ItemFlag.ItemIsEnabled
+        )
         item_1 = QtWidgets.QTreeWidgetItem(item_0)
-        item_1.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable|QtCore.Qt.ItemFlag.ItemIsEditable|QtCore.Qt.ItemFlag.ItemIsDragEnabled|QtCore.Qt.ItemFlag.ItemIsUserCheckable|QtCore.Qt.ItemFlag.ItemIsEnabled)
+        item_1.setFlags(
+            QtCore.Qt.ItemFlag.ItemIsSelectable
+            | QtCore.Qt.ItemFlag.ItemIsEditable
+            | QtCore.Qt.ItemFlag.ItemIsDragEnabled
+            | QtCore.Qt.ItemFlag.ItemIsUserCheckable
+            | QtCore.Qt.ItemFlag.ItemIsEnabled
+        )
         self.treeWidget_settings_data_refs.header().setVisible(False)
         self.treeWidget_settings_data_refs.header().setCascadingSectionResizes(True)
         self.treeWidget_settings_data_refs.header().setDefaultSectionSize(70)
@@ -917,41 +1511,75 @@ class Ui_MainWindow(object):
         self.frame_2 = QtWidgets.QHBoxLayout(self.frame_settings_data_marknpts)
         self.frame_2.setContentsMargins(0, 0, 0, 0)
         self.frame_2.setObjectName("frame_2")
-        self.label_settings_data_marknpts = QtWidgets.QLabel(parent=self.frame_settings_data_marknpts)
+        self.label_settings_data_marknpts = QtWidgets.QLabel(
+            parent=self.frame_settings_data_marknpts
+        )
         self.label_settings_data_marknpts.setObjectName("label_settings_data_marknpts")
         self.frame_2.addWidget(self.label_settings_data_marknpts)
-        self.spinBox_settings_data_marknpts = QtWidgets.QSpinBox(parent=self.frame_settings_data_marknpts)
-        self.spinBox_settings_data_marknpts.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        self.spinBox_settings_data_marknpts.setButtonSymbols(QtWidgets.QAbstractSpinBox.ButtonSymbols.NoButtons)
+        self.spinBox_settings_data_marknpts = QtWidgets.QSpinBox(
+            parent=self.frame_settings_data_marknpts
+        )
+        self.spinBox_settings_data_marknpts.setAlignment(
+            QtCore.Qt.AlignmentFlag.AlignCenter
+        )
+        self.spinBox_settings_data_marknpts.setButtonSymbols(
+            QtWidgets.QAbstractSpinBox.ButtonSymbols.NoButtons
+        )
         self.spinBox_settings_data_marknpts.setMaximum(10000)
-        self.spinBox_settings_data_marknpts.setObjectName("spinBox_settings_data_marknpts")
+        self.spinBox_settings_data_marknpts.setObjectName(
+            "spinBox_settings_data_marknpts"
+        )
         self.frame_2.addWidget(self.spinBox_settings_data_marknpts)
-        self.radioButton_settings_data_marklinear = QtWidgets.QRadioButton(parent=self.frame_settings_data_marknpts)
+        self.radioButton_settings_data_marklinear = QtWidgets.QRadioButton(
+            parent=self.frame_settings_data_marknpts
+        )
         self.radioButton_settings_data_marklinear.setChecked(True)
-        self.radioButton_settings_data_marklinear.setObjectName("radioButton_settings_data_marklinear")
+        self.radioButton_settings_data_marklinear.setObjectName(
+            "radioButton_settings_data_marklinear"
+        )
         self.frame_2.addWidget(self.radioButton_settings_data_marklinear)
-        self.radioButton_settings_data_marklog = QtWidgets.QRadioButton(parent=self.frame_settings_data_marknpts)
-        self.radioButton_settings_data_marklog.setObjectName("radioButton_settings_data_marklog")
+        self.radioButton_settings_data_marklog = QtWidgets.QRadioButton(
+            parent=self.frame_settings_data_marknpts
+        )
+        self.radioButton_settings_data_marklog.setObjectName(
+            "radioButton_settings_data_marklog"
+        )
         self.frame_2.addWidget(self.radioButton_settings_data_marklog)
-        self.comboBox_settings_data_marknptschn = QtWidgets.QComboBox(parent=self.frame_settings_data_marknpts)
-        self.comboBox_settings_data_marknptschn.setObjectName("comboBox_settings_data_marknptschn")
+        self.comboBox_settings_data_marknptschn = QtWidgets.QComboBox(
+            parent=self.frame_settings_data_marknpts
+        )
+        self.comboBox_settings_data_marknptschn.setObjectName(
+            "comboBox_settings_data_marknptschn"
+        )
         self.frame_2.addWidget(self.comboBox_settings_data_marknptschn)
-        self.pushButton_settings_data_marknpts = QtWidgets.QPushButton(parent=self.frame_settings_data_marknpts)
-        self.pushButton_settings_data_marknpts.setObjectName("pushButton_settings_data_marknpts")
+        self.pushButton_settings_data_marknpts = QtWidgets.QPushButton(
+            parent=self.frame_settings_data_marknpts
+        )
+        self.pushButton_settings_data_marknpts.setObjectName(
+            "pushButton_settings_data_marknpts"
+        )
         self.frame_2.addWidget(self.pushButton_settings_data_marknpts)
         self.verticalLayout_42.addWidget(self.frame_settings_data_marknpts)
         self.horizontalLayout_36 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_36.setObjectName("horizontalLayout_36")
-        self.tabWidget_settings_data_markindex = QtWidgets.QTabWidget(parent=self.groupBox)
-        self.tabWidget_settings_data_markindex.setObjectName("tabWidget_settings_data_markindex")
+        self.tabWidget_settings_data_markindex = QtWidgets.QTabWidget(
+            parent=self.groupBox
+        )
+        self.tabWidget_settings_data_markindex.setObjectName(
+            "tabWidget_settings_data_markindex"
+        )
         self.tab_sampmarks = QtWidgets.QWidget()
         self.tab_sampmarks.setObjectName("tab_sampmarks")
         self.verticalLayout_48 = QtWidgets.QVBoxLayout(self.tab_sampmarks)
         self.verticalLayout_48.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_48.setSpacing(0)
         self.verticalLayout_48.setObjectName("verticalLayout_48")
-        self.textEdit_settings_data_sampmarks = QtWidgets.QTextEdit(parent=self.tab_sampmarks)
-        self.textEdit_settings_data_sampmarks.setObjectName("textEdit_settings_data_sampmarks")
+        self.textEdit_settings_data_sampmarks = QtWidgets.QTextEdit(
+            parent=self.tab_sampmarks
+        )
+        self.textEdit_settings_data_sampmarks.setObjectName(
+            "textEdit_settings_data_sampmarks"
+        )
         self.verticalLayout_48.addWidget(self.textEdit_settings_data_sampmarks)
         self.tabWidget_settings_data_markindex.addTab(self.tab_sampmarks, "")
         self.tab_refmarks = QtWidgets.QWidget()
@@ -960,45 +1588,89 @@ class Ui_MainWindow(object):
         self.verticalLayout_49.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_49.setSpacing(0)
         self.verticalLayout_49.setObjectName("verticalLayout_49")
-        self.textEdit_settings_data_refmarks = QtWidgets.QTextEdit(parent=self.tab_refmarks)
-        self.textEdit_settings_data_refmarks.setObjectName("textEdit_settings_data_refmarks")
+        self.textEdit_settings_data_refmarks = QtWidgets.QTextEdit(
+            parent=self.tab_refmarks
+        )
+        self.textEdit_settings_data_refmarks.setObjectName(
+            "textEdit_settings_data_refmarks"
+        )
         self.verticalLayout_49.addWidget(self.textEdit_settings_data_refmarks)
         self.tabWidget_settings_data_markindex.addTab(self.tab_refmarks, "")
         self.horizontalLayout_36.addWidget(self.tabWidget_settings_data_markindex)
         self.verticalLayout_51 = QtWidgets.QVBoxLayout()
         self.verticalLayout_51.setObjectName("verticalLayout_51")
-        spacerItem17 = QtWidgets.QSpacerItem(10, 20, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed)
+        spacerItem17 = QtWidgets.QSpacerItem(
+            10,
+            20,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+            QtWidgets.QSizePolicy.Policy.Fixed,
+        )
         self.verticalLayout_51.addItem(spacerItem17)
         self.verticalLayout_50 = QtWidgets.QVBoxLayout()
         self.verticalLayout_50.setObjectName("verticalLayout_50")
-        self.pushButton_settings_data_marksadd = QtWidgets.QPushButton(parent=self.groupBox)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed)
+        self.pushButton_settings_data_marksadd = QtWidgets.QPushButton(
+            parent=self.groupBox
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.pushButton_settings_data_marksadd.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.pushButton_settings_data_marksadd.sizePolicy().hasHeightForWidth()
+        )
         self.pushButton_settings_data_marksadd.setSizePolicy(sizePolicy)
-        self.pushButton_settings_data_marksadd.setMaximumSize(QtCore.QSize(30, 16777215))
-        self.pushButton_settings_data_marksadd.setObjectName("pushButton_settings_data_marksadd")
+        self.pushButton_settings_data_marksadd.setMaximumSize(
+            QtCore.QSize(30, 16777215)
+        )
+        self.pushButton_settings_data_marksadd.setObjectName(
+            "pushButton_settings_data_marksadd"
+        )
         self.verticalLayout_50.addWidget(self.pushButton_settings_data_marksadd)
-        self.pushButton_settings_data_marksdel = QtWidgets.QPushButton(parent=self.groupBox)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed)
+        self.pushButton_settings_data_marksdel = QtWidgets.QPushButton(
+            parent=self.groupBox
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.pushButton_settings_data_marksdel.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.pushButton_settings_data_marksdel.sizePolicy().hasHeightForWidth()
+        )
         self.pushButton_settings_data_marksdel.setSizePolicy(sizePolicy)
-        self.pushButton_settings_data_marksdel.setMaximumSize(QtCore.QSize(30, 16777215))
-        self.pushButton_settings_data_marksdel.setObjectName("pushButton_settings_data_marksdel")
+        self.pushButton_settings_data_marksdel.setMaximumSize(
+            QtCore.QSize(30, 16777215)
+        )
+        self.pushButton_settings_data_marksdel.setObjectName(
+            "pushButton_settings_data_marksdel"
+        )
         self.verticalLayout_50.addWidget(self.pushButton_settings_data_marksdel)
-        self.pushButton_settings_data_marksclear = QtWidgets.QPushButton(parent=self.groupBox)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed)
+        self.pushButton_settings_data_marksclear = QtWidgets.QPushButton(
+            parent=self.groupBox
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.pushButton_settings_data_marksclear.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.pushButton_settings_data_marksclear.sizePolicy().hasHeightForWidth()
+        )
         self.pushButton_settings_data_marksclear.setSizePolicy(sizePolicy)
-        self.pushButton_settings_data_marksclear.setMaximumSize(QtCore.QSize(30, 16777215))
-        self.pushButton_settings_data_marksclear.setObjectName("pushButton_settings_data_marksclear")
+        self.pushButton_settings_data_marksclear.setMaximumSize(
+            QtCore.QSize(30, 16777215)
+        )
+        self.pushButton_settings_data_marksclear.setObjectName(
+            "pushButton_settings_data_marksclear"
+        )
         self.verticalLayout_50.addWidget(self.pushButton_settings_data_marksclear)
-        spacerItem18 = QtWidgets.QSpacerItem(20, 0, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Expanding)
+        spacerItem18 = QtWidgets.QSpacerItem(
+            20,
+            0,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+            QtWidgets.QSizePolicy.Policy.Expanding,
+        )
         self.verticalLayout_50.addItem(spacerItem18)
         self.verticalLayout_51.addLayout(self.verticalLayout_50)
         self.horizontalLayout_36.addLayout(self.verticalLayout_51)
@@ -1007,93 +1679,189 @@ class Ui_MainWindow(object):
         self.label_settings_data_t0 = QtWidgets.QLabel(parent=self.tab_settings_data)
         self.label_settings_data_t0.setObjectName("label_settings_data_t0")
         self.verticalLayout_52.addWidget(self.label_settings_data_t0)
-        self.dateTimeEdit_settings_data_t0shifted = QtWidgets.QDateTimeEdit(parent=self.tab_settings_data)
-        self.dateTimeEdit_settings_data_t0shifted.setObjectName("dateTimeEdit_settings_data_t0shifted")
+        self.dateTimeEdit_settings_data_t0shifted = QtWidgets.QDateTimeEdit(
+            parent=self.tab_settings_data
+        )
+        self.dateTimeEdit_settings_data_t0shifted.setObjectName(
+            "dateTimeEdit_settings_data_t0shifted"
+        )
         self.verticalLayout_52.addWidget(self.dateTimeEdit_settings_data_t0shifted)
-        self.lineEdit_settings_data_sampidx = QtWidgets.QLineEdit(parent=self.tab_settings_data)
-        self.lineEdit_settings_data_sampidx.setObjectName("lineEdit_settings_data_sampidx")
+        self.lineEdit_settings_data_sampidx = QtWidgets.QLineEdit(
+            parent=self.tab_settings_data
+        )
+        self.lineEdit_settings_data_sampidx.setObjectName(
+            "lineEdit_settings_data_sampidx"
+        )
         self.verticalLayout_52.addWidget(self.lineEdit_settings_data_sampidx)
-        self.lineEdit_settings_data_refidx = QtWidgets.QLineEdit(parent=self.tab_settings_data)
-        self.lineEdit_settings_data_refidx.setObjectName("lineEdit_settings_data_refidx")
+        self.lineEdit_settings_data_refidx = QtWidgets.QLineEdit(
+            parent=self.tab_settings_data
+        )
+        self.lineEdit_settings_data_refidx.setObjectName(
+            "lineEdit_settings_data_refidx"
+        )
         self.verticalLayout_52.addWidget(self.lineEdit_settings_data_refidx)
-        self.frame_settings_data_sampref = QtWidgets.QFrame(parent=self.tab_settings_data)
+        self.frame_settings_data_sampref = QtWidgets.QFrame(
+            parent=self.tab_settings_data
+        )
         self.frame_settings_data_sampref.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
         self.frame_settings_data_sampref.setFrameShadow(QtWidgets.QFrame.Shadow.Raised)
         self.frame_settings_data_sampref.setObjectName("frame_settings_data_sampref")
-        self.horizontalLayout_8 = QtWidgets.QHBoxLayout(self.frame_settings_data_sampref)
+        self.horizontalLayout_8 = QtWidgets.QHBoxLayout(
+            self.frame_settings_data_sampref
+        )
         self.horizontalLayout_8.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout_8.setSpacing(2)
         self.horizontalLayout_8.setObjectName("horizontalLayout_8")
-        self.comboBox_settings_data_samprefsource = QtWidgets.QComboBox(parent=self.frame_settings_data_sampref)
-        self.comboBox_settings_data_samprefsource.setSizeAdjustPolicy(QtWidgets.QComboBox.SizeAdjustPolicy.AdjustToContents)
-        self.comboBox_settings_data_samprefsource.setObjectName("comboBox_settings_data_samprefsource")
+        self.comboBox_settings_data_samprefsource = QtWidgets.QComboBox(
+            parent=self.frame_settings_data_sampref
+        )
+        self.comboBox_settings_data_samprefsource.setSizeAdjustPolicy(
+            QtWidgets.QComboBox.SizeAdjustPolicy.AdjustToContents
+        )
+        self.comboBox_settings_data_samprefsource.setObjectName(
+            "comboBox_settings_data_samprefsource"
+        )
         self.horizontalLayout_8.addWidget(self.comboBox_settings_data_samprefsource)
-        self.lineEdit_settings_data_samprefidx = QtWidgets.QLineEdit(parent=self.frame_settings_data_sampref)
-        self.lineEdit_settings_data_samprefidx.setObjectName("lineEdit_settings_data_samprefidx")
+        self.lineEdit_settings_data_samprefidx = QtWidgets.QLineEdit(
+            parent=self.frame_settings_data_sampref
+        )
+        self.lineEdit_settings_data_samprefidx.setObjectName(
+            "lineEdit_settings_data_samprefidx"
+        )
         self.horizontalLayout_8.addWidget(self.lineEdit_settings_data_samprefidx)
         self.verticalLayout_52.addWidget(self.frame_settings_data_sampref)
-        self.frame_settings_data_refref = QtWidgets.QFrame(parent=self.tab_settings_data)
+        self.frame_settings_data_refref = QtWidgets.QFrame(
+            parent=self.tab_settings_data
+        )
         self.frame_settings_data_refref.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
         self.frame_settings_data_refref.setFrameShadow(QtWidgets.QFrame.Shadow.Raised)
         self.frame_settings_data_refref.setObjectName("frame_settings_data_refref")
-        self.horizontalLayout_30 = QtWidgets.QHBoxLayout(self.frame_settings_data_refref)
+        self.horizontalLayout_30 = QtWidgets.QHBoxLayout(
+            self.frame_settings_data_refref
+        )
         self.horizontalLayout_30.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout_30.setSpacing(2)
         self.horizontalLayout_30.setObjectName("horizontalLayout_30")
-        self.comboBox_settings_data_refrefsource = QtWidgets.QComboBox(parent=self.frame_settings_data_refref)
-        self.comboBox_settings_data_refrefsource.setSizeAdjustPolicy(QtWidgets.QComboBox.SizeAdjustPolicy.AdjustToContents)
-        self.comboBox_settings_data_refrefsource.setObjectName("comboBox_settings_data_refrefsource")
+        self.comboBox_settings_data_refrefsource = QtWidgets.QComboBox(
+            parent=self.frame_settings_data_refref
+        )
+        self.comboBox_settings_data_refrefsource.setSizeAdjustPolicy(
+            QtWidgets.QComboBox.SizeAdjustPolicy.AdjustToContents
+        )
+        self.comboBox_settings_data_refrefsource.setObjectName(
+            "comboBox_settings_data_refrefsource"
+        )
         self.horizontalLayout_30.addWidget(self.comboBox_settings_data_refrefsource)
-        self.lineEdit_settings_data_refrefidx = QtWidgets.QLineEdit(parent=self.frame_settings_data_refref)
-        self.lineEdit_settings_data_refrefidx.setObjectName("lineEdit_settings_data_refrefidx")
+        self.lineEdit_settings_data_refrefidx = QtWidgets.QLineEdit(
+            parent=self.frame_settings_data_refref
+        )
+        self.lineEdit_settings_data_refrefidx.setObjectName(
+            "lineEdit_settings_data_refrefidx"
+        )
         self.horizontalLayout_30.addWidget(self.lineEdit_settings_data_refrefidx)
         self.verticalLayout_52.addWidget(self.frame_settings_data_refref)
-        self.pushButton_settings_data_resetshiftedt0 = QtWidgets.QPushButton(parent=self.tab_settings_data)
-        self.pushButton_settings_data_resetshiftedt0.setObjectName("pushButton_settings_data_resetshiftedt0")
+        self.pushButton_settings_data_resetshiftedt0 = QtWidgets.QPushButton(
+            parent=self.tab_settings_data
+        )
+        self.pushButton_settings_data_resetshiftedt0.setObjectName(
+            "pushButton_settings_data_resetshiftedt0"
+        )
         self.verticalLayout_52.addWidget(self.pushButton_settings_data_resetshiftedt0)
-        self.frame_settings_data_recalcref = QtWidgets.QFrame(parent=self.tab_settings_data)
+        self.frame_settings_data_recalcref = QtWidgets.QFrame(
+            parent=self.tab_settings_data
+        )
         self.frame_settings_data_recalcref.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
-        self.frame_settings_data_recalcref.setFrameShadow(QtWidgets.QFrame.Shadow.Raised)
-        self.frame_settings_data_recalcref.setObjectName("frame_settings_data_recalcref")
-        self.horizontalLayout_11 = QtWidgets.QHBoxLayout(self.frame_settings_data_recalcref)
+        self.frame_settings_data_recalcref.setFrameShadow(
+            QtWidgets.QFrame.Shadow.Raised
+        )
+        self.frame_settings_data_recalcref.setObjectName(
+            "frame_settings_data_recalcref"
+        )
+        self.horizontalLayout_11 = QtWidgets.QHBoxLayout(
+            self.frame_settings_data_recalcref
+        )
         self.horizontalLayout_11.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout_11.setSpacing(2)
         self.horizontalLayout_11.setObjectName("horizontalLayout_11")
-        self.label_settings_data_refdescription = QtWidgets.QLabel(parent=self.frame_settings_data_recalcref)
-        self.label_settings_data_refdescription.setObjectName("label_settings_data_refdescription")
+        self.label_settings_data_refdescription = QtWidgets.QLabel(
+            parent=self.frame_settings_data_recalcref
+        )
+        self.label_settings_data_refdescription.setObjectName(
+            "label_settings_data_refdescription"
+        )
         self.horizontalLayout_11.addWidget(self.label_settings_data_refdescription)
-        spacerItem19 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
+        spacerItem19 = QtWidgets.QSpacerItem(
+            40,
+            20,
+            QtWidgets.QSizePolicy.Policy.Expanding,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+        )
         self.horizontalLayout_11.addItem(spacerItem19)
-        self.pushButton_settings_data_recalcref = QtWidgets.QPushButton(parent=self.frame_settings_data_recalcref)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed)
+        self.pushButton_settings_data_recalcref = QtWidgets.QPushButton(
+            parent=self.frame_settings_data_recalcref
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.pushButton_settings_data_recalcref.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.pushButton_settings_data_recalcref.sizePolicy().hasHeightForWidth()
+        )
         self.pushButton_settings_data_recalcref.setSizePolicy(sizePolicy)
-        self.pushButton_settings_data_recalcref.setObjectName("pushButton_settings_data_recalcref")
+        self.pushButton_settings_data_recalcref.setObjectName(
+            "pushButton_settings_data_recalcref"
+        )
         self.horizontalLayout_11.addWidget(self.pushButton_settings_data_recalcref)
         self.verticalLayout_52.addWidget(self.frame_settings_data_recalcref)
-        self.frame_settings_data_tempref = QtWidgets.QFrame(parent=self.tab_settings_data)
-        self.frame_settings_data_tempref.setFrameShape(QtWidgets.QFrame.Shape.StyledPanel)
+        self.frame_settings_data_tempref = QtWidgets.QFrame(
+            parent=self.tab_settings_data
+        )
+        self.frame_settings_data_tempref.setFrameShape(
+            QtWidgets.QFrame.Shape.StyledPanel
+        )
         self.frame_settings_data_tempref.setFrameShadow(QtWidgets.QFrame.Shadow.Raised)
         self.frame_settings_data_tempref.setObjectName("frame_settings_data_tempref")
-        self.horizontalLayout_17 = QtWidgets.QHBoxLayout(self.frame_settings_data_tempref)
+        self.horizontalLayout_17 = QtWidgets.QHBoxLayout(
+            self.frame_settings_data_tempref
+        )
         self.horizontalLayout_17.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout_17.setSpacing(2)
         self.horizontalLayout_17.setObjectName("horizontalLayout_17")
-        self.comboBox_settings_data_ref_crystmode = QtWidgets.QComboBox(parent=self.frame_settings_data_tempref)
-        self.comboBox_settings_data_ref_crystmode.setSizeAdjustPolicy(QtWidgets.QComboBox.SizeAdjustPolicy.AdjustToContents)
-        self.comboBox_settings_data_ref_crystmode.setObjectName("comboBox_settings_data_ref_crystmode")
+        self.comboBox_settings_data_ref_crystmode = QtWidgets.QComboBox(
+            parent=self.frame_settings_data_tempref
+        )
+        self.comboBox_settings_data_ref_crystmode.setSizeAdjustPolicy(
+            QtWidgets.QComboBox.SizeAdjustPolicy.AdjustToContents
+        )
+        self.comboBox_settings_data_ref_crystmode.setObjectName(
+            "comboBox_settings_data_ref_crystmode"
+        )
         self.horizontalLayout_17.addWidget(self.comboBox_settings_data_ref_crystmode)
-        self.comboBox_settings_data_ref_tempmode = QtWidgets.QComboBox(parent=self.frame_settings_data_tempref)
-        self.comboBox_settings_data_ref_tempmode.setObjectName("comboBox_settings_data_ref_tempmode")
+        self.comboBox_settings_data_ref_tempmode = QtWidgets.QComboBox(
+            parent=self.frame_settings_data_tempref
+        )
+        self.comboBox_settings_data_ref_tempmode.setObjectName(
+            "comboBox_settings_data_ref_tempmode"
+        )
         self.horizontalLayout_17.addWidget(self.comboBox_settings_data_ref_tempmode)
-        self.comboBox_settings_data_ref_fitttype = QtWidgets.QComboBox(parent=self.frame_settings_data_tempref)
-        self.comboBox_settings_data_ref_fitttype.setSizeAdjustPolicy(QtWidgets.QComboBox.SizeAdjustPolicy.AdjustToContents)
-        self.comboBox_settings_data_ref_fitttype.setObjectName("comboBox_settings_data_ref_fitttype")
+        self.comboBox_settings_data_ref_fitttype = QtWidgets.QComboBox(
+            parent=self.frame_settings_data_tempref
+        )
+        self.comboBox_settings_data_ref_fitttype.setSizeAdjustPolicy(
+            QtWidgets.QComboBox.SizeAdjustPolicy.AdjustToContents
+        )
+        self.comboBox_settings_data_ref_fitttype.setObjectName(
+            "comboBox_settings_data_ref_fitttype"
+        )
         self.horizontalLayout_17.addWidget(self.comboBox_settings_data_ref_fitttype)
         self.verticalLayout_52.addWidget(self.frame_settings_data_tempref)
-        spacerItem20 = QtWidgets.QSpacerItem(20, 0, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Expanding)
+        spacerItem20 = QtWidgets.QSpacerItem(
+            20,
+            0,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+            QtWidgets.QSizePolicy.Policy.Expanding,
+        )
         self.verticalLayout_52.addItem(spacerItem20)
         self.tabWidget_settings.addTab(self.tab_settings_data, "")
         self.tab_settings_mechanics = QtWidgets.QWidget()
@@ -1102,7 +1870,9 @@ class Ui_MainWindow(object):
         self.verticalLayout_31.setContentsMargins(0, 6, 0, 0)
         self.verticalLayout_31.setObjectName("verticalLayout_31")
         self.frame_4 = QtWidgets.QFrame(parent=self.tab_settings_mechanics)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.frame_4.sizePolicy().hasHeightForWidth())
@@ -1117,40 +1887,77 @@ class Ui_MainWindow(object):
         self.tabWidget_mechanics_chn.setMaximumSize(QtCore.QSize(16777215, 21))
         self.tabWidget_mechanics_chn.setObjectName("tabWidget_mechanics_chn")
         self.tab_settings_mechanis_sampchn = QtWidgets.QWidget()
-        self.tab_settings_mechanis_sampchn.setObjectName("tab_settings_mechanis_sampchn")
+        self.tab_settings_mechanis_sampchn.setObjectName(
+            "tab_settings_mechanis_sampchn"
+        )
         self.tabWidget_mechanics_chn.addTab(self.tab_settings_mechanis_sampchn, "")
         self.tab_settings_mechanis_refchn = QtWidgets.QWidget()
         self.tab_settings_mechanis_refchn.setObjectName("tab_settings_mechanis_refchn")
         self.tabWidget_mechanics_chn.addTab(self.tab_settings_mechanis_refchn, "")
         self.horizontalLayout_15.addWidget(self.tabWidget_mechanics_chn)
-        self.checkBox_settings_mech_liveupdate = QtWidgets.QCheckBox(parent=self.frame_4)
+        self.checkBox_settings_mech_liveupdate = QtWidgets.QCheckBox(
+            parent=self.frame_4
+        )
         self.checkBox_settings_mech_liveupdate.setChecked(True)
-        self.checkBox_settings_mech_liveupdate.setObjectName("checkBox_settings_mech_liveupdate")
+        self.checkBox_settings_mech_liveupdate.setObjectName(
+            "checkBox_settings_mech_liveupdate"
+        )
         self.horizontalLayout_15.addWidget(self.checkBox_settings_mech_liveupdate)
-        self.toolButton_settings_mechanics_solve = QtWidgets.QToolButton(parent=self.frame_4)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Preferred)
+        self.toolButton_settings_mechanics_solve = QtWidgets.QToolButton(
+            parent=self.frame_4
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred,
+            QtWidgets.QSizePolicy.Policy.Preferred,
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.toolButton_settings_mechanics_solve.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.toolButton_settings_mechanics_solve.sizePolicy().hasHeightForWidth()
+        )
         self.toolButton_settings_mechanics_solve.setSizePolicy(sizePolicy)
-        self.toolButton_settings_mechanics_solve.setMaximumSize(QtCore.QSize(16777215, 30))
-        self.toolButton_settings_mechanics_solve.setPopupMode(QtWidgets.QToolButton.ToolButtonPopupMode.InstantPopup)
-        self.toolButton_settings_mechanics_solve.setToolButtonStyle(QtCore.Qt.ToolButtonStyle.ToolButtonTextOnly)
+        self.toolButton_settings_mechanics_solve.setMaximumSize(
+            QtCore.QSize(16777215, 30)
+        )
+        self.toolButton_settings_mechanics_solve.setPopupMode(
+            QtWidgets.QToolButton.ToolButtonPopupMode.InstantPopup
+        )
+        self.toolButton_settings_mechanics_solve.setToolButtonStyle(
+            QtCore.Qt.ToolButtonStyle.ToolButtonTextOnly
+        )
         self.toolButton_settings_mechanics_solve.setAutoRaise(False)
-        self.toolButton_settings_mechanics_solve.setArrowType(QtCore.Qt.ArrowType.NoArrow)
-        self.toolButton_settings_mechanics_solve.setObjectName("toolButton_settings_mechanics_solve")
+        self.toolButton_settings_mechanics_solve.setArrowType(
+            QtCore.Qt.ArrowType.NoArrow
+        )
+        self.toolButton_settings_mechanics_solve.setObjectName(
+            "toolButton_settings_mechanics_solve"
+        )
         self.horizontalLayout_15.addWidget(self.toolButton_settings_mechanics_solve)
         self.verticalLayout_31.addWidget(self.frame_4)
-        self.groupBox_settings_mechanics_mech_film = QtWidgets.QGroupBox(parent=self.tab_settings_mechanics)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Minimum)
+        self.groupBox_settings_mechanics_mech_film = QtWidgets.QGroupBox(
+            parent=self.tab_settings_mechanics
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Minimum
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.groupBox_settings_mechanics_mech_film.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.groupBox_settings_mechanics_mech_film.sizePolicy().hasHeightForWidth()
+        )
         self.groupBox_settings_mechanics_mech_film.setSizePolicy(sizePolicy)
-        self.groupBox_settings_mechanics_mech_film.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeading|QtCore.Qt.AlignmentFlag.AlignLeft|QtCore.Qt.AlignmentFlag.AlignVCenter)
+        self.groupBox_settings_mechanics_mech_film.setAlignment(
+            QtCore.Qt.AlignmentFlag.AlignLeading
+            | QtCore.Qt.AlignmentFlag.AlignLeft
+            | QtCore.Qt.AlignmentFlag.AlignVCenter
+        )
         self.groupBox_settings_mechanics_mech_film.setFlat(True)
-        self.groupBox_settings_mechanics_mech_film.setObjectName("groupBox_settings_mechanics_mech_film")
-        self.verticalLayout_15 = QtWidgets.QVBoxLayout(self.groupBox_settings_mechanics_mech_film)
+        self.groupBox_settings_mechanics_mech_film.setObjectName(
+            "groupBox_settings_mechanics_mech_film"
+        )
+        self.verticalLayout_15 = QtWidgets.QVBoxLayout(
+            self.groupBox_settings_mechanics_mech_film
+        )
         self.verticalLayout_15.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_15.setSpacing(0)
         self.verticalLayout_15.setObjectName("verticalLayout_15")
@@ -1158,71 +1965,134 @@ class Ui_MainWindow(object):
         self.horizontalLayout_32.setContentsMargins(-1, 2, -1, 0)
         self.horizontalLayout_32.setSpacing(6)
         self.horizontalLayout_32.setObjectName("horizontalLayout_32")
-        self.label_6 = QtWidgets.QLabel(parent=self.groupBox_settings_mechanics_mech_film)
+        self.label_6 = QtWidgets.QLabel(
+            parent=self.groupBox_settings_mechanics_mech_film
+        )
         self.label_6.setObjectName("label_6")
         self.horizontalLayout_32.addWidget(self.label_6)
-        self.comboBox_settings_mechanics_calctype = QtWidgets.QComboBox(parent=self.groupBox_settings_mechanics_mech_film)
-        self.comboBox_settings_mechanics_calctype.setObjectName("comboBox_settings_mechanics_calctype")
+        self.comboBox_settings_mechanics_calctype = QtWidgets.QComboBox(
+            parent=self.groupBox_settings_mechanics_mech_film
+        )
+        self.comboBox_settings_mechanics_calctype.setObjectName(
+            "comboBox_settings_mechanics_calctype"
+        )
         self.horizontalLayout_32.addWidget(self.comboBox_settings_mechanics_calctype)
-        spacerItem21 = QtWidgets.QSpacerItem(10, 20, QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Minimum)
+        spacerItem21 = QtWidgets.QSpacerItem(
+            10,
+            20,
+            QtWidgets.QSizePolicy.Policy.Fixed,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+        )
         self.horizontalLayout_32.addItem(spacerItem21)
-        self.label_13 = QtWidgets.QLabel(parent=self.groupBox_settings_mechanics_mech_film)
+        self.label_13 = QtWidgets.QLabel(
+            parent=self.groupBox_settings_mechanics_mech_film
+        )
         self.label_13.setObjectName("label_13")
         self.horizontalLayout_32.addWidget(self.label_13)
-        self.doubleSpinBox_settings_mechanics_bulklimit = QtWidgets.QDoubleSpinBox(parent=self.groupBox_settings_mechanics_mech_film)
-        self.doubleSpinBox_settings_mechanics_bulklimit.setButtonSymbols(QtWidgets.QAbstractSpinBox.ButtonSymbols.NoButtons)
+        self.doubleSpinBox_settings_mechanics_bulklimit = QtWidgets.QDoubleSpinBox(
+            parent=self.groupBox_settings_mechanics_mech_film
+        )
+        self.doubleSpinBox_settings_mechanics_bulklimit.setButtonSymbols(
+            QtWidgets.QAbstractSpinBox.ButtonSymbols.NoButtons
+        )
         self.doubleSpinBox_settings_mechanics_bulklimit.setDecimals(2)
         self.doubleSpinBox_settings_mechanics_bulklimit.setMaximum(5.0)
         self.doubleSpinBox_settings_mechanics_bulklimit.setSingleStep(0.01)
         self.doubleSpinBox_settings_mechanics_bulklimit.setProperty("value", 0.5)
-        self.doubleSpinBox_settings_mechanics_bulklimit.setObjectName("doubleSpinBox_settings_mechanics_bulklimit")
-        self.horizontalLayout_32.addWidget(self.doubleSpinBox_settings_mechanics_bulklimit)
-        spacerItem22 = QtWidgets.QSpacerItem(6, 20, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
+        self.doubleSpinBox_settings_mechanics_bulklimit.setObjectName(
+            "doubleSpinBox_settings_mechanics_bulklimit"
+        )
+        self.horizontalLayout_32.addWidget(
+            self.doubleSpinBox_settings_mechanics_bulklimit
+        )
+        spacerItem22 = QtWidgets.QSpacerItem(
+            6,
+            20,
+            QtWidgets.QSizePolicy.Policy.Expanding,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+        )
         self.horizontalLayout_32.addItem(spacerItem22)
         self.verticalLayout_15.addLayout(self.horizontalLayout_32)
-        self.frame_3 = QtWidgets.QFrame(parent=self.groupBox_settings_mechanics_mech_film)
+        self.frame_3 = QtWidgets.QFrame(
+            parent=self.groupBox_settings_mechanics_mech_film
+        )
         self.frame_3.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
         self.frame_3.setFrameShadow(QtWidgets.QFrame.Shadow.Raised)
         self.frame_3.setObjectName("frame_3")
         self.horizontalLayout_35 = QtWidgets.QHBoxLayout(self.frame_3)
         self.horizontalLayout_35.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout_35.setObjectName("horizontalLayout_35")
-        self.radioButton_settings_mech_refto_air = QtWidgets.QRadioButton(parent=self.frame_3)
+        self.radioButton_settings_mech_refto_air = QtWidgets.QRadioButton(
+            parent=self.frame_3
+        )
         self.radioButton_settings_mech_refto_air.setChecked(True)
-        self.radioButton_settings_mech_refto_air.setObjectName("radioButton_settings_mech_refto_air")
+        self.radioButton_settings_mech_refto_air.setObjectName(
+            "radioButton_settings_mech_refto_air"
+        )
         self.horizontalLayout_35.addWidget(self.radioButton_settings_mech_refto_air)
-        self.radioButton_settings_mech_refto_overlayer = QtWidgets.QRadioButton(parent=self.frame_3)
-        self.radioButton_settings_mech_refto_overlayer.setObjectName("radioButton_settings_mech_refto_overlayer")
-        self.horizontalLayout_35.addWidget(self.radioButton_settings_mech_refto_overlayer)
+        self.radioButton_settings_mech_refto_overlayer = QtWidgets.QRadioButton(
+            parent=self.frame_3
+        )
+        self.radioButton_settings_mech_refto_overlayer.setObjectName(
+            "radioButton_settings_mech_refto_overlayer"
+        )
+        self.horizontalLayout_35.addWidget(
+            self.radioButton_settings_mech_refto_overlayer
+        )
         self.verticalLayout_15.addWidget(self.frame_3)
-        self.stackedWidget_settings_mechanics_modeswitch = QtWidgets.QStackedWidget(parent=self.groupBox_settings_mechanics_mech_film)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Minimum)
+        self.stackedWidget_settings_mechanics_modeswitch = QtWidgets.QStackedWidget(
+            parent=self.groupBox_settings_mechanics_mech_film
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Minimum
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.stackedWidget_settings_mechanics_modeswitch.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.stackedWidget_settings_mechanics_modeswitch.sizePolicy().hasHeightForWidth()
+        )
         self.stackedWidget_settings_mechanics_modeswitch.setSizePolicy(sizePolicy)
-        self.stackedWidget_settings_mechanics_modeswitch.setObjectName("stackedWidget_settings_mechanics_modeswitch")
+        self.stackedWidget_settings_mechanics_modeswitch.setObjectName(
+            "stackedWidget_settings_mechanics_modeswitch"
+        )
         self.stackedWidgetPage_mech_normalmode = QtWidgets.QWidget()
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Minimum)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Minimum
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.stackedWidgetPage_mech_normalmode.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.stackedWidgetPage_mech_normalmode.sizePolicy().hasHeightForWidth()
+        )
         self.stackedWidgetPage_mech_normalmode.setSizePolicy(sizePolicy)
-        self.stackedWidgetPage_mech_normalmode.setObjectName("stackedWidgetPage_mech_normalmode")
-        self.verticalLayout_9 = QtWidgets.QVBoxLayout(self.stackedWidgetPage_mech_normalmode)
+        self.stackedWidgetPage_mech_normalmode.setObjectName(
+            "stackedWidgetPage_mech_normalmode"
+        )
+        self.verticalLayout_9 = QtWidgets.QVBoxLayout(
+            self.stackedWidgetPage_mech_normalmode
+        )
         self.verticalLayout_9.setContentsMargins(0, 0, 0, 10)
         self.verticalLayout_9.setSpacing(2)
         self.verticalLayout_9.setObjectName("verticalLayout_9")
         self.horizontalLayout_19 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_19.setSpacing(6)
         self.horizontalLayout_19.setObjectName("horizontalLayout_19")
-        self.comboBox_settings_mechanics_selectmodel = QtWidgets.QComboBox(parent=self.stackedWidgetPage_mech_normalmode)
-        self.comboBox_settings_mechanics_selectmodel.setObjectName("comboBox_settings_mechanics_selectmodel")
+        self.comboBox_settings_mechanics_selectmodel = QtWidgets.QComboBox(
+            parent=self.stackedWidgetPage_mech_normalmode
+        )
+        self.comboBox_settings_mechanics_selectmodel.setObjectName(
+            "comboBox_settings_mechanics_selectmodel"
+        )
         self.horizontalLayout_19.addWidget(self.comboBox_settings_mechanics_selectmodel)
         self.label_2 = QtWidgets.QLabel(parent=self.stackedWidgetPage_mech_normalmode)
         self.label_2.setObjectName("label_2")
         self.horizontalLayout_19.addWidget(self.label_2)
-        spacerItem23 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
+        spacerItem23 = QtWidgets.QSpacerItem(
+            40,
+            20,
+            QtWidgets.QSizePolicy.Policy.Expanding,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+        )
         self.horizontalLayout_19.addItem(spacerItem23)
         self.verticalLayout_9.addLayout(self.horizontalLayout_19)
         self.gridLayout = QtWidgets.QGridLayout()
@@ -1230,70 +2100,153 @@ class Ui_MainWindow(object):
         self.gridLayout.setHorizontalSpacing(2)
         self.gridLayout.setVerticalSpacing(0)
         self.gridLayout.setObjectName("gridLayout")
-        self.label_settings_mechanics_model_overlayer = QtWidgets.QLabel(parent=self.stackedWidgetPage_mech_normalmode)
-        self.label_settings_mechanics_model_overlayer.setObjectName("label_settings_mechanics_model_overlayer")
-        self.gridLayout.addWidget(self.label_settings_mechanics_model_overlayer, 0, 0, 1, 1)
-        self.comboBox_settings_mechanics_model_samplayer_chn = QtWidgets.QComboBox(parent=self.stackedWidgetPage_mech_normalmode)
+        self.label_settings_mechanics_model_overlayer = QtWidgets.QLabel(
+            parent=self.stackedWidgetPage_mech_normalmode
+        )
+        self.label_settings_mechanics_model_overlayer.setObjectName(
+            "label_settings_mechanics_model_overlayer"
+        )
+        self.gridLayout.addWidget(
+            self.label_settings_mechanics_model_overlayer, 0, 0, 1, 1
+        )
+        self.comboBox_settings_mechanics_model_samplayer_chn = QtWidgets.QComboBox(
+            parent=self.stackedWidgetPage_mech_normalmode
+        )
         self.comboBox_settings_mechanics_model_samplayer_chn.setEnabled(False)
-        self.comboBox_settings_mechanics_model_samplayer_chn.setObjectName("comboBox_settings_mechanics_model_samplayer_chn")
-        self.gridLayout.addWidget(self.comboBox_settings_mechanics_model_samplayer_chn, 1, 1, 1, 1)
-        self.comboBox_settings_mechanics_model_overlayer_chn = QtWidgets.QComboBox(parent=self.stackedWidgetPage_mech_normalmode)
-        self.comboBox_settings_mechanics_model_overlayer_chn.setObjectName("comboBox_settings_mechanics_model_overlayer_chn")
-        self.gridLayout.addWidget(self.comboBox_settings_mechanics_model_overlayer_chn, 0, 1, 1, 1)
-        self.label_settings_mechanics_model_samplayer = QtWidgets.QLabel(parent=self.stackedWidgetPage_mech_normalmode)
-        self.label_settings_mechanics_model_samplayer.setObjectName("label_settings_mechanics_model_samplayer")
-        self.gridLayout.addWidget(self.label_settings_mechanics_model_samplayer, 1, 0, 1, 1)
-        self.lineEdit_settings_mechanics_model_overlayer_idx = QtWidgets.QLineEdit(parent=self.stackedWidgetPage_mech_normalmode)
-        self.lineEdit_settings_mechanics_model_overlayer_idx.setObjectName("lineEdit_settings_mechanics_model_overlayer_idx")
-        self.gridLayout.addWidget(self.lineEdit_settings_mechanics_model_overlayer_idx, 0, 2, 1, 1)
-        self.lineEdit_settings_mechanics_model_samplayer_idx = QtWidgets.QLineEdit(parent=self.stackedWidgetPage_mech_normalmode)
-        self.lineEdit_settings_mechanics_model_samplayer_idx.setObjectName("lineEdit_settings_mechanics_model_samplayer_idx")
-        self.gridLayout.addWidget(self.lineEdit_settings_mechanics_model_samplayer_idx, 1, 2, 1, 1)
+        self.comboBox_settings_mechanics_model_samplayer_chn.setObjectName(
+            "comboBox_settings_mechanics_model_samplayer_chn"
+        )
+        self.gridLayout.addWidget(
+            self.comboBox_settings_mechanics_model_samplayer_chn, 1, 1, 1, 1
+        )
+        self.comboBox_settings_mechanics_model_overlayer_chn = QtWidgets.QComboBox(
+            parent=self.stackedWidgetPage_mech_normalmode
+        )
+        self.comboBox_settings_mechanics_model_overlayer_chn.setObjectName(
+            "comboBox_settings_mechanics_model_overlayer_chn"
+        )
+        self.gridLayout.addWidget(
+            self.comboBox_settings_mechanics_model_overlayer_chn, 0, 1, 1, 1
+        )
+        self.label_settings_mechanics_model_samplayer = QtWidgets.QLabel(
+            parent=self.stackedWidgetPage_mech_normalmode
+        )
+        self.label_settings_mechanics_model_samplayer.setObjectName(
+            "label_settings_mechanics_model_samplayer"
+        )
+        self.gridLayout.addWidget(
+            self.label_settings_mechanics_model_samplayer, 1, 0, 1, 1
+        )
+        self.lineEdit_settings_mechanics_model_overlayer_idx = QtWidgets.QLineEdit(
+            parent=self.stackedWidgetPage_mech_normalmode
+        )
+        self.lineEdit_settings_mechanics_model_overlayer_idx.setObjectName(
+            "lineEdit_settings_mechanics_model_overlayer_idx"
+        )
+        self.gridLayout.addWidget(
+            self.lineEdit_settings_mechanics_model_overlayer_idx, 0, 2, 1, 1
+        )
+        self.lineEdit_settings_mechanics_model_samplayer_idx = QtWidgets.QLineEdit(
+            parent=self.stackedWidgetPage_mech_normalmode
+        )
+        self.lineEdit_settings_mechanics_model_samplayer_idx.setObjectName(
+            "lineEdit_settings_mechanics_model_samplayer_idx"
+        )
+        self.gridLayout.addWidget(
+            self.lineEdit_settings_mechanics_model_samplayer_idx, 1, 2, 1, 1
+        )
         self.verticalLayout_9.addLayout(self.gridLayout)
-        spacerItem24 = QtWidgets.QSpacerItem(20, 6, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.MinimumExpanding)
+        spacerItem24 = QtWidgets.QSpacerItem(
+            20,
+            6,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+            QtWidgets.QSizePolicy.Policy.MinimumExpanding,
+        )
         self.verticalLayout_9.addItem(spacerItem24)
-        self.stackedWidget_settings_mechanics_modeswitch.addWidget(self.stackedWidgetPage_mech_normalmode)
+        self.stackedWidget_settings_mechanics_modeswitch.addWidget(
+            self.stackedWidgetPage_mech_normalmode
+        )
         self.stackedWidgetPage_mech_expertmode = QtWidgets.QWidget()
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Minimum)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Minimum
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.stackedWidgetPage_mech_expertmode.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.stackedWidgetPage_mech_expertmode.sizePolicy().hasHeightForWidth()
+        )
         self.stackedWidgetPage_mech_expertmode.setSizePolicy(sizePolicy)
-        self.stackedWidgetPage_mech_expertmode.setObjectName("stackedWidgetPage_mech_expertmode")
-        self.verticalLayout_2 = QtWidgets.QVBoxLayout(self.stackedWidgetPage_mech_expertmode)
+        self.stackedWidgetPage_mech_expertmode.setObjectName(
+            "stackedWidgetPage_mech_expertmode"
+        )
+        self.verticalLayout_2 = QtWidgets.QVBoxLayout(
+            self.stackedWidgetPage_mech_expertmode
+        )
         self.verticalLayout_2.setContentsMargins(0, 0, 0, 10)
         self.verticalLayout_2.setSpacing(2)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.horizontalLayout_12 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_12.setSizeConstraint(QtWidgets.QLayout.SizeConstraint.SetDefaultConstraint)
+        self.horizontalLayout_12.setSizeConstraint(
+            QtWidgets.QLayout.SizeConstraint.SetDefaultConstraint
+        )
         self.horizontalLayout_12.setSpacing(6)
         self.horizontalLayout_12.setObjectName("horizontalLayout_12")
-        self.label_mech_expertmode_layernum = QtWidgets.QLabel(parent=self.stackedWidgetPage_mech_expertmode)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed)
+        self.label_mech_expertmode_layernum = QtWidgets.QLabel(
+            parent=self.stackedWidgetPage_mech_expertmode
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.label_mech_expertmode_layernum.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.label_mech_expertmode_layernum.sizePolicy().hasHeightForWidth()
+        )
         self.label_mech_expertmode_layernum.setSizePolicy(sizePolicy)
-        self.label_mech_expertmode_layernum.setObjectName("label_mech_expertmode_layernum")
+        self.label_mech_expertmode_layernum.setObjectName(
+            "label_mech_expertmode_layernum"
+        )
         self.horizontalLayout_12.addWidget(self.label_mech_expertmode_layernum)
-        self.spinBox_mech_expertmode_layernum = QtWidgets.QSpinBox(parent=self.stackedWidgetPage_mech_expertmode)
-        self.spinBox_mech_expertmode_layernum.setButtonSymbols(QtWidgets.QAbstractSpinBox.ButtonSymbols.UpDownArrows)
+        self.spinBox_mech_expertmode_layernum = QtWidgets.QSpinBox(
+            parent=self.stackedWidgetPage_mech_expertmode
+        )
+        self.spinBox_mech_expertmode_layernum.setButtonSymbols(
+            QtWidgets.QAbstractSpinBox.ButtonSymbols.UpDownArrows
+        )
         self.spinBox_mech_expertmode_layernum.setMaximum(1)
-        self.spinBox_mech_expertmode_layernum.setObjectName("spinBox_mech_expertmode_layernum")
+        self.spinBox_mech_expertmode_layernum.setObjectName(
+            "spinBox_mech_expertmode_layernum"
+        )
         self.horizontalLayout_12.addWidget(self.spinBox_mech_expertmode_layernum)
-        spacerItem25 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
+        spacerItem25 = QtWidgets.QSpacerItem(
+            40,
+            20,
+            QtWidgets.QSizePolicy.Policy.Expanding,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+        )
         self.horizontalLayout_12.addItem(spacerItem25)
         self.verticalLayout_2.addLayout(self.horizontalLayout_12)
         self.gridLayout_mech_expertmode_layers = QtWidgets.QGridLayout()
-        self.gridLayout_mech_expertmode_layers.setSizeConstraint(QtWidgets.QLayout.SizeConstraint.SetDefaultConstraint)
+        self.gridLayout_mech_expertmode_layers.setSizeConstraint(
+            QtWidgets.QLayout.SizeConstraint.SetDefaultConstraint
+        )
         self.gridLayout_mech_expertmode_layers.setContentsMargins(-1, -1, -1, 0)
         self.gridLayout_mech_expertmode_layers.setHorizontalSpacing(2)
         self.gridLayout_mech_expertmode_layers.setVerticalSpacing(0)
-        self.gridLayout_mech_expertmode_layers.setObjectName("gridLayout_mech_expertmode_layers")
-        spacerItem26 = QtWidgets.QSpacerItem(0, 20, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Minimum)
+        self.gridLayout_mech_expertmode_layers.setObjectName(
+            "gridLayout_mech_expertmode_layers"
+        )
+        spacerItem26 = QtWidgets.QSpacerItem(
+            0,
+            20,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+        )
         self.gridLayout_mech_expertmode_layers.addItem(spacerItem26, 0, 2, 1, 1)
         self.label_19 = QtWidgets.QLabel(parent=self.stackedWidgetPage_mech_expertmode)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.label_19.sizePolicy().hasHeightForWidth())
@@ -1302,7 +2255,9 @@ class Ui_MainWindow(object):
         self.label_19.setObjectName("label_19")
         self.gridLayout_mech_expertmode_layers.addWidget(self.label_19, 0, 0, 1, 1)
         self.label_20 = QtWidgets.QLabel(parent=self.stackedWidgetPage_mech_expertmode)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.label_20.sizePolicy().hasHeightForWidth())
@@ -1311,7 +2266,9 @@ class Ui_MainWindow(object):
         self.label_20.setObjectName("label_20")
         self.gridLayout_mech_expertmode_layers.addWidget(self.label_20, 0, 1, 1, 1)
         self.label_21 = QtWidgets.QLabel(parent=self.stackedWidgetPage_mech_expertmode)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.label_21.sizePolicy().hasHeightForWidth())
@@ -1320,117 +2277,215 @@ class Ui_MainWindow(object):
         self.label_21.setObjectName("label_21")
         self.gridLayout_mech_expertmode_layers.addWidget(self.label_21, 0, 3, 1, 1)
         self.verticalLayout_2.addLayout(self.gridLayout_mech_expertmode_layers)
-        spacerItem27 = QtWidgets.QSpacerItem(20, 6, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.MinimumExpanding)
+        spacerItem27 = QtWidgets.QSpacerItem(
+            20,
+            6,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+            QtWidgets.QSizePolicy.Policy.MinimumExpanding,
+        )
         self.verticalLayout_2.addItem(spacerItem27)
-        self.stackedWidget_settings_mechanics_modeswitch.addWidget(self.stackedWidgetPage_mech_expertmode)
-        self.verticalLayout_15.addWidget(self.stackedWidget_settings_mechanics_modeswitch)
+        self.stackedWidget_settings_mechanics_modeswitch.addWidget(
+            self.stackedWidgetPage_mech_expertmode
+        )
+        self.verticalLayout_15.addWidget(
+            self.stackedWidget_settings_mechanics_modeswitch
+        )
         self.verticalLayout_31.addWidget(self.groupBox_settings_mechanics_mech_film)
-        self.groupBox_settings_mechanics_nhcalc = QtWidgets.QGroupBox(parent=self.tab_settings_mechanics)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Minimum)
+        self.groupBox_settings_mechanics_nhcalc = QtWidgets.QGroupBox(
+            parent=self.tab_settings_mechanics
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Minimum
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.groupBox_settings_mechanics_nhcalc.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.groupBox_settings_mechanics_nhcalc.sizePolicy().hasHeightForWidth()
+        )
         self.groupBox_settings_mechanics_nhcalc.setSizePolicy(sizePolicy)
         self.groupBox_settings_mechanics_nhcalc.setFlat(True)
-        self.groupBox_settings_mechanics_nhcalc.setObjectName("groupBox_settings_mechanics_nhcalc")
-        self.verticalLayout_29 = QtWidgets.QVBoxLayout(self.groupBox_settings_mechanics_nhcalc)
+        self.groupBox_settings_mechanics_nhcalc.setObjectName(
+            "groupBox_settings_mechanics_nhcalc"
+        )
+        self.verticalLayout_29 = QtWidgets.QVBoxLayout(
+            self.groupBox_settings_mechanics_nhcalc
+        )
         self.verticalLayout_29.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_29.setSpacing(0)
         self.verticalLayout_29.setObjectName("verticalLayout_29")
         self.horizontalLayout_settings_mechanics_nhcalc = QtWidgets.QHBoxLayout()
         self.horizontalLayout_settings_mechanics_nhcalc.setSpacing(0)
-        self.horizontalLayout_settings_mechanics_nhcalc.setObjectName("horizontalLayout_settings_mechanics_nhcalc")
-        self.spinBox_settings_mechanics_nhcalc_n1 = QtWidgets.QSpinBox(parent=self.groupBox_settings_mechanics_nhcalc)
-        self.spinBox_settings_mechanics_nhcalc_n1.setMaximumSize(QtCore.QSize(20, 16777215))
-        self.spinBox_settings_mechanics_nhcalc_n1.setButtonSymbols(QtWidgets.QAbstractSpinBox.ButtonSymbols.NoButtons)
+        self.horizontalLayout_settings_mechanics_nhcalc.setObjectName(
+            "horizontalLayout_settings_mechanics_nhcalc"
+        )
+        self.spinBox_settings_mechanics_nhcalc_n1 = QtWidgets.QSpinBox(
+            parent=self.groupBox_settings_mechanics_nhcalc
+        )
+        self.spinBox_settings_mechanics_nhcalc_n1.setMaximumSize(
+            QtCore.QSize(20, 16777215)
+        )
+        self.spinBox_settings_mechanics_nhcalc_n1.setButtonSymbols(
+            QtWidgets.QAbstractSpinBox.ButtonSymbols.NoButtons
+        )
         self.spinBox_settings_mechanics_nhcalc_n1.setMinimum(1)
         self.spinBox_settings_mechanics_nhcalc_n1.setMaximum(9)
         self.spinBox_settings_mechanics_nhcalc_n1.setSingleStep(2)
         self.spinBox_settings_mechanics_nhcalc_n1.setProperty("value", 1)
-        self.spinBox_settings_mechanics_nhcalc_n1.setObjectName("spinBox_settings_mechanics_nhcalc_n1")
-        self.horizontalLayout_settings_mechanics_nhcalc.addWidget(self.spinBox_settings_mechanics_nhcalc_n1)
-        self.spinBox_settings_mechanics_nhcalc_n2 = QtWidgets.QSpinBox(parent=self.groupBox_settings_mechanics_nhcalc)
-        self.spinBox_settings_mechanics_nhcalc_n2.setMaximumSize(QtCore.QSize(20, 16777215))
-        self.spinBox_settings_mechanics_nhcalc_n2.setButtonSymbols(QtWidgets.QAbstractSpinBox.ButtonSymbols.NoButtons)
+        self.spinBox_settings_mechanics_nhcalc_n1.setObjectName(
+            "spinBox_settings_mechanics_nhcalc_n1"
+        )
+        self.horizontalLayout_settings_mechanics_nhcalc.addWidget(
+            self.spinBox_settings_mechanics_nhcalc_n1
+        )
+        self.spinBox_settings_mechanics_nhcalc_n2 = QtWidgets.QSpinBox(
+            parent=self.groupBox_settings_mechanics_nhcalc
+        )
+        self.spinBox_settings_mechanics_nhcalc_n2.setMaximumSize(
+            QtCore.QSize(20, 16777215)
+        )
+        self.spinBox_settings_mechanics_nhcalc_n2.setButtonSymbols(
+            QtWidgets.QAbstractSpinBox.ButtonSymbols.NoButtons
+        )
         self.spinBox_settings_mechanics_nhcalc_n2.setMinimum(1)
         self.spinBox_settings_mechanics_nhcalc_n2.setMaximum(9)
         self.spinBox_settings_mechanics_nhcalc_n2.setSingleStep(2)
         self.spinBox_settings_mechanics_nhcalc_n2.setProperty("value", 3)
-        self.spinBox_settings_mechanics_nhcalc_n2.setObjectName("spinBox_settings_mechanics_nhcalc_n2")
-        self.horizontalLayout_settings_mechanics_nhcalc.addWidget(self.spinBox_settings_mechanics_nhcalc_n2)
-        self.spinBox_settings_mechanics_nhcalc_n3 = QtWidgets.QSpinBox(parent=self.groupBox_settings_mechanics_nhcalc)
-        self.spinBox_settings_mechanics_nhcalc_n3.setMaximumSize(QtCore.QSize(20, 16777215))
+        self.spinBox_settings_mechanics_nhcalc_n2.setObjectName(
+            "spinBox_settings_mechanics_nhcalc_n2"
+        )
+        self.horizontalLayout_settings_mechanics_nhcalc.addWidget(
+            self.spinBox_settings_mechanics_nhcalc_n2
+        )
+        self.spinBox_settings_mechanics_nhcalc_n3 = QtWidgets.QSpinBox(
+            parent=self.groupBox_settings_mechanics_nhcalc
+        )
+        self.spinBox_settings_mechanics_nhcalc_n3.setMaximumSize(
+            QtCore.QSize(20, 16777215)
+        )
         self.spinBox_settings_mechanics_nhcalc_n3.setFrame(True)
-        self.spinBox_settings_mechanics_nhcalc_n3.setButtonSymbols(QtWidgets.QAbstractSpinBox.ButtonSymbols.NoButtons)
-        self.spinBox_settings_mechanics_nhcalc_n3.setProperty("showGroupSeparator", False)
+        self.spinBox_settings_mechanics_nhcalc_n3.setButtonSymbols(
+            QtWidgets.QAbstractSpinBox.ButtonSymbols.NoButtons
+        )
+        self.spinBox_settings_mechanics_nhcalc_n3.setProperty(
+            "showGroupSeparator", False
+        )
         self.spinBox_settings_mechanics_nhcalc_n3.setMinimum(1)
         self.spinBox_settings_mechanics_nhcalc_n3.setMaximum(9)
         self.spinBox_settings_mechanics_nhcalc_n3.setSingleStep(2)
         self.spinBox_settings_mechanics_nhcalc_n3.setProperty("value", 3)
-        self.spinBox_settings_mechanics_nhcalc_n3.setObjectName("spinBox_settings_mechanics_nhcalc_n3")
-        self.horizontalLayout_settings_mechanics_nhcalc.addWidget(self.spinBox_settings_mechanics_nhcalc_n3)
-        self.pushButton_settings_mechanics_harmremove = QtWidgets.QPushButton(parent=self.groupBox_settings_mechanics_nhcalc)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed)
+        self.spinBox_settings_mechanics_nhcalc_n3.setObjectName(
+            "spinBox_settings_mechanics_nhcalc_n3"
+        )
+        self.horizontalLayout_settings_mechanics_nhcalc.addWidget(
+            self.spinBox_settings_mechanics_nhcalc_n3
+        )
+        self.pushButton_settings_mechanics_harmremove = QtWidgets.QPushButton(
+            parent=self.groupBox_settings_mechanics_nhcalc
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.pushButton_settings_mechanics_harmremove.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.pushButton_settings_mechanics_harmremove.sizePolicy().hasHeightForWidth()
+        )
         self.pushButton_settings_mechanics_harmremove.setSizePolicy(sizePolicy)
-        self.pushButton_settings_mechanics_harmremove.setMinimumSize(QtCore.QSize(20, 20))
-        self.pushButton_settings_mechanics_harmremove.setMaximumSize(QtCore.QSize(20, 20))
-        self.pushButton_settings_mechanics_harmremove.setStyleSheet("#pushButton_settings_mechanics_harmremove\n"
-"{\n"
-"background-color: transparent;\n"
-"border-image: url(:/button/rc/minus.svg);\n"
-"background: none;\n"
-"border: none;\n"
-"background-repeat: none;\n"
-"}\n"
-"\n"
-"#pushButton_settings_mechanics_harmremove:pressed\n"
-"{\n"
-"border-image: url(:/button/rc/minus_p.svg);\n"
-"}\n"
-"")
+        self.pushButton_settings_mechanics_harmremove.setMinimumSize(
+            QtCore.QSize(20, 20)
+        )
+        self.pushButton_settings_mechanics_harmremove.setMaximumSize(
+            QtCore.QSize(20, 20)
+        )
+        self.pushButton_settings_mechanics_harmremove.setStyleSheet(
+            "#pushButton_settings_mechanics_harmremove\n"
+            "{\n"
+            "background-color: transparent;\n"
+            "border-image: url(:/button/rc/minus.svg);\n"
+            "background: none;\n"
+            "border: none;\n"
+            "background-repeat: none;\n"
+            "}\n"
+            "\n"
+            "#pushButton_settings_mechanics_harmremove:pressed\n"
+            "{\n"
+            "border-image: url(:/button/rc/minus_p.svg);\n"
+            "}\n"
+            ""
+        )
         self.pushButton_settings_mechanics_harmremove.setText("")
-        self.pushButton_settings_mechanics_harmremove.setObjectName("pushButton_settings_mechanics_harmremove")
-        self.horizontalLayout_settings_mechanics_nhcalc.addWidget(self.pushButton_settings_mechanics_harmremove)
-        self.pushButton_settings_mechanics_harmadd = QtWidgets.QPushButton(parent=self.groupBox_settings_mechanics_nhcalc)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed)
+        self.pushButton_settings_mechanics_harmremove.setObjectName(
+            "pushButton_settings_mechanics_harmremove"
+        )
+        self.horizontalLayout_settings_mechanics_nhcalc.addWidget(
+            self.pushButton_settings_mechanics_harmremove
+        )
+        self.pushButton_settings_mechanics_harmadd = QtWidgets.QPushButton(
+            parent=self.groupBox_settings_mechanics_nhcalc
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.pushButton_settings_mechanics_harmadd.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.pushButton_settings_mechanics_harmadd.sizePolicy().hasHeightForWidth()
+        )
         self.pushButton_settings_mechanics_harmadd.setSizePolicy(sizePolicy)
         self.pushButton_settings_mechanics_harmadd.setMinimumSize(QtCore.QSize(20, 20))
         self.pushButton_settings_mechanics_harmadd.setMaximumSize(QtCore.QSize(20, 20))
-        self.pushButton_settings_mechanics_harmadd.setStyleSheet("#pushButton_settings_mechanics_harmadd\n"
-"{\n"
-"background-color: transparent;\n"
-"border-image: url(:/button/rc/plus.svg);\n"
-"background: none;\n"
-"border: none;\n"
-"background-repeat: none;\n"
-"}\n"
-"\n"
-"#pushButton_settings_mechanics_harmadd:pressed\n"
-"{\n"
-"border-image: url(:/button/rc/plus_p.svg);\n"
-"}\n"
-"")
+        self.pushButton_settings_mechanics_harmadd.setStyleSheet(
+            "#pushButton_settings_mechanics_harmadd\n"
+            "{\n"
+            "background-color: transparent;\n"
+            "border-image: url(:/button/rc/plus.svg);\n"
+            "background: none;\n"
+            "border: none;\n"
+            "background-repeat: none;\n"
+            "}\n"
+            "\n"
+            "#pushButton_settings_mechanics_harmadd:pressed\n"
+            "{\n"
+            "border-image: url(:/button/rc/plus_p.svg);\n"
+            "}\n"
+            ""
+        )
         self.pushButton_settings_mechanics_harmadd.setText("")
-        self.pushButton_settings_mechanics_harmadd.setObjectName("pushButton_settings_mechanics_harmadd")
-        self.horizontalLayout_settings_mechanics_nhcalc.addWidget(self.pushButton_settings_mechanics_harmadd)
-        spacerItem28 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
+        self.pushButton_settings_mechanics_harmadd.setObjectName(
+            "pushButton_settings_mechanics_harmadd"
+        )
+        self.horizontalLayout_settings_mechanics_nhcalc.addWidget(
+            self.pushButton_settings_mechanics_harmadd
+        )
+        spacerItem28 = QtWidgets.QSpacerItem(
+            40,
+            20,
+            QtWidgets.QSizePolicy.Policy.Expanding,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+        )
         self.horizontalLayout_settings_mechanics_nhcalc.addItem(spacerItem28)
-        self.pushButton_settings_mechanics_clrallprops = QtWidgets.QPushButton(parent=self.groupBox_settings_mechanics_nhcalc)
-        self.pushButton_settings_mechanics_clrallprops.setObjectName("pushButton_settings_mechanics_clrallprops")
-        self.horizontalLayout_settings_mechanics_nhcalc.addWidget(self.pushButton_settings_mechanics_clrallprops)
-        self.verticalLayout_29.addLayout(self.horizontalLayout_settings_mechanics_nhcalc)
+        self.pushButton_settings_mechanics_clrallprops = QtWidgets.QPushButton(
+            parent=self.groupBox_settings_mechanics_nhcalc
+        )
+        self.pushButton_settings_mechanics_clrallprops.setObjectName(
+            "pushButton_settings_mechanics_clrallprops"
+        )
+        self.horizontalLayout_settings_mechanics_nhcalc.addWidget(
+            self.pushButton_settings_mechanics_clrallprops
+        )
+        self.verticalLayout_29.addLayout(
+            self.horizontalLayout_settings_mechanics_nhcalc
+        )
         self.verticalLayout_31.addWidget(self.groupBox_settings_mechanics_nhcalc)
         self.groupBox_nhplot = QtWidgets.QGroupBox(parent=self.tab_settings_mechanics)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.groupBox_nhplot.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.groupBox_nhplot.sizePolicy().hasHeightForWidth()
+        )
         self.groupBox_nhplot.setSizePolicy(sizePolicy)
         self.groupBox_nhplot.setFlat(True)
         self.groupBox_nhplot.setObjectName("groupBox_nhplot")
@@ -1444,12 +2499,19 @@ class Ui_MainWindow(object):
         self.label_14.setObjectName("label_14")
         self.horizontalLayout_1.addWidget(self.label_14)
         self.horizontalLayout_nhplot_harms = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_nhplot_harms.setObjectName("horizontalLayout_nhplot_harms")
+        self.horizontalLayout_nhplot_harms.setObjectName(
+            "horizontalLayout_nhplot_harms"
+        )
         self.checkBox_nhplot1 = QtWidgets.QCheckBox(parent=self.groupBox_nhplot)
         self.checkBox_nhplot1.setObjectName("checkBox_nhplot1")
         self.horizontalLayout_nhplot_harms.addWidget(self.checkBox_nhplot1)
         self.horizontalLayout_1.addLayout(self.horizontalLayout_nhplot_harms)
-        spacerItem29 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
+        spacerItem29 = QtWidgets.QSpacerItem(
+            40,
+            20,
+            QtWidgets.QSizePolicy.Policy.Expanding,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+        )
         self.horizontalLayout_1.addItem(spacerItem29)
         self.verticalLayout_37.addLayout(self.horizontalLayout_1)
         self.verticalLayout_39 = QtWidgets.QVBoxLayout()
@@ -1459,26 +2521,55 @@ class Ui_MainWindow(object):
         self.horizontalLayout_31 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_31.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout_31.setObjectName("horizontalLayout_31")
-        self.checkBox_settings_mechanics_witherror = QtWidgets.QCheckBox(parent=self.groupBox_nhplot)
-        self.checkBox_settings_mechanics_witherror.setObjectName("checkBox_settings_mechanics_witherror")
+        self.checkBox_settings_mechanics_witherror = QtWidgets.QCheckBox(
+            parent=self.groupBox_nhplot
+        )
+        self.checkBox_settings_mechanics_witherror.setObjectName(
+            "checkBox_settings_mechanics_witherror"
+        )
         self.horizontalLayout_31.addWidget(self.checkBox_settings_mechanics_witherror)
-        self.pushButton_settings_mechanics_errorsettings = QtWidgets.QPushButton(parent=self.groupBox_nhplot)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed)
+        self.pushButton_settings_mechanics_errorsettings = QtWidgets.QPushButton(
+            parent=self.groupBox_nhplot
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.pushButton_settings_mechanics_errorsettings.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.pushButton_settings_mechanics_errorsettings.sizePolicy().hasHeightForWidth()
+        )
         self.pushButton_settings_mechanics_errorsettings.setSizePolicy(sizePolicy)
-        self.pushButton_settings_mechanics_errorsettings.setMaximumSize(QtCore.QSize(24, 16777215))
+        self.pushButton_settings_mechanics_errorsettings.setMaximumSize(
+            QtCore.QSize(24, 16777215)
+        )
         self.pushButton_settings_mechanics_errorsettings.setCheckable(True)
-        self.pushButton_settings_mechanics_errorsettings.setObjectName("pushButton_settings_mechanics_errorsettings")
-        self.horizontalLayout_31.addWidget(self.pushButton_settings_mechanics_errorsettings)
-        spacerItem30 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
+        self.pushButton_settings_mechanics_errorsettings.setObjectName(
+            "pushButton_settings_mechanics_errorsettings"
+        )
+        self.horizontalLayout_31.addWidget(
+            self.pushButton_settings_mechanics_errorsettings
+        )
+        spacerItem30 = QtWidgets.QSpacerItem(
+            40,
+            20,
+            QtWidgets.QSizePolicy.Policy.Expanding,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+        )
         self.horizontalLayout_31.addItem(spacerItem30)
         self.verticalLayout_39.addLayout(self.horizontalLayout_31)
-        self.tableWidget_settings_mechanics_errortab = QtWidgets.QTableWidget(parent=self.groupBox_nhplot)
-        self.tableWidget_settings_mechanics_errortab.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.tableWidget_settings_mechanics_errortab.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents)
-        self.tableWidget_settings_mechanics_errortab.setObjectName("tableWidget_settings_mechanics_errortab")
+        self.tableWidget_settings_mechanics_errortab = QtWidgets.QTableWidget(
+            parent=self.groupBox_nhplot
+        )
+        self.tableWidget_settings_mechanics_errortab.setVerticalScrollBarPolicy(
+            QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        )
+        self.tableWidget_settings_mechanics_errortab.setSizeAdjustPolicy(
+            QtWidgets.QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents
+        )
+        self.tableWidget_settings_mechanics_errortab.setObjectName(
+            "tableWidget_settings_mechanics_errortab"
+        )
         self.tableWidget_settings_mechanics_errortab.setColumnCount(2)
         self.tableWidget_settings_mechanics_errortab.setRowCount(6)
         item = QtWidgets.QTableWidgetItem()
@@ -1497,123 +2588,244 @@ class Ui_MainWindow(object):
         self.tableWidget_settings_mechanics_errortab.setHorizontalHeaderItem(0, item)
         item = QtWidgets.QTableWidgetItem()
         self.tableWidget_settings_mechanics_errortab.setHorizontalHeaderItem(1, item)
-        self.tableWidget_settings_mechanics_errortab.verticalHeader().setDefaultSectionSize(21)
+        self.tableWidget_settings_mechanics_errortab.verticalHeader().setDefaultSectionSize(
+            21
+        )
         self.verticalLayout_39.addWidget(self.tableWidget_settings_mechanics_errortab)
         self.verticalLayout_37.addLayout(self.verticalLayout_39)
         self.verticalLayout_31.addWidget(self.groupBox_nhplot)
-        self.groupBox_settings_mechanics_contour = QtWidgets.QGroupBox(parent=self.tab_settings_mechanics)
+        self.groupBox_settings_mechanics_contour = QtWidgets.QGroupBox(
+            parent=self.tab_settings_mechanics
+        )
         self.groupBox_settings_mechanics_contour.setFlat(True)
         self.groupBox_settings_mechanics_contour.setCheckable(True)
         self.groupBox_settings_mechanics_contour.setChecked(True)
-        self.groupBox_settings_mechanics_contour.setObjectName("groupBox_settings_mechanics_contour")
-        self.verticalLayout_17 = QtWidgets.QVBoxLayout(self.groupBox_settings_mechanics_contour)
+        self.groupBox_settings_mechanics_contour.setObjectName(
+            "groupBox_settings_mechanics_contour"
+        )
+        self.verticalLayout_17 = QtWidgets.QVBoxLayout(
+            self.groupBox_settings_mechanics_contour
+        )
         self.verticalLayout_17.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_17.setObjectName("verticalLayout_17")
         self.gridLayout_7 = QtWidgets.QGridLayout()
         self.gridLayout_7.setHorizontalSpacing(4)
         self.gridLayout_7.setVerticalSpacing(0)
         self.gridLayout_7.setObjectName("gridLayout_7")
-        self.pushButton_settings_mechanics_contourplot = QtWidgets.QPushButton(parent=self.groupBox_settings_mechanics_contour)
-        self.pushButton_settings_mechanics_contourplot.setObjectName("pushButton_settings_mechanics_contourplot")
-        self.gridLayout_7.addWidget(self.pushButton_settings_mechanics_contourplot, 1, 1, 1, 1)
-        self.comboBox_settings_mechanics_contourtype = QtWidgets.QComboBox(parent=self.groupBox_settings_mechanics_contour)
+        self.pushButton_settings_mechanics_contourplot = QtWidgets.QPushButton(
+            parent=self.groupBox_settings_mechanics_contour
+        )
+        self.pushButton_settings_mechanics_contourplot.setObjectName(
+            "pushButton_settings_mechanics_contourplot"
+        )
+        self.gridLayout_7.addWidget(
+            self.pushButton_settings_mechanics_contourplot, 1, 1, 1, 1
+        )
+        self.comboBox_settings_mechanics_contourtype = QtWidgets.QComboBox(
+            parent=self.groupBox_settings_mechanics_contour
+        )
         self.comboBox_settings_mechanics_contourtype.setEnabled(True)
         self.comboBox_settings_mechanics_contourtype.setEditable(False)
-        self.comboBox_settings_mechanics_contourtype.setObjectName("comboBox_settings_mechanics_contourtype")
-        self.gridLayout_7.addWidget(self.comboBox_settings_mechanics_contourtype, 0, 1, 1, 1)
-        self.comboBox_settings_mechanics_contourcmap = QtWidgets.QComboBox(parent=self.groupBox_settings_mechanics_contour)
+        self.comboBox_settings_mechanics_contourtype.setObjectName(
+            "comboBox_settings_mechanics_contourtype"
+        )
+        self.gridLayout_7.addWidget(
+            self.comboBox_settings_mechanics_contourtype, 0, 1, 1, 1
+        )
+        self.comboBox_settings_mechanics_contourcmap = QtWidgets.QComboBox(
+            parent=self.groupBox_settings_mechanics_contour
+        )
         self.comboBox_settings_mechanics_contourcmap.setEditable(False)
-        self.comboBox_settings_mechanics_contourcmap.setObjectName("comboBox_settings_mechanics_contourcmap")
-        self.gridLayout_7.addWidget(self.comboBox_settings_mechanics_contourcmap, 0, 0, 1, 1)
-        self.comboBox_settings_mechanics_contourdata = QtWidgets.QComboBox(parent=self.groupBox_settings_mechanics_contour)
+        self.comboBox_settings_mechanics_contourcmap.setObjectName(
+            "comboBox_settings_mechanics_contourcmap"
+        )
+        self.gridLayout_7.addWidget(
+            self.comboBox_settings_mechanics_contourcmap, 0, 0, 1, 1
+        )
+        self.comboBox_settings_mechanics_contourdata = QtWidgets.QComboBox(
+            parent=self.groupBox_settings_mechanics_contour
+        )
         self.comboBox_settings_mechanics_contourdata.setEnabled(True)
         self.comboBox_settings_mechanics_contourdata.setEditable(False)
-        self.comboBox_settings_mechanics_contourdata.setObjectName("comboBox_settings_mechanics_contourdata")
-        self.gridLayout_7.addWidget(self.comboBox_settings_mechanics_contourdata, 1, 0, 1, 1)
-        self.pushButton_settings_mechanics_contoursettings = QtWidgets.QPushButton(parent=self.groupBox_settings_mechanics_contour)
+        self.comboBox_settings_mechanics_contourdata.setObjectName(
+            "comboBox_settings_mechanics_contourdata"
+        )
+        self.gridLayout_7.addWidget(
+            self.comboBox_settings_mechanics_contourdata, 1, 0, 1, 1
+        )
+        self.pushButton_settings_mechanics_contoursettings = QtWidgets.QPushButton(
+            parent=self.groupBox_settings_mechanics_contour
+        )
         self.pushButton_settings_mechanics_contoursettings.setEnabled(True)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.pushButton_settings_mechanics_contoursettings.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.pushButton_settings_mechanics_contoursettings.sizePolicy().hasHeightForWidth()
+        )
         self.pushButton_settings_mechanics_contoursettings.setSizePolicy(sizePolicy)
-        self.pushButton_settings_mechanics_contoursettings.setMaximumSize(QtCore.QSize(24, 16777215))
+        self.pushButton_settings_mechanics_contoursettings.setMaximumSize(
+            QtCore.QSize(24, 16777215)
+        )
         self.pushButton_settings_mechanics_contoursettings.setCheckable(True)
         self.pushButton_settings_mechanics_contoursettings.setChecked(False)
-        self.pushButton_settings_mechanics_contoursettings.setObjectName("pushButton_settings_mechanics_contoursettings")
-        self.gridLayout_7.addWidget(self.pushButton_settings_mechanics_contoursettings, 0, 2, 1, 1)
+        self.pushButton_settings_mechanics_contoursettings.setObjectName(
+            "pushButton_settings_mechanics_contoursettings"
+        )
+        self.gridLayout_7.addWidget(
+            self.pushButton_settings_mechanics_contoursettings, 0, 2, 1, 1
+        )
         self.verticalLayout_17.addLayout(self.gridLayout_7)
-        self.tableWidget_settings_mechanics_contoursettings = QtWidgets.QTableWidget(parent=self.groupBox_settings_mechanics_contour)
+        self.tableWidget_settings_mechanics_contoursettings = QtWidgets.QTableWidget(
+            parent=self.groupBox_settings_mechanics_contour
+        )
         self.tableWidget_settings_mechanics_contoursettings.setEnabled(True)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Preferred)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Expanding,
+            QtWidgets.QSizePolicy.Policy.Preferred,
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.tableWidget_settings_mechanics_contoursettings.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.tableWidget_settings_mechanics_contoursettings.sizePolicy().hasHeightForWidth()
+        )
         self.tableWidget_settings_mechanics_contoursettings.setSizePolicy(sizePolicy)
-        self.tableWidget_settings_mechanics_contoursettings.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAsNeeded)
-        self.tableWidget_settings_mechanics_contoursettings.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents)
-        self.tableWidget_settings_mechanics_contoursettings.setEditTriggers(QtWidgets.QAbstractItemView.EditTrigger.AnyKeyPressed|QtWidgets.QAbstractItemView.EditTrigger.DoubleClicked|QtWidgets.QAbstractItemView.EditTrigger.EditKeyPressed)
-        self.tableWidget_settings_mechanics_contoursettings.setObjectName("tableWidget_settings_mechanics_contoursettings")
+        self.tableWidget_settings_mechanics_contoursettings.setVerticalScrollBarPolicy(
+            QtCore.Qt.ScrollBarPolicy.ScrollBarAsNeeded
+        )
+        self.tableWidget_settings_mechanics_contoursettings.setSizeAdjustPolicy(
+            QtWidgets.QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents
+        )
+        self.tableWidget_settings_mechanics_contoursettings.setEditTriggers(
+            QtWidgets.QAbstractItemView.EditTrigger.AnyKeyPressed
+            | QtWidgets.QAbstractItemView.EditTrigger.DoubleClicked
+            | QtWidgets.QAbstractItemView.EditTrigger.EditKeyPressed
+        )
+        self.tableWidget_settings_mechanics_contoursettings.setObjectName(
+            "tableWidget_settings_mechanics_contoursettings"
+        )
         self.tableWidget_settings_mechanics_contoursettings.setColumnCount(0)
         self.tableWidget_settings_mechanics_contoursettings.setRowCount(0)
-        self.tableWidget_settings_mechanics_contoursettings.horizontalHeader().setDefaultSectionSize(57)
-        self.tableWidget_settings_mechanics_contoursettings.verticalHeader().setDefaultSectionSize(21)
-        self.verticalLayout_17.addWidget(self.tableWidget_settings_mechanics_contoursettings)
+        self.tableWidget_settings_mechanics_contoursettings.horizontalHeader().setDefaultSectionSize(
+            57
+        )
+        self.tableWidget_settings_mechanics_contoursettings.verticalHeader().setDefaultSectionSize(
+            21
+        )
+        self.verticalLayout_17.addWidget(
+            self.tableWidget_settings_mechanics_contoursettings
+        )
         self.verticalLayout_31.addWidget(self.groupBox_settings_mechanics_contour)
-        spacerItem31 = QtWidgets.QSpacerItem(20, 800, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Expanding)
+        spacerItem31 = QtWidgets.QSpacerItem(
+            20,
+            800,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+            QtWidgets.QSizePolicy.Policy.Expanding,
+        )
         self.verticalLayout_31.addItem(spacerItem31)
         self.verticalLayout_28 = QtWidgets.QVBoxLayout()
         self.verticalLayout_28.setSpacing(0)
         self.verticalLayout_28.setObjectName("verticalLayout_28")
-        self.pushButton_settings_mechanics_simulator = QtWidgets.QPushButton(parent=self.tab_settings_mechanics)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed)
+        self.pushButton_settings_mechanics_simulator = QtWidgets.QPushButton(
+            parent=self.tab_settings_mechanics
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.pushButton_settings_mechanics_simulator.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.pushButton_settings_mechanics_simulator.sizePolicy().hasHeightForWidth()
+        )
         self.pushButton_settings_mechanics_simulator.setSizePolicy(sizePolicy)
         self.pushButton_settings_mechanics_simulator.setCheckable(True)
-        self.pushButton_settings_mechanics_simulator.setObjectName("pushButton_settings_mechanics_simulator")
+        self.pushButton_settings_mechanics_simulator.setObjectName(
+            "pushButton_settings_mechanics_simulator"
+        )
         self.verticalLayout_28.addWidget(self.pushButton_settings_mechanics_simulator)
-        self.groupBox_settings_mechanics_simulator = QtWidgets.QGroupBox(parent=self.tab_settings_mechanics)
+        self.groupBox_settings_mechanics_simulator = QtWidgets.QGroupBox(
+            parent=self.tab_settings_mechanics
+        )
         self.groupBox_settings_mechanics_simulator.setEnabled(True)
         self.groupBox_settings_mechanics_simulator.setTitle("")
         self.groupBox_settings_mechanics_simulator.setFlat(True)
-        self.groupBox_settings_mechanics_simulator.setObjectName("groupBox_settings_mechanics_simulator")
-        self.verticalLayout_23 = QtWidgets.QVBoxLayout(self.groupBox_settings_mechanics_simulator)
+        self.groupBox_settings_mechanics_simulator.setObjectName(
+            "groupBox_settings_mechanics_simulator"
+        )
+        self.verticalLayout_23 = QtWidgets.QVBoxLayout(
+            self.groupBox_settings_mechanics_simulator
+        )
         self.verticalLayout_23.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_23.setObjectName("verticalLayout_23")
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
-        self.radioButton_settings_mechanics_simulator1l = QtWidgets.QRadioButton(parent=self.groupBox_settings_mechanics_simulator)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed)
+        self.radioButton_settings_mechanics_simulator1l = QtWidgets.QRadioButton(
+            parent=self.groupBox_settings_mechanics_simulator
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.radioButton_settings_mechanics_simulator1l.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.radioButton_settings_mechanics_simulator1l.sizePolicy().hasHeightForWidth()
+        )
         self.radioButton_settings_mechanics_simulator1l.setSizePolicy(sizePolicy)
         self.radioButton_settings_mechanics_simulator1l.setChecked(True)
-        self.radioButton_settings_mechanics_simulator1l.setObjectName("radioButton_settings_mechanics_simulator1l")
+        self.radioButton_settings_mechanics_simulator1l.setObjectName(
+            "radioButton_settings_mechanics_simulator1l"
+        )
         self.horizontalLayout.addWidget(self.radioButton_settings_mechanics_simulator1l)
-        self.radioButton_settings_mechanics_simulatro2l = QtWidgets.QRadioButton(parent=self.groupBox_settings_mechanics_simulator)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed)
+        self.radioButton_settings_mechanics_simulatro2l = QtWidgets.QRadioButton(
+            parent=self.groupBox_settings_mechanics_simulator
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.radioButton_settings_mechanics_simulatro2l.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.radioButton_settings_mechanics_simulatro2l.sizePolicy().hasHeightForWidth()
+        )
         self.radioButton_settings_mechanics_simulatro2l.setSizePolicy(sizePolicy)
-        self.radioButton_settings_mechanics_simulatro2l.setObjectName("radioButton_settings_mechanics_simulatro2l")
+        self.radioButton_settings_mechanics_simulatro2l.setObjectName(
+            "radioButton_settings_mechanics_simulatro2l"
+        )
         self.horizontalLayout.addWidget(self.radioButton_settings_mechanics_simulatro2l)
-        spacerItem32 = QtWidgets.QSpacerItem(40, 0, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
+        spacerItem32 = QtWidgets.QSpacerItem(
+            40,
+            0,
+            QtWidgets.QSizePolicy.Policy.Expanding,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+        )
         self.horizontalLayout.addItem(spacerItem32)
         self.verticalLayout_23.addLayout(self.horizontalLayout)
-        self.tableWidgetsettings_mechanics_simulatorin = QtWidgets.QTableWidget(parent=self.groupBox_settings_mechanics_simulator)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Fixed)
+        self.tableWidgetsettings_mechanics_simulatorin = QtWidgets.QTableWidget(
+            parent=self.groupBox_settings_mechanics_simulator
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.tableWidgetsettings_mechanics_simulatorin.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.tableWidgetsettings_mechanics_simulatorin.sizePolicy().hasHeightForWidth()
+        )
         self.tableWidgetsettings_mechanics_simulatorin.setSizePolicy(sizePolicy)
-        self.tableWidgetsettings_mechanics_simulatorin.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.tableWidgetsettings_mechanics_simulatorin.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.tableWidgetsettings_mechanics_simulatorin.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents)
-        self.tableWidgetsettings_mechanics_simulatorin.setObjectName("tableWidgetsettings_mechanics_simulatorin")
+        self.tableWidgetsettings_mechanics_simulatorin.setVerticalScrollBarPolicy(
+            QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        )
+        self.tableWidgetsettings_mechanics_simulatorin.setHorizontalScrollBarPolicy(
+            QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        )
+        self.tableWidgetsettings_mechanics_simulatorin.setSizeAdjustPolicy(
+            QtWidgets.QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents
+        )
+        self.tableWidgetsettings_mechanics_simulatorin.setObjectName(
+            "tableWidgetsettings_mechanics_simulatorin"
+        )
         self.tableWidgetsettings_mechanics_simulatorin.setColumnCount(3)
         self.tableWidgetsettings_mechanics_simulatorin.setRowCount(1)
         item = QtWidgets.QTableWidgetItem()
@@ -1627,21 +2839,42 @@ class Ui_MainWindow(object):
         self.tableWidgetsettings_mechanics_simulatorin.setHorizontalHeaderItem(1, item)
         item = QtWidgets.QTableWidgetItem()
         self.tableWidgetsettings_mechanics_simulatorin.setHorizontalHeaderItem(2, item)
-        self.tableWidgetsettings_mechanics_simulatorin.horizontalHeader().setDefaultSectionSize(89)
-        self.tableWidgetsettings_mechanics_simulatorin.verticalHeader().setVisible(False)
-        self.tableWidgetsettings_mechanics_simulatorin.verticalHeader().setDefaultSectionSize(21)
+        self.tableWidgetsettings_mechanics_simulatorin.horizontalHeader().setDefaultSectionSize(
+            89
+        )
+        self.tableWidgetsettings_mechanics_simulatorin.verticalHeader().setVisible(
+            False
+        )
+        self.tableWidgetsettings_mechanics_simulatorin.verticalHeader().setDefaultSectionSize(
+            21
+        )
         self.verticalLayout_23.addWidget(self.tableWidgetsettings_mechanics_simulatorin)
-        self.tableWidgetsettings_mechanics_simulatorout = QtWidgets.QTableWidget(parent=self.groupBox_settings_mechanics_simulator)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Preferred)
+        self.tableWidgetsettings_mechanics_simulatorout = QtWidgets.QTableWidget(
+            parent=self.groupBox_settings_mechanics_simulator
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Expanding,
+            QtWidgets.QSizePolicy.Policy.Preferred,
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.tableWidgetsettings_mechanics_simulatorout.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.tableWidgetsettings_mechanics_simulatorout.sizePolicy().hasHeightForWidth()
+        )
         self.tableWidgetsettings_mechanics_simulatorout.setSizePolicy(sizePolicy)
-        self.tableWidgetsettings_mechanics_simulatorout.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.tableWidgetsettings_mechanics_simulatorout.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.tableWidgetsettings_mechanics_simulatorout.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents)
+        self.tableWidgetsettings_mechanics_simulatorout.setVerticalScrollBarPolicy(
+            QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        )
+        self.tableWidgetsettings_mechanics_simulatorout.setHorizontalScrollBarPolicy(
+            QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        )
+        self.tableWidgetsettings_mechanics_simulatorout.setSizeAdjustPolicy(
+            QtWidgets.QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents
+        )
         self.tableWidgetsettings_mechanics_simulatorout.setAlternatingRowColors(True)
-        self.tableWidgetsettings_mechanics_simulatorout.setObjectName("tableWidgetsettings_mechanics_simulatorout")
+        self.tableWidgetsettings_mechanics_simulatorout.setObjectName(
+            "tableWidgetsettings_mechanics_simulatorout"
+        )
         self.tableWidgetsettings_mechanics_simulatorout.setColumnCount(5)
         self.tableWidgetsettings_mechanics_simulatorout.setRowCount(5)
         item = QtWidgets.QTableWidgetItem()
@@ -1666,21 +2899,36 @@ class Ui_MainWindow(object):
         self.tableWidgetsettings_mechanics_simulatorout.setHorizontalHeaderItem(4, item)
         item = QtWidgets.QTableWidgetItem()
         self.tableWidgetsettings_mechanics_simulatorout.setItem(0, 0, item)
-        self.tableWidgetsettings_mechanics_simulatorout.horizontalHeader().setDefaultSectionSize(57)
-        self.tableWidgetsettings_mechanics_simulatorout.verticalHeader().setDefaultSectionSize(21)
-        self.verticalLayout_23.addWidget(self.tableWidgetsettings_mechanics_simulatorout)
+        self.tableWidgetsettings_mechanics_simulatorout.horizontalHeader().setDefaultSectionSize(
+            57
+        )
+        self.tableWidgetsettings_mechanics_simulatorout.verticalHeader().setDefaultSectionSize(
+            21
+        )
+        self.verticalLayout_23.addWidget(
+            self.tableWidgetsettings_mechanics_simulatorout
+        )
         self.verticalLayout_28.addWidget(self.groupBox_settings_mechanics_simulator)
         self.verticalLayout_31.addLayout(self.verticalLayout_28)
         self.tabWidget_settings.addTab(self.tab_settings_mechanics, "")
         self.verticalLayout_12.addWidget(self.tabWidget_settings)
         self.verticalLayout_13.addLayout(self.verticalLayout_12)
         self.groupBox_spectra = QtWidgets.QGroupBox(parent=self.splitter)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Preferred)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred,
+            QtWidgets.QSizePolicy.Policy.Preferred,
+        )
         sizePolicy.setHorizontalStretch(1)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.groupBox_spectra.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.groupBox_spectra.sizePolicy().hasHeightForWidth()
+        )
         self.groupBox_spectra.setSizePolicy(sizePolicy)
-        self.groupBox_spectra.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeading|QtCore.Qt.AlignmentFlag.AlignLeft|QtCore.Qt.AlignmentFlag.AlignTop)
+        self.groupBox_spectra.setAlignment(
+            QtCore.Qt.AlignmentFlag.AlignLeading
+            | QtCore.Qt.AlignmentFlag.AlignLeft
+            | QtCore.Qt.AlignmentFlag.AlignTop
+        )
         self.groupBox_spectra.setObjectName("groupBox_spectra")
         self.verticalLayout_3 = QtWidgets.QVBoxLayout(self.groupBox_spectra)
         self.verticalLayout_3.setContentsMargins(2, 0, 2, 0)
@@ -1690,11 +2938,17 @@ class Ui_MainWindow(object):
         self.horizontalLayout_10.setContentsMargins(-1, -1, 6, -1)
         self.horizontalLayout_10.setSpacing(6)
         self.horizontalLayout_10.setObjectName("horizontalLayout_10")
-        self.stackedWidget_spetratop = QtWidgets.QStackedWidget(parent=self.groupBox_spectra)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed)
+        self.stackedWidget_spetratop = QtWidgets.QStackedWidget(
+            parent=self.groupBox_spectra
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.stackedWidget_spetratop.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.stackedWidget_spetratop.sizePolicy().hasHeightForWidth()
+        )
         self.stackedWidget_spetratop.setSizePolicy(sizePolicy)
         self.stackedWidget_spetratop.setObjectName("stackedWidget_spetratop")
         self.page_spectra_topshow = QtWidgets.QWidget()
@@ -1703,26 +2957,38 @@ class Ui_MainWindow(object):
         self.horizontalLayout_2.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
         self.label_18 = QtWidgets.QLabel(parent=self.page_spectra_topshow)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.label_18.sizePolicy().hasHeightForWidth())
         self.label_18.setSizePolicy(sizePolicy)
         self.label_18.setObjectName("label_18")
         self.horizontalLayout_2.addWidget(self.label_18)
-        self.radioButton_spectra_showGp = QtWidgets.QRadioButton(parent=self.page_spectra_topshow)
+        self.radioButton_spectra_showGp = QtWidgets.QRadioButton(
+            parent=self.page_spectra_topshow
+        )
         self.radioButton_spectra_showGp.setChecked(True)
         self.radioButton_spectra_showGp.setObjectName("radioButton_spectra_showGp")
         self.horizontalLayout_2.addWidget(self.radioButton_spectra_showGp)
-        self.radioButton_spectra_showBp = QtWidgets.QRadioButton(parent=self.page_spectra_topshow)
+        self.radioButton_spectra_showBp = QtWidgets.QRadioButton(
+            parent=self.page_spectra_topshow
+        )
         self.radioButton_spectra_showBp.setCheckable(True)
         self.radioButton_spectra_showBp.setChecked(False)
         self.radioButton_spectra_showBp.setObjectName("radioButton_spectra_showBp")
         self.horizontalLayout_2.addWidget(self.radioButton_spectra_showBp)
-        self.radioButton_spectra_showpolar = QtWidgets.QRadioButton(parent=self.page_spectra_topshow)
-        self.radioButton_spectra_showpolar.setObjectName("radioButton_spectra_showpolar")
+        self.radioButton_spectra_showpolar = QtWidgets.QRadioButton(
+            parent=self.page_spectra_topshow
+        )
+        self.radioButton_spectra_showpolar.setObjectName(
+            "radioButton_spectra_showpolar"
+        )
         self.horizontalLayout_2.addWidget(self.radioButton_spectra_showpolar)
-        self.checkBox_spectra_showchi = QtWidgets.QCheckBox(parent=self.page_spectra_topshow)
+        self.checkBox_spectra_showchi = QtWidgets.QCheckBox(
+            parent=self.page_spectra_topshow
+        )
         self.checkBox_spectra_showchi.setObjectName("checkBox_spectra_showchi")
         self.horizontalLayout_2.addWidget(self.checkBox_spectra_showchi)
         self.stackedWidget_spetratop.addWidget(self.page_spectra_topshow)
@@ -1732,58 +2998,108 @@ class Ui_MainWindow(object):
         self.horizontalLayout_27.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout_27.setSpacing(0)
         self.horizontalLayout_27.setObjectName("horizontalLayout_27")
-        self.pushButton_manual_refit = QtWidgets.QPushButton(parent=self.page_spectra_topfit)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed)
+        self.pushButton_manual_refit = QtWidgets.QPushButton(
+            parent=self.page_spectra_topfit
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.pushButton_manual_refit.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.pushButton_manual_refit.sizePolicy().hasHeightForWidth()
+        )
         self.pushButton_manual_refit.setSizePolicy(sizePolicy)
         self.pushButton_manual_refit.setCheckable(True)
         self.pushButton_manual_refit.setObjectName("pushButton_manual_refit")
         self.horizontalLayout_27.addWidget(self.pushButton_manual_refit)
-        spacerItem33 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
+        spacerItem33 = QtWidgets.QSpacerItem(
+            40,
+            20,
+            QtWidgets.QSizePolicy.Policy.Expanding,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+        )
         self.horizontalLayout_27.addItem(spacerItem33)
         self.horizontalLayout_24 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_24.setSpacing(0)
         self.horizontalLayout_24.setObjectName("horizontalLayout_24")
-        self.pushButton_settings_data_tostart = QtWidgets.QPushButton(parent=self.page_spectra_topfit)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed)
+        self.pushButton_settings_data_tostart = QtWidgets.QPushButton(
+            parent=self.page_spectra_topfit
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.pushButton_settings_data_tostart.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.pushButton_settings_data_tostart.sizePolicy().hasHeightForWidth()
+        )
         self.pushButton_settings_data_tostart.setSizePolicy(sizePolicy)
         self.pushButton_settings_data_tostart.setMaximumSize(QtCore.QSize(24, 16777215))
-        self.pushButton_settings_data_tostart.setObjectName("pushButton_settings_data_tostart")
+        self.pushButton_settings_data_tostart.setObjectName(
+            "pushButton_settings_data_tostart"
+        )
         self.horizontalLayout_24.addWidget(self.pushButton_settings_data_tostart)
-        self.pushButton_settings_data_toprevious = QtWidgets.QPushButton(parent=self.page_spectra_topfit)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed)
+        self.pushButton_settings_data_toprevious = QtWidgets.QPushButton(
+            parent=self.page_spectra_topfit
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.pushButton_settings_data_toprevious.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.pushButton_settings_data_toprevious.sizePolicy().hasHeightForWidth()
+        )
         self.pushButton_settings_data_toprevious.setSizePolicy(sizePolicy)
-        self.pushButton_settings_data_toprevious.setMaximumSize(QtCore.QSize(24, 16777215))
-        self.pushButton_settings_data_toprevious.setObjectName("pushButton_settings_data_toprevious")
+        self.pushButton_settings_data_toprevious.setMaximumSize(
+            QtCore.QSize(24, 16777215)
+        )
+        self.pushButton_settings_data_toprevious.setObjectName(
+            "pushButton_settings_data_toprevious"
+        )
         self.horizontalLayout_24.addWidget(self.pushButton_settings_data_toprevious)
-        self.pushButton_settings_data_tonext = QtWidgets.QPushButton(parent=self.page_spectra_topfit)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed)
+        self.pushButton_settings_data_tonext = QtWidgets.QPushButton(
+            parent=self.page_spectra_topfit
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.pushButton_settings_data_tonext.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.pushButton_settings_data_tonext.sizePolicy().hasHeightForWidth()
+        )
         self.pushButton_settings_data_tonext.setSizePolicy(sizePolicy)
         self.pushButton_settings_data_tonext.setMaximumSize(QtCore.QSize(24, 16777215))
-        self.pushButton_settings_data_tonext.setObjectName("pushButton_settings_data_tonext")
+        self.pushButton_settings_data_tonext.setObjectName(
+            "pushButton_settings_data_tonext"
+        )
         self.horizontalLayout_24.addWidget(self.pushButton_settings_data_tonext)
-        self.pushButton_settings_data_toend = QtWidgets.QPushButton(parent=self.page_spectra_topfit)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed)
+        self.pushButton_settings_data_toend = QtWidgets.QPushButton(
+            parent=self.page_spectra_topfit
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.pushButton_settings_data_toend.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.pushButton_settings_data_toend.sizePolicy().hasHeightForWidth()
+        )
         self.pushButton_settings_data_toend.setSizePolicy(sizePolicy)
         self.pushButton_settings_data_toend.setMaximumSize(QtCore.QSize(24, 16777215))
-        self.pushButton_settings_data_toend.setObjectName("pushButton_settings_data_toend")
+        self.pushButton_settings_data_toend.setObjectName(
+            "pushButton_settings_data_toend"
+        )
         self.horizontalLayout_24.addWidget(self.pushButton_settings_data_toend)
         self.horizontalLayout_27.addLayout(self.horizontalLayout_24)
-        spacerItem34 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
+        spacerItem34 = QtWidgets.QSpacerItem(
+            40,
+            20,
+            QtWidgets.QSizePolicy.Policy.Expanding,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+        )
         self.horizontalLayout_27.addItem(spacerItem34)
         self.stackedWidget_spetratop.addWidget(self.page_spectra_topfit)
         self.page_spectra_topmechanics = QtWidgets.QWidget()
@@ -1793,7 +3109,9 @@ class Ui_MainWindow(object):
         self.horizontalLayout_25.setSpacing(0)
         self.horizontalLayout_25.setObjectName("horizontalLayout_25")
         self.label_10 = QtWidgets.QLabel(parent=self.page_spectra_topmechanics)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.label_10.sizePolicy().hasHeightForWidth())
@@ -1802,55 +3120,70 @@ class Ui_MainWindow(object):
         self.horizontalLayout_25.addWidget(self.label_10)
         self.stackedWidget_spetratop.addWidget(self.page_spectra_topmechanics)
         self.horizontalLayout_10.addWidget(self.stackedWidget_spetratop)
-        spacerItem35 = QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
+        spacerItem35 = QtWidgets.QSpacerItem(
+            10,
+            10,
+            QtWidgets.QSizePolicy.Policy.Expanding,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+        )
         self.horizontalLayout_10.addItem(spacerItem35)
-        self.pushButton_settings_la = QtWidgets.QPushButton(parent=self.groupBox_spectra)
+        self.pushButton_settings_la = QtWidgets.QPushButton(
+            parent=self.groupBox_spectra
+        )
         self.pushButton_settings_la.setMinimumSize(QtCore.QSize(8, 8))
         self.pushButton_settings_la.setMaximumSize(QtCore.QSize(8, 8))
-        self.pushButton_settings_la.setStyleSheet("#pushButton_settings_la\n"
-"{\n"
-"background-color: transparent;\n"
-"border-image: url(:/button/rc/la.svg);\n"
-"background: none;\n"
-"border: none;\n"
-"background-repeat: none;\n"
-"}\n"
-"\n"
-"#pushButton_settings_la:hover:!pressed\n"
-"{\n"
-"background-color: rgba(255, 255, 255, 160);\n"
-"border: 1px solid blue;\n"
-"/* border-style: inset; */\n"
-"}\n"
-"\n"
-"")
+        self.pushButton_settings_la.setStyleSheet(
+            "#pushButton_settings_la\n"
+            "{\n"
+            "background-color: transparent;\n"
+            "border-image: url(:/button/rc/la.svg);\n"
+            "background: none;\n"
+            "border: none;\n"
+            "background-repeat: none;\n"
+            "}\n"
+            "\n"
+            "#pushButton_settings_la:hover:!pressed\n"
+            "{\n"
+            "background-color: rgba(255, 255, 255, 160);\n"
+            "border: 1px solid blue;\n"
+            "/* border-style: inset; */\n"
+            "}\n"
+            "\n"
+            ""
+        )
         self.pushButton_settings_la.setText("")
         self.pushButton_settings_la.setObjectName("pushButton_settings_la")
         self.horizontalLayout_10.addWidget(self.pushButton_settings_la)
-        self.pushButton_settings_ra = QtWidgets.QPushButton(parent=self.groupBox_spectra)
+        self.pushButton_settings_ra = QtWidgets.QPushButton(
+            parent=self.groupBox_spectra
+        )
         self.pushButton_settings_ra.setMinimumSize(QtCore.QSize(8, 8))
         self.pushButton_settings_ra.setMaximumSize(QtCore.QSize(8, 8))
-        self.pushButton_settings_ra.setStyleSheet("#pushButton_settings_ra\n"
-"{\n"
-"background-color: transparent;\n"
-"border-image: url(:/button/rc/ra.svg);\n"
-"background: none;\n"
-"border: none;\n"
-"background-repeat: none;\n"
-"}\n"
-"\n"
-"#pushButton_settings_ra:hover:!pressed\n"
-"{\n"
-"background-color: rgba(255, 255, 255, 160);\n"
-"border: 1px solid blue;\n"
-"/* border-style: inset; */\n"
-"}\n"
-"")
+        self.pushButton_settings_ra.setStyleSheet(
+            "#pushButton_settings_ra\n"
+            "{\n"
+            "background-color: transparent;\n"
+            "border-image: url(:/button/rc/ra.svg);\n"
+            "background: none;\n"
+            "border: none;\n"
+            "background-repeat: none;\n"
+            "}\n"
+            "\n"
+            "#pushButton_settings_ra:hover:!pressed\n"
+            "{\n"
+            "background-color: rgba(255, 255, 255, 160);\n"
+            "border: 1px solid blue;\n"
+            "/* border-style: inset; */\n"
+            "}\n"
+            ""
+        )
         self.pushButton_settings_ra.setText("")
         self.pushButton_settings_ra.setObjectName("pushButton_settings_ra")
         self.horizontalLayout_10.addWidget(self.pushButton_settings_ra)
         self.verticalLayout_3.addLayout(self.horizontalLayout_10)
-        self.stackedWidget_spectra = QtWidgets.QStackedWidget(parent=self.groupBox_spectra)
+        self.stackedWidget_spectra = QtWidgets.QStackedWidget(
+            parent=self.groupBox_spectra
+        )
         self.stackedWidget_spectra.setMinimumSize(QtCore.QSize(300, 0))
         self.stackedWidget_spectra.setObjectName("stackedWidget_spectra")
         self.page_spectra_show = QtWidgets.QWidget()
@@ -1860,11 +3193,16 @@ class Ui_MainWindow(object):
         self.verticalLayout_19.setSpacing(0)
         self.verticalLayout_19.setObjectName("verticalLayout_19")
         self.verticalLayout_sp = QtWidgets.QVBoxLayout()
-        self.verticalLayout_sp.setSizeConstraint(QtWidgets.QLayout.SizeConstraint.SetDefaultConstraint)
+        self.verticalLayout_sp.setSizeConstraint(
+            QtWidgets.QLayout.SizeConstraint.SetDefaultConstraint
+        )
         self.verticalLayout_sp.setSpacing(0)
         self.verticalLayout_sp.setObjectName("verticalLayout_sp")
         self.frame_sp1 = QtWidgets.QFrame(parent=self.page_spectra_show)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Expanding)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred,
+            QtWidgets.QSizePolicy.Policy.Expanding,
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(1)
         sizePolicy.setHeightForWidth(self.frame_sp1.sizePolicy().hasHeightForWidth())
@@ -1875,7 +3213,12 @@ class Ui_MainWindow(object):
         self.frame_sp1.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)
         self.frame_sp1.setObjectName("frame_sp1")
         self.verticalLayout_sp.addWidget(self.frame_sp1)
-        spacerItem36 = QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Expanding)
+        spacerItem36 = QtWidgets.QSpacerItem(
+            0,
+            0,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+            QtWidgets.QSizePolicy.Policy.Expanding,
+        )
         self.verticalLayout_sp.addItem(spacerItem36)
         self.verticalLayout_19.addLayout(self.verticalLayout_sp)
         self.stackedWidget_spectra.addWidget(self.page_spectra_show)
@@ -1894,13 +3237,20 @@ class Ui_MainWindow(object):
         self.verticalLayout_20.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_20.setObjectName("verticalLayout_20")
         self.frame_spectra_fit = QtWidgets.QFrame(parent=self.layoutWidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Expanding)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred,
+            QtWidgets.QSizePolicy.Policy.Expanding,
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(1)
-        sizePolicy.setHeightForWidth(self.frame_spectra_fit.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.frame_spectra_fit.sizePolicy().hasHeightForWidth()
+        )
         self.frame_spectra_fit.setSizePolicy(sizePolicy)
         self.frame_spectra_fit.setMinimumSize(QtCore.QSize(0, 200))
-        self.frame_spectra_fit.setContextMenuPolicy(QtCore.Qt.ContextMenuPolicy.CustomContextMenu)
+        self.frame_spectra_fit.setContextMenuPolicy(
+            QtCore.Qt.ContextMenuPolicy.CustomContextMenu
+        )
         self.frame_spectra_fit.setFrameShape(QtWidgets.QFrame.Shape.StyledPanel)
         self.frame_spectra_fit.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)
         self.frame_spectra_fit.setObjectName("frame_spectra_fit")
@@ -1911,26 +3261,40 @@ class Ui_MainWindow(object):
         self.verticalLayout_43 = QtWidgets.QVBoxLayout()
         self.verticalLayout_43.setSpacing(0)
         self.verticalLayout_43.setObjectName("verticalLayout_43")
-        self.horizontalSlider_spectra_fit_spanctrl = QtWidgets.QSlider(parent=self.layoutWidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed)
+        self.horizontalSlider_spectra_fit_spanctrl = QtWidgets.QSlider(
+            parent=self.layoutWidget
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.horizontalSlider_spectra_fit_spanctrl.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.horizontalSlider_spectra_fit_spanctrl.sizePolicy().hasHeightForWidth()
+        )
         self.horizontalSlider_spectra_fit_spanctrl.setSizePolicy(sizePolicy)
         self.horizontalSlider_spectra_fit_spanctrl.setMinimum(-20)
         self.horizontalSlider_spectra_fit_spanctrl.setMaximum(20)
         self.horizontalSlider_spectra_fit_spanctrl.setSingleStep(1)
         self.horizontalSlider_spectra_fit_spanctrl.setPageStep(5)
-        self.horizontalSlider_spectra_fit_spanctrl.setOrientation(QtCore.Qt.Orientation.Horizontal)
-        self.horizontalSlider_spectra_fit_spanctrl.setTickPosition(QtWidgets.QSlider.TickPosition.TicksBelow)
+        self.horizontalSlider_spectra_fit_spanctrl.setOrientation(
+            QtCore.Qt.Orientation.Horizontal
+        )
+        self.horizontalSlider_spectra_fit_spanctrl.setTickPosition(
+            QtWidgets.QSlider.TickPosition.TicksBelow
+        )
         self.horizontalSlider_spectra_fit_spanctrl.setTickInterval(5)
-        self.horizontalSlider_spectra_fit_spanctrl.setObjectName("horizontalSlider_spectra_fit_spanctrl")
+        self.horizontalSlider_spectra_fit_spanctrl.setObjectName(
+            "horizontalSlider_spectra_fit_spanctrl"
+        )
         self.verticalLayout_43.addWidget(self.horizontalSlider_spectra_fit_spanctrl)
         self.horizontalLayout_14 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_14.setSpacing(0)
         self.horizontalLayout_14.setObjectName("horizontalLayout_14")
         self.label_11 = QtWidgets.QLabel(parent=self.layoutWidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.label_11.sizePolicy().hasHeightForWidth())
@@ -1938,10 +3302,17 @@ class Ui_MainWindow(object):
         self.label_11.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         self.label_11.setObjectName("label_11")
         self.horizontalLayout_14.addWidget(self.label_11)
-        spacerItem37 = QtWidgets.QSpacerItem(0, 10, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
+        spacerItem37 = QtWidgets.QSpacerItem(
+            0,
+            10,
+            QtWidgets.QSizePolicy.Policy.Expanding,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+        )
         self.horizontalLayout_14.addItem(spacerItem37)
         self.label_12 = QtWidgets.QLabel(parent=self.layoutWidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.label_12.sizePolicy().hasHeightForWidth())
@@ -1949,10 +3320,17 @@ class Ui_MainWindow(object):
         self.label_12.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         self.label_12.setObjectName("label_12")
         self.horizontalLayout_14.addWidget(self.label_12)
-        spacerItem38 = QtWidgets.QSpacerItem(0, 10, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
+        spacerItem38 = QtWidgets.QSpacerItem(
+            0,
+            10,
+            QtWidgets.QSizePolicy.Policy.Expanding,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+        )
         self.horizontalLayout_14.addItem(spacerItem38)
         self.label_15 = QtWidgets.QLabel(parent=self.layoutWidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.label_15.sizePolicy().hasHeightForWidth())
@@ -1960,10 +3338,17 @@ class Ui_MainWindow(object):
         self.label_15.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         self.label_15.setObjectName("label_15")
         self.horizontalLayout_14.addWidget(self.label_15)
-        spacerItem39 = QtWidgets.QSpacerItem(0, 10, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
+        spacerItem39 = QtWidgets.QSpacerItem(
+            0,
+            10,
+            QtWidgets.QSizePolicy.Policy.Expanding,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+        )
         self.horizontalLayout_14.addItem(spacerItem39)
         self.label_16 = QtWidgets.QLabel(parent=self.layoutWidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.label_16.sizePolicy().hasHeightForWidth())
@@ -1971,10 +3356,17 @@ class Ui_MainWindow(object):
         self.label_16.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         self.label_16.setObjectName("label_16")
         self.horizontalLayout_14.addWidget(self.label_16)
-        spacerItem40 = QtWidgets.QSpacerItem(0, 10, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
+        spacerItem40 = QtWidgets.QSpacerItem(
+            0,
+            10,
+            QtWidgets.QSizePolicy.Policy.Expanding,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+        )
         self.horizontalLayout_14.addItem(spacerItem40)
         self.label_17 = QtWidgets.QLabel(parent=self.layoutWidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.label_17.sizePolicy().hasHeightForWidth())
@@ -1985,28 +3377,42 @@ class Ui_MainWindow(object):
         self.verticalLayout_43.addLayout(self.horizontalLayout_14)
         self.horizontalLayout_22.addLayout(self.verticalLayout_43)
         self.label_spectra_fit_zoomtimes = QtWidgets.QLabel(parent=self.layoutWidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.label_spectra_fit_zoomtimes.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.label_spectra_fit_zoomtimes.sizePolicy().hasHeightForWidth()
+        )
         self.label_spectra_fit_zoomtimes.setSizePolicy(sizePolicy)
         self.label_spectra_fit_zoomtimes.setMinimumSize(QtCore.QSize(55, 0))
         self.label_spectra_fit_zoomtimes.setMaximumSize(QtCore.QSize(55, 16777215))
-        self.label_spectra_fit_zoomtimes.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight|QtCore.Qt.AlignmentFlag.AlignTrailing|QtCore.Qt.AlignmentFlag.AlignVCenter)
+        self.label_spectra_fit_zoomtimes.setAlignment(
+            QtCore.Qt.AlignmentFlag.AlignRight
+            | QtCore.Qt.AlignmentFlag.AlignTrailing
+            | QtCore.Qt.AlignmentFlag.AlignVCenter
+        )
         self.label_spectra_fit_zoomtimes.setObjectName("label_spectra_fit_zoomtimes")
         self.horizontalLayout_22.addWidget(self.label_spectra_fit_zoomtimes)
         self.lineEdit_spectra_fit_span = QtWidgets.QLineEdit(parent=self.layoutWidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.lineEdit_spectra_fit_span.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.lineEdit_spectra_fit_span.sizePolicy().hasHeightForWidth()
+        )
         self.lineEdit_spectra_fit_span.setSizePolicy(sizePolicy)
         self.lineEdit_spectra_fit_span.setMaximumSize(QtCore.QSize(80, 16777215))
         self.lineEdit_spectra_fit_span.setReadOnly(True)
         self.lineEdit_spectra_fit_span.setObjectName("lineEdit_spectra_fit_span")
         self.horizontalLayout_22.addWidget(self.lineEdit_spectra_fit_span)
         self.label_5 = QtWidgets.QLabel(parent=self.layoutWidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.label_5.sizePolicy().hasHeightForWidth())
@@ -2017,44 +3423,79 @@ class Ui_MainWindow(object):
         self.horizontalLayout_4 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_4.setSpacing(2)
         self.horizontalLayout_4.setObjectName("horizontalLayout_4")
-        self.pushButton_spectra_fit_showall = QtWidgets.QPushButton(parent=self.layoutWidget)
-        self.pushButton_spectra_fit_showall.setObjectName("pushButton_spectra_fit_showall")
+        self.pushButton_spectra_fit_showall = QtWidgets.QPushButton(
+            parent=self.layoutWidget
+        )
+        self.pushButton_spectra_fit_showall.setObjectName(
+            "pushButton_spectra_fit_showall"
+        )
         self.horizontalLayout_4.addWidget(self.pushButton_spectra_fit_showall)
-        spacerItem41 = QtWidgets.QSpacerItem(0, 20, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
+        spacerItem41 = QtWidgets.QSpacerItem(
+            0,
+            20,
+            QtWidgets.QSizePolicy.Policy.Expanding,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+        )
         self.horizontalLayout_4.addItem(spacerItem41)
-        self.pushButton_spectra_fit_refresh = QtWidgets.QPushButton(parent=self.layoutWidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed)
+        self.pushButton_spectra_fit_refresh = QtWidgets.QPushButton(
+            parent=self.layoutWidget
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.pushButton_spectra_fit_refresh.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.pushButton_spectra_fit_refresh.sizePolicy().hasHeightForWidth()
+        )
         self.pushButton_spectra_fit_refresh.setSizePolicy(sizePolicy)
-        self.pushButton_spectra_fit_refresh.setObjectName("pushButton_spectra_fit_refresh")
+        self.pushButton_spectra_fit_refresh.setObjectName(
+            "pushButton_spectra_fit_refresh"
+        )
         self.horizontalLayout_4.addWidget(self.pushButton_spectra_fit_refresh)
-        self.pushButton_spectra_fit_autocntr = QtWidgets.QPushButton(parent=self.layoutWidget)
+        self.pushButton_spectra_fit_autocntr = QtWidgets.QPushButton(
+            parent=self.layoutWidget
+        )
         self.pushButton_spectra_fit_autocntr.setEnabled(False)
         self.pushButton_spectra_fit_autocntr.setAutoFillBackground(False)
-        self.pushButton_spectra_fit_autocntr.setObjectName("pushButton_spectra_fit_autocntr")
+        self.pushButton_spectra_fit_autocntr.setObjectName(
+            "pushButton_spectra_fit_autocntr"
+        )
         self.horizontalLayout_4.addWidget(self.pushButton_spectra_fit_autocntr)
-        self.pushButton_spectra_fit_fit = QtWidgets.QPushButton(parent=self.layoutWidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed)
+        self.pushButton_spectra_fit_fit = QtWidgets.QPushButton(
+            parent=self.layoutWidget
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.pushButton_spectra_fit_fit.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.pushButton_spectra_fit_fit.sizePolicy().hasHeightForWidth()
+        )
         self.pushButton_spectra_fit_fit.setSizePolicy(sizePolicy)
         self.pushButton_spectra_fit_fit.setObjectName("pushButton_spectra_fit_fit")
         self.horizontalLayout_4.addWidget(self.pushButton_spectra_fit_fit)
         self.verticalLayout_20.addLayout(self.horizontalLayout_4)
-        self.plainTextEdit_spectra_fit_result = QtWidgets.QPlainTextEdit(parent=self.splitter_7)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Preferred)
+        self.plainTextEdit_spectra_fit_result = QtWidgets.QPlainTextEdit(
+            parent=self.splitter_7
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Preferred
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.plainTextEdit_spectra_fit_result.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.plainTextEdit_spectra_fit_result.sizePolicy().hasHeightForWidth()
+        )
         self.plainTextEdit_spectra_fit_result.setSizePolicy(sizePolicy)
         self.plainTextEdit_spectra_fit_result.setMinimumSize(QtCore.QSize(0, 50))
         self.plainTextEdit_spectra_fit_result.setMaximumSize(QtCore.QSize(16777215, 80))
         self.plainTextEdit_spectra_fit_result.setReadOnly(True)
         self.plainTextEdit_spectra_fit_result.setOverwriteMode(True)
-        self.plainTextEdit_spectra_fit_result.setObjectName("plainTextEdit_spectra_fit_result")
+        self.plainTextEdit_spectra_fit_result.setObjectName(
+            "plainTextEdit_spectra_fit_result"
+        )
         self.layoutWidget1 = QtWidgets.QWidget(parent=self.splitter_7)
         self.layoutWidget1.setObjectName("layoutWidget1")
         self.verticalLayout_21 = QtWidgets.QVBoxLayout(self.layoutWidget1)
@@ -2062,17 +3503,27 @@ class Ui_MainWindow(object):
         self.verticalLayout_21.setSpacing(0)
         self.verticalLayout_21.setObjectName("verticalLayout_21")
         self.frame_spectra_fit_polar = QtWidgets.QFrame(parent=self.layoutWidget1)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Expanding)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred,
+            QtWidgets.QSizePolicy.Policy.Expanding,
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(2)
-        sizePolicy.setHeightForWidth(self.frame_spectra_fit_polar.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.frame_spectra_fit_polar.sizePolicy().hasHeightForWidth()
+        )
         self.frame_spectra_fit_polar.setSizePolicy(sizePolicy)
         self.frame_spectra_fit_polar.setMinimumSize(QtCore.QSize(0, 200))
         self.frame_spectra_fit_polar.setFrameShape(QtWidgets.QFrame.Shape.StyledPanel)
         self.frame_spectra_fit_polar.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)
         self.frame_spectra_fit_polar.setObjectName("frame_spectra_fit_polar")
         self.verticalLayout_21.addWidget(self.frame_spectra_fit_polar)
-        spacerItem42 = QtWidgets.QSpacerItem(20, 0, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Expanding)
+        spacerItem42 = QtWidgets.QSpacerItem(
+            20,
+            0,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+            QtWidgets.QSizePolicy.Policy.Expanding,
+        )
         self.verticalLayout_21.addItem(spacerItem42)
         self.verticalLayout_27.addWidget(self.splitter_7)
         self.stackedWidget_spectra.addWidget(self.page_spectra_fit)
@@ -2082,11 +3533,18 @@ class Ui_MainWindow(object):
         self.verticalLayout_35.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_35.setSpacing(0)
         self.verticalLayout_35.setObjectName("verticalLayout_35")
-        self.splitter_spectra_mechanics = QtWidgets.QSplitter(parent=self.page_spectra_mechanics)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Expanding)
+        self.splitter_spectra_mechanics = QtWidgets.QSplitter(
+            parent=self.page_spectra_mechanics
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred,
+            QtWidgets.QSizePolicy.Policy.Expanding,
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(2)
-        sizePolicy.setHeightForWidth(self.splitter_spectra_mechanics.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.splitter_spectra_mechanics.sizePolicy().hasHeightForWidth()
+        )
         self.splitter_spectra_mechanics.setSizePolicy(sizePolicy)
         self.splitter_spectra_mechanics.setOrientation(QtCore.Qt.Orientation.Vertical)
         self.splitter_spectra_mechanics.setObjectName("splitter_spectra_mechanics")
@@ -2102,65 +3560,137 @@ class Ui_MainWindow(object):
         self.horizontalLayout_21 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_21.setSpacing(6)
         self.horizontalLayout_21.setObjectName("horizontalLayout_21")
-        self.spinBox_spectra_mechanics_currid = QtWidgets.QSpinBox(parent=self.layoutWidget2)
-        self.spinBox_spectra_mechanics_currid.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        self.spinBox_spectra_mechanics_currid.setButtonSymbols(QtWidgets.QAbstractSpinBox.ButtonSymbols.UpDownArrows)
+        self.spinBox_spectra_mechanics_currid = QtWidgets.QSpinBox(
+            parent=self.layoutWidget2
+        )
+        self.spinBox_spectra_mechanics_currid.setAlignment(
+            QtCore.Qt.AlignmentFlag.AlignCenter
+        )
+        self.spinBox_spectra_mechanics_currid.setButtonSymbols(
+            QtWidgets.QAbstractSpinBox.ButtonSymbols.UpDownArrows
+        )
         self.spinBox_spectra_mechanics_currid.setMaximum(10000)
-        self.spinBox_spectra_mechanics_currid.setObjectName("spinBox_spectra_mechanics_currid")
+        self.spinBox_spectra_mechanics_currid.setObjectName(
+            "spinBox_spectra_mechanics_currid"
+        )
         self.horizontalLayout_21.addWidget(self.spinBox_spectra_mechanics_currid)
-        self.pushButton_spectra_mechanics_refreshtable = QtWidgets.QPushButton(parent=self.layoutWidget2)
-        self.pushButton_spectra_mechanics_refreshtable.setObjectName("pushButton_spectra_mechanics_refreshtable")
-        self.horizontalLayout_21.addWidget(self.pushButton_spectra_mechanics_refreshtable)
-        spacerItem43 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
+        self.pushButton_spectra_mechanics_refreshtable = QtWidgets.QPushButton(
+            parent=self.layoutWidget2
+        )
+        self.pushButton_spectra_mechanics_refreshtable.setObjectName(
+            "pushButton_spectra_mechanics_refreshtable"
+        )
+        self.horizontalLayout_21.addWidget(
+            self.pushButton_spectra_mechanics_refreshtable
+        )
+        spacerItem43 = QtWidgets.QSpacerItem(
+            40,
+            20,
+            QtWidgets.QSizePolicy.Policy.Expanding,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+        )
         self.horizontalLayout_21.addItem(spacerItem43)
-        self.pushButton_spectra_mechanics_clear = QtWidgets.QPushButton(parent=self.layoutWidget2)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed)
+        self.pushButton_spectra_mechanics_clear = QtWidgets.QPushButton(
+            parent=self.layoutWidget2
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.pushButton_spectra_mechanics_clear.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.pushButton_spectra_mechanics_clear.sizePolicy().hasHeightForWidth()
+        )
         self.pushButton_spectra_mechanics_clear.setSizePolicy(sizePolicy)
-        self.pushButton_spectra_mechanics_clear.setObjectName("pushButton_spectra_mechanics_clear")
+        self.pushButton_spectra_mechanics_clear.setObjectName(
+            "pushButton_spectra_mechanics_clear"
+        )
         self.horizontalLayout_21.addWidget(self.pushButton_spectra_mechanics_clear)
-        self.toolButton_spectra_mechanics_plotrows = QtWidgets.QToolButton(parent=self.layoutWidget2)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed)
+        self.toolButton_spectra_mechanics_plotrows = QtWidgets.QToolButton(
+            parent=self.layoutWidget2
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.toolButton_spectra_mechanics_plotrows.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.toolButton_spectra_mechanics_plotrows.sizePolicy().hasHeightForWidth()
+        )
         self.toolButton_spectra_mechanics_plotrows.setSizePolicy(sizePolicy)
         self.toolButton_spectra_mechanics_plotrows.setMinimumSize(QtCore.QSize(0, 23))
-        self.toolButton_spectra_mechanics_plotrows.setPopupMode(QtWidgets.QToolButton.ToolButtonPopupMode.InstantPopup)
-        self.toolButton_spectra_mechanics_plotrows.setToolButtonStyle(QtCore.Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
+        self.toolButton_spectra_mechanics_plotrows.setPopupMode(
+            QtWidgets.QToolButton.ToolButtonPopupMode.InstantPopup
+        )
+        self.toolButton_spectra_mechanics_plotrows.setToolButtonStyle(
+            QtCore.Qt.ToolButtonStyle.ToolButtonTextBesideIcon
+        )
         self.toolButton_spectra_mechanics_plotrows.setAutoRaise(False)
-        self.toolButton_spectra_mechanics_plotrows.setArrowType(QtCore.Qt.ArrowType.NoArrow)
-        self.toolButton_spectra_mechanics_plotrows.setObjectName("toolButton_spectra_mechanics_plotrows")
+        self.toolButton_spectra_mechanics_plotrows.setArrowType(
+            QtCore.Qt.ArrowType.NoArrow
+        )
+        self.toolButton_spectra_mechanics_plotrows.setObjectName(
+            "toolButton_spectra_mechanics_plotrows"
+        )
         self.horizontalLayout_21.addWidget(self.toolButton_spectra_mechanics_plotrows)
         self.verticalLayout_mech_table.addLayout(self.horizontalLayout_21)
-        self.tableWidget_spectra_mechanics_table = QtWidgets.QTableWidget(parent=self.layoutWidget2)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Expanding)
+        self.tableWidget_spectra_mechanics_table = QtWidgets.QTableWidget(
+            parent=self.layoutWidget2
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Expanding,
+            QtWidgets.QSizePolicy.Policy.Expanding,
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(1)
-        sizePolicy.setHeightForWidth(self.tableWidget_spectra_mechanics_table.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.tableWidget_spectra_mechanics_table.sizePolicy().hasHeightForWidth()
+        )
         self.tableWidget_spectra_mechanics_table.setSizePolicy(sizePolicy)
-        self.tableWidget_spectra_mechanics_table.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.SizeAdjustPolicy.AdjustIgnored)
+        self.tableWidget_spectra_mechanics_table.setSizeAdjustPolicy(
+            QtWidgets.QAbstractScrollArea.SizeAdjustPolicy.AdjustIgnored
+        )
         self.tableWidget_spectra_mechanics_table.setDragEnabled(False)
         self.tableWidget_spectra_mechanics_table.setAlternatingRowColors(True)
         self.tableWidget_spectra_mechanics_table.setShowGrid(True)
-        self.tableWidget_spectra_mechanics_table.setGridStyle(QtCore.Qt.PenStyle.SolidLine)
+        self.tableWidget_spectra_mechanics_table.setGridStyle(
+            QtCore.Qt.PenStyle.SolidLine
+        )
         self.tableWidget_spectra_mechanics_table.setCornerButtonEnabled(True)
-        self.tableWidget_spectra_mechanics_table.setObjectName("tableWidget_spectra_mechanics_table")
+        self.tableWidget_spectra_mechanics_table.setObjectName(
+            "tableWidget_spectra_mechanics_table"
+        )
         self.tableWidget_spectra_mechanics_table.setColumnCount(0)
         self.tableWidget_spectra_mechanics_table.setRowCount(0)
         self.tableWidget_spectra_mechanics_table.horizontalHeader().setVisible(True)
-        self.tableWidget_spectra_mechanics_table.horizontalHeader().setCascadingSectionResizes(True)
-        self.tableWidget_spectra_mechanics_table.horizontalHeader().setDefaultSectionSize(72)
-        self.tableWidget_spectra_mechanics_table.horizontalHeader().setStretchLastSection(False)
+        self.tableWidget_spectra_mechanics_table.horizontalHeader().setCascadingSectionResizes(
+            True
+        )
+        self.tableWidget_spectra_mechanics_table.horizontalHeader().setDefaultSectionSize(
+            72
+        )
+        self.tableWidget_spectra_mechanics_table.horizontalHeader().setStretchLastSection(
+            False
+        )
         self.tableWidget_spectra_mechanics_table.verticalHeader().setVisible(True)
-        self.tableWidget_spectra_mechanics_table.verticalHeader().setDefaultSectionSize(23)
-        self.tableWidget_spectra_mechanics_table.verticalHeader().setMinimumSectionSize(23)
-        self.tableWidget_spectra_mechanics_table.verticalHeader().setSortIndicatorShown(False)
-        self.tableWidget_spectra_mechanics_table.verticalHeader().setStretchLastSection(False)
-        self.verticalLayout_mech_table.addWidget(self.tableWidget_spectra_mechanics_table)
-        self.frame_mech_contout = QtWidgets.QFrame(parent=self.splitter_spectra_mechanics)
+        self.tableWidget_spectra_mechanics_table.verticalHeader().setDefaultSectionSize(
+            23
+        )
+        self.tableWidget_spectra_mechanics_table.verticalHeader().setMinimumSectionSize(
+            23
+        )
+        self.tableWidget_spectra_mechanics_table.verticalHeader().setSortIndicatorShown(
+            False
+        )
+        self.tableWidget_spectra_mechanics_table.verticalHeader().setStretchLastSection(
+            False
+        )
+        self.verticalLayout_mech_table.addWidget(
+            self.tableWidget_spectra_mechanics_table
+        )
+        self.frame_mech_contout = QtWidgets.QFrame(
+            parent=self.splitter_spectra_mechanics
+        )
         self.frame_mech_contout.setFrameShape(QtWidgets.QFrame.Shape.StyledPanel)
         self.frame_mech_contout.setFrameShadow(QtWidgets.QFrame.Shadow.Raised)
         self.frame_mech_contout.setObjectName("frame_mech_contout")
@@ -2168,36 +3698,67 @@ class Ui_MainWindow(object):
         self.verticalLayout_25.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_25.setSpacing(0)
         self.verticalLayout_25.setObjectName("verticalLayout_25")
-        self.frame_spectra_mechanics_contour1 = QtWidgets.QFrame(parent=self.frame_mech_contout)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Expanding)
+        self.frame_spectra_mechanics_contour1 = QtWidgets.QFrame(
+            parent=self.frame_mech_contout
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Expanding,
+            QtWidgets.QSizePolicy.Policy.Expanding,
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.frame_spectra_mechanics_contour1.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.frame_spectra_mechanics_contour1.sizePolicy().hasHeightForWidth()
+        )
         self.frame_spectra_mechanics_contour1.setSizePolicy(sizePolicy)
         self.frame_spectra_mechanics_contour1.setMinimumSize(QtCore.QSize(0, 160))
-        self.frame_spectra_mechanics_contour1.setFrameShape(QtWidgets.QFrame.Shape.StyledPanel)
-        self.frame_spectra_mechanics_contour1.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)
-        self.frame_spectra_mechanics_contour1.setObjectName("frame_spectra_mechanics_contour1")
+        self.frame_spectra_mechanics_contour1.setFrameShape(
+            QtWidgets.QFrame.Shape.StyledPanel
+        )
+        self.frame_spectra_mechanics_contour1.setFrameShadow(
+            QtWidgets.QFrame.Shadow.Sunken
+        )
+        self.frame_spectra_mechanics_contour1.setObjectName(
+            "frame_spectra_mechanics_contour1"
+        )
         self.verticalLayout_25.addWidget(self.frame_spectra_mechanics_contour1)
-        self.frame_spectra_mechanics_contour2 = QtWidgets.QFrame(parent=self.frame_mech_contout)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Expanding)
+        self.frame_spectra_mechanics_contour2 = QtWidgets.QFrame(
+            parent=self.frame_mech_contout
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Expanding,
+            QtWidgets.QSizePolicy.Policy.Expanding,
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.frame_spectra_mechanics_contour2.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.frame_spectra_mechanics_contour2.sizePolicy().hasHeightForWidth()
+        )
         self.frame_spectra_mechanics_contour2.setSizePolicy(sizePolicy)
         self.frame_spectra_mechanics_contour2.setMinimumSize(QtCore.QSize(0, 160))
-        self.frame_spectra_mechanics_contour2.setFrameShape(QtWidgets.QFrame.Shape.StyledPanel)
-        self.frame_spectra_mechanics_contour2.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)
-        self.frame_spectra_mechanics_contour2.setObjectName("frame_spectra_mechanics_contour2")
+        self.frame_spectra_mechanics_contour2.setFrameShape(
+            QtWidgets.QFrame.Shape.StyledPanel
+        )
+        self.frame_spectra_mechanics_contour2.setFrameShadow(
+            QtWidgets.QFrame.Shadow.Sunken
+        )
+        self.frame_spectra_mechanics_contour2.setObjectName(
+            "frame_spectra_mechanics_contour2"
+        )
         self.verticalLayout_25.addWidget(self.frame_spectra_mechanics_contour2)
         self.verticalLayout_35.addWidget(self.splitter_spectra_mechanics)
         self.stackedWidget_spectra.addWidget(self.page_spectra_mechanics)
         self.verticalLayout_3.addWidget(self.stackedWidget_spectra)
         self.groupBox_data = QtWidgets.QGroupBox(parent=self.splitter)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Preferred)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred,
+            QtWidgets.QSizePolicy.Policy.Preferred,
+        )
         sizePolicy.setHorizontalStretch(10)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.groupBox_data.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.groupBox_data.sizePolicy().hasHeightForWidth()
+        )
         self.groupBox_data.setSizePolicy(sizePolicy)
         self.groupBox_data.setObjectName("groupBox_data")
         self.verticalLayout_4 = QtWidgets.QVBoxLayout(self.groupBox_data)
@@ -2209,7 +3770,9 @@ class Ui_MainWindow(object):
         self.horizontalLayout_13.setSpacing(6)
         self.horizontalLayout_13.setObjectName("horizontalLayout_13")
         self.frame_legend = QtWidgets.QFrame(parent=self.groupBox_data)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(1)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.frame_legend.sizePolicy().hasHeightForWidth())
@@ -2220,7 +3783,12 @@ class Ui_MainWindow(object):
         self.frame_legend.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)
         self.frame_legend.setObjectName("frame_legend")
         self.horizontalLayout_13.addWidget(self.frame_legend)
-        spacerItem44 = QtWidgets.QSpacerItem(10, 20, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
+        spacerItem44 = QtWidgets.QSpacerItem(
+            10,
+            20,
+            QtWidgets.QSizePolicy.Policy.Expanding,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+        )
         self.horizontalLayout_13.addItem(spacerItem44)
         self.frame = QtWidgets.QFrame(parent=self.groupBox_data)
         self.frame.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
@@ -2242,60 +3810,77 @@ class Ui_MainWindow(object):
         self.radioButton_data_showmarked.setObjectName("radioButton_data_showmarked")
         self.horizontalLayout_16.addWidget(self.radioButton_data_showmarked)
         self.horizontalLayout_13.addWidget(self.frame)
-        spacerItem45 = QtWidgets.QSpacerItem(10, 0, QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Minimum)
+        spacerItem45 = QtWidgets.QSpacerItem(
+            10,
+            0,
+            QtWidgets.QSizePolicy.Policy.Fixed,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+        )
         self.horizontalLayout_13.addItem(spacerItem45)
         self.pushButton_data_la = QtWidgets.QPushButton(parent=self.groupBox_data)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.pushButton_data_la.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.pushButton_data_la.sizePolicy().hasHeightForWidth()
+        )
         self.pushButton_data_la.setSizePolicy(sizePolicy)
         self.pushButton_data_la.setMinimumSize(QtCore.QSize(8, 8))
         self.pushButton_data_la.setMaximumSize(QtCore.QSize(8, 8))
-        self.pushButton_data_la.setStyleSheet("#pushButton_data_la\n"
-"{\n"
-"background-color: transparent;\n"
-"border-image: url(:/button/rc/la.svg);\n"
-"background: none;\n"
-"border: none;\n"
-"background-repeat: none;\n"
-"}\n"
-"\n"
-"#pushButton_data_la:hover:!pressed\n"
-"{\n"
-"background-color: rgba(255, 255, 255, 160);\n"
-"border: 1px solid blue;\n"
-"/* border-style: inset; */\n"
-"}\n"
-"\n"
-"")
+        self.pushButton_data_la.setStyleSheet(
+            "#pushButton_data_la\n"
+            "{\n"
+            "background-color: transparent;\n"
+            "border-image: url(:/button/rc/la.svg);\n"
+            "background: none;\n"
+            "border: none;\n"
+            "background-repeat: none;\n"
+            "}\n"
+            "\n"
+            "#pushButton_data_la:hover:!pressed\n"
+            "{\n"
+            "background-color: rgba(255, 255, 255, 160);\n"
+            "border: 1px solid blue;\n"
+            "/* border-style: inset; */\n"
+            "}\n"
+            "\n"
+            ""
+        )
         self.pushButton_data_la.setText("")
         self.pushButton_data_la.setObjectName("pushButton_data_la")
         self.horizontalLayout_13.addWidget(self.pushButton_data_la)
         self.pushButton_data_ra = QtWidgets.QPushButton(parent=self.groupBox_data)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.pushButton_data_ra.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.pushButton_data_ra.sizePolicy().hasHeightForWidth()
+        )
         self.pushButton_data_ra.setSizePolicy(sizePolicy)
         self.pushButton_data_ra.setMinimumSize(QtCore.QSize(8, 8))
         self.pushButton_data_ra.setMaximumSize(QtCore.QSize(8, 8))
-        self.pushButton_data_ra.setStyleSheet("#pushButton_data_ra\n"
-"{\n"
-"background-color: transparent;\n"
-"border-image: url(:/button/rc/ra.svg);\n"
-"background: none;\n"
-"border: none;\n"
-"background-repeat: none;\n"
-"}\n"
-"\n"
-"#pushButton_data_ra:hover:!pressed\n"
-"{\n"
-"background-color: rgba(255, 255, 255, 160);\n"
-"border: 1px solid blue;\n"
-"/* border-style: inset; */\n"
-"}\n"
-"")
+        self.pushButton_data_ra.setStyleSheet(
+            "#pushButton_data_ra\n"
+            "{\n"
+            "background-color: transparent;\n"
+            "border-image: url(:/button/rc/ra.svg);\n"
+            "background: none;\n"
+            "border: none;\n"
+            "background-repeat: none;\n"
+            "}\n"
+            "\n"
+            "#pushButton_data_ra:hover:!pressed\n"
+            "{\n"
+            "background-color: rgba(255, 255, 255, 160);\n"
+            "border: 1px solid blue;\n"
+            "/* border-style: inset; */\n"
+            "}\n"
+            ""
+        )
         self.pushButton_data_ra.setText("")
         self.pushButton_data_ra.setObjectName("pushButton_data_ra")
         self.horizontalLayout_13.addWidget(self.pushButton_data_ra)
@@ -2309,7 +3894,10 @@ class Ui_MainWindow(object):
         self.verticalLayout_22.setSpacing(0)
         self.verticalLayout_22.setObjectName("verticalLayout_22")
         self.splitter_2 = QtWidgets.QSplitter(parent=self.page_data_data)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Preferred)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred,
+            QtWidgets.QSizePolicy.Policy.Preferred,
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.splitter_2.sizePolicy().hasHeightForWidth())
@@ -2329,7 +3917,10 @@ class Ui_MainWindow(object):
         self.verticalLayout_5.setSpacing(0)
         self.verticalLayout_5.setObjectName("verticalLayout_5")
         self.frame_plt1 = QtWidgets.QFrame(parent=self.F1)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Expanding)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred,
+            QtWidgets.QSizePolicy.Policy.Expanding,
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.frame_plt1.sizePolicy().hasHeightForWidth())
@@ -2339,10 +3930,14 @@ class Ui_MainWindow(object):
         self.frame_plt1.setObjectName("frame_plt1")
         self.verticalLayout_5.addWidget(self.frame_plt1)
         self.frame_plt1set = QtWidgets.QFrame(parent=self.F1)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.frame_plt1set.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.frame_plt1set.sizePolicy().hasHeightForWidth()
+        )
         self.frame_plt1set.setSizePolicy(sizePolicy)
         self.frame_plt1set.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
         self.frame_plt1set.setFrameShadow(QtWidgets.QFrame.Shadow.Raised)
@@ -2352,13 +3947,19 @@ class Ui_MainWindow(object):
         self.horizontalLayout_26.setSpacing(6)
         self.horizontalLayout_26.setObjectName("horizontalLayout_26")
         self.comboBox_plt1_optsy = QtWidgets.QComboBox(parent=self.frame_plt1set)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.comboBox_plt1_optsy.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.comboBox_plt1_optsy.sizePolicy().hasHeightForWidth()
+        )
         self.comboBox_plt1_optsy.setSizePolicy(sizePolicy)
         self.comboBox_plt1_optsy.setMaxVisibleItems(15)
-        self.comboBox_plt1_optsy.setSizeAdjustPolicy(QtWidgets.QComboBox.SizeAdjustPolicy.AdjustToContents)
+        self.comboBox_plt1_optsy.setSizeAdjustPolicy(
+            QtWidgets.QComboBox.SizeAdjustPolicy.AdjustToContents
+        )
         self.comboBox_plt1_optsy.setIconSize(QtCore.QSize(16, 16))
         self.comboBox_plt1_optsy.setObjectName("comboBox_plt1_optsy")
         self.horizontalLayout_26.addWidget(self.comboBox_plt1_optsy)
@@ -2366,24 +3967,37 @@ class Ui_MainWindow(object):
         self.label_4.setObjectName("label_4")
         self.horizontalLayout_26.addWidget(self.label_4)
         self.comboBox_plt1_optsx = QtWidgets.QComboBox(parent=self.frame_plt1set)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.comboBox_plt1_optsx.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.comboBox_plt1_optsx.sizePolicy().hasHeightForWidth()
+        )
         self.comboBox_plt1_optsx.setSizePolicy(sizePolicy)
         self.comboBox_plt1_optsx.setMaxVisibleItems(15)
-        self.comboBox_plt1_optsx.setSizeAdjustPolicy(QtWidgets.QComboBox.SizeAdjustPolicy.AdjustToContents)
+        self.comboBox_plt1_optsx.setSizeAdjustPolicy(
+            QtWidgets.QComboBox.SizeAdjustPolicy.AdjustToContents
+        )
         self.comboBox_plt1_optsx.setIconSize(QtCore.QSize(16, 16))
         self.comboBox_plt1_optsx.setObjectName("comboBox_plt1_optsx")
         self.horizontalLayout_26.addWidget(self.comboBox_plt1_optsx)
         self.horizontalLayout_plt1set_harm = QtWidgets.QHBoxLayout()
         self.horizontalLayout_plt1set_harm.setSpacing(6)
-        self.horizontalLayout_plt1set_harm.setObjectName("horizontalLayout_plt1set_harm")
+        self.horizontalLayout_plt1set_harm.setObjectName(
+            "horizontalLayout_plt1set_harm"
+        )
         self.checkBox_plt1_h1 = QtWidgets.QCheckBox(parent=self.frame_plt1set)
         self.checkBox_plt1_h1.setObjectName("checkBox_plt1_h1")
         self.horizontalLayout_plt1set_harm.addWidget(self.checkBox_plt1_h1)
         self.horizontalLayout_26.addLayout(self.horizontalLayout_plt1set_harm)
-        spacerItem46 = QtWidgets.QSpacerItem(20, 20, QtWidgets.QSizePolicy.Policy.Maximum, QtWidgets.QSizePolicy.Policy.Minimum)
+        spacerItem46 = QtWidgets.QSpacerItem(
+            20,
+            20,
+            QtWidgets.QSizePolicy.Policy.Maximum,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+        )
         self.horizontalLayout_26.addItem(spacerItem46)
         self.radioButton_plt1_samp = QtWidgets.QRadioButton(parent=self.frame_plt1set)
         self.radioButton_plt1_samp.setChecked(True)
@@ -2392,7 +4006,12 @@ class Ui_MainWindow(object):
         self.radioButton_plt1_ref = QtWidgets.QRadioButton(parent=self.frame_plt1set)
         self.radioButton_plt1_ref.setObjectName("radioButton_plt1_ref")
         self.horizontalLayout_26.addWidget(self.radioButton_plt1_ref)
-        spacerItem47 = QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
+        spacerItem47 = QtWidgets.QSpacerItem(
+            0,
+            0,
+            QtWidgets.QSizePolicy.Policy.Expanding,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+        )
         self.horizontalLayout_26.addItem(spacerItem47)
         self.verticalLayout_5.addWidget(self.frame_plt1set)
         self.verticalLayout_5.setStretch(0, 1)
@@ -2411,7 +4030,10 @@ class Ui_MainWindow(object):
         self.verticalLayout_7.setSpacing(0)
         self.verticalLayout_7.setObjectName("verticalLayout_7")
         self.frame_plt2 = QtWidgets.QFrame(parent=self.F2)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Expanding)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred,
+            QtWidgets.QSizePolicy.Policy.Expanding,
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.frame_plt2.sizePolicy().hasHeightForWidth())
@@ -2421,10 +4043,14 @@ class Ui_MainWindow(object):
         self.frame_plt2.setObjectName("frame_plt2")
         self.verticalLayout_7.addWidget(self.frame_plt2)
         self.frame_plt2set = QtWidgets.QFrame(parent=self.F2)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.frame_plt2set.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.frame_plt2set.sizePolicy().hasHeightForWidth()
+        )
         self.frame_plt2set.setSizePolicy(sizePolicy)
         self.frame_plt2set.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
         self.frame_plt2set.setFrameShadow(QtWidgets.QFrame.Shadow.Raised)
@@ -2433,13 +4059,19 @@ class Ui_MainWindow(object):
         self.horizontalLayout_3.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout_3.setObjectName("horizontalLayout_3")
         self.comboBox_plt2_optsy = QtWidgets.QComboBox(parent=self.frame_plt2set)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.comboBox_plt2_optsy.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.comboBox_plt2_optsy.sizePolicy().hasHeightForWidth()
+        )
         self.comboBox_plt2_optsy.setSizePolicy(sizePolicy)
         self.comboBox_plt2_optsy.setMaxVisibleItems(15)
-        self.comboBox_plt2_optsy.setSizeAdjustPolicy(QtWidgets.QComboBox.SizeAdjustPolicy.AdjustToContents)
+        self.comboBox_plt2_optsy.setSizeAdjustPolicy(
+            QtWidgets.QComboBox.SizeAdjustPolicy.AdjustToContents
+        )
         self.comboBox_plt2_optsy.setIconSize(QtCore.QSize(16, 16))
         self.comboBox_plt2_optsy.setObjectName("comboBox_plt2_optsy")
         self.horizontalLayout_3.addWidget(self.comboBox_plt2_optsy)
@@ -2447,23 +4079,36 @@ class Ui_MainWindow(object):
         self.label_7.setObjectName("label_7")
         self.horizontalLayout_3.addWidget(self.label_7)
         self.comboBox_plt2_optsx = QtWidgets.QComboBox(parent=self.frame_plt2set)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.comboBox_plt2_optsx.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.comboBox_plt2_optsx.sizePolicy().hasHeightForWidth()
+        )
         self.comboBox_plt2_optsx.setSizePolicy(sizePolicy)
         self.comboBox_plt2_optsx.setMaxVisibleItems(15)
-        self.comboBox_plt2_optsx.setSizeAdjustPolicy(QtWidgets.QComboBox.SizeAdjustPolicy.AdjustToContents)
+        self.comboBox_plt2_optsx.setSizeAdjustPolicy(
+            QtWidgets.QComboBox.SizeAdjustPolicy.AdjustToContents
+        )
         self.comboBox_plt2_optsx.setIconSize(QtCore.QSize(16, 16))
         self.comboBox_plt2_optsx.setObjectName("comboBox_plt2_optsx")
         self.horizontalLayout_3.addWidget(self.comboBox_plt2_optsx)
         self.horizontalLayout_plt2set_harm = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_plt2set_harm.setObjectName("horizontalLayout_plt2set_harm")
+        self.horizontalLayout_plt2set_harm.setObjectName(
+            "horizontalLayout_plt2set_harm"
+        )
         self.checkBox_plt2_h1 = QtWidgets.QCheckBox(parent=self.frame_plt2set)
         self.checkBox_plt2_h1.setObjectName("checkBox_plt2_h1")
         self.horizontalLayout_plt2set_harm.addWidget(self.checkBox_plt2_h1)
         self.horizontalLayout_3.addLayout(self.horizontalLayout_plt2set_harm)
-        spacerItem48 = QtWidgets.QSpacerItem(20, 20, QtWidgets.QSizePolicy.Policy.Maximum, QtWidgets.QSizePolicy.Policy.Minimum)
+        spacerItem48 = QtWidgets.QSpacerItem(
+            20,
+            20,
+            QtWidgets.QSizePolicy.Policy.Maximum,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+        )
         self.horizontalLayout_3.addItem(spacerItem48)
         self.radioButton_plt2_samp = QtWidgets.QRadioButton(parent=self.frame_plt2set)
         self.radioButton_plt2_samp.setChecked(True)
@@ -2472,7 +4117,12 @@ class Ui_MainWindow(object):
         self.radioButton_plt2_ref = QtWidgets.QRadioButton(parent=self.frame_plt2set)
         self.radioButton_plt2_ref.setObjectName("radioButton_plt2_ref")
         self.horizontalLayout_3.addWidget(self.radioButton_plt2_ref)
-        spacerItem49 = QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
+        spacerItem49 = QtWidgets.QSpacerItem(
+            0,
+            0,
+            QtWidgets.QSizePolicy.Policy.Expanding,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+        )
         self.horizontalLayout_3.addItem(spacerItem49)
         self.verticalLayout_7.addWidget(self.frame_plt2set)
         self.verticalLayout_8.addLayout(self.verticalLayout_7)
@@ -2484,9 +4134,13 @@ class Ui_MainWindow(object):
         self.verticalLayout_34.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_34.setSpacing(0)
         self.verticalLayout_34.setObjectName("verticalLayout_34")
-        self.scrollArea_data_mechanics_plots = QtWidgets.QScrollArea(parent=self.page_data_mechanics)
+        self.scrollArea_data_mechanics_plots = QtWidgets.QScrollArea(
+            parent=self.page_data_mechanics
+        )
         self.scrollArea_data_mechanics_plots.setWidgetResizable(True)
-        self.scrollArea_data_mechanics_plots.setObjectName("scrollArea_data_mechanics_plots")
+        self.scrollArea_data_mechanics_plots.setObjectName(
+            "scrollArea_data_mechanics_plots"
+        )
         self.scrollAreaWidgetContents = QtWidgets.QWidget()
         self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 98, 28))
         self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
@@ -2524,32 +4178,56 @@ class Ui_MainWindow(object):
         MainWindow.addToolBar(QtCore.Qt.ToolBarArea.TopToolBarArea, self.toolBar)
         self.actionLoad_Exp = QtGui.QAction(parent=MainWindow)
         icon4 = QtGui.QIcon()
-        icon4.addPixmap(QtGui.QPixmap(":/icon/rc/load_data.svg"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
+        icon4.addPixmap(
+            QtGui.QPixmap(":/icon/rc/load_data.svg"),
+            QtGui.QIcon.Mode.Normal,
+            QtGui.QIcon.State.Off,
+        )
         self.actionLoad_Exp.setIcon(icon4)
         self.actionLoad_Exp.setObjectName("actionLoad_Exp")
         self.actionLoad_Settings = QtGui.QAction(parent=MainWindow)
         icon5 = QtGui.QIcon()
-        icon5.addPixmap(QtGui.QPixmap(":/icon/rc/load_settings.svg"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
+        icon5.addPixmap(
+            QtGui.QPixmap(":/icon/rc/load_settings.svg"),
+            QtGui.QIcon.Mode.Normal,
+            QtGui.QIcon.State.Off,
+        )
         self.actionLoad_Settings.setIcon(icon5)
         self.actionLoad_Settings.setObjectName("actionLoad_Settings")
         self.actionSave = QtGui.QAction(parent=MainWindow)
         icon6 = QtGui.QIcon()
-        icon6.addPixmap(QtGui.QPixmap(":/icon/rc/save.svg"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
+        icon6.addPixmap(
+            QtGui.QPixmap(":/icon/rc/save.svg"),
+            QtGui.QIcon.Mode.Normal,
+            QtGui.QIcon.State.Off,
+        )
         self.actionSave.setIcon(icon6)
         self.actionSave.setObjectName("actionSave")
         self.actionSave_As = QtGui.QAction(parent=MainWindow)
         icon7 = QtGui.QIcon()
-        icon7.addPixmap(QtGui.QPixmap(":/icon/rc/saveAs.svg"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
+        icon7.addPixmap(
+            QtGui.QPixmap(":/icon/rc/saveAs.svg"),
+            QtGui.QIcon.Mode.Normal,
+            QtGui.QIcon.State.Off,
+        )
         self.actionSave_As.setIcon(icon7)
         self.actionSave_As.setObjectName("actionSave_As")
         self.actionExport = QtGui.QAction(parent=MainWindow)
         icon8 = QtGui.QIcon()
-        icon8.addPixmap(QtGui.QPixmap(":/icon/rc/export.svg"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
+        icon8.addPixmap(
+            QtGui.QPixmap(":/icon/rc/export.svg"),
+            QtGui.QIcon.Mode.Normal,
+            QtGui.QIcon.State.Off,
+        )
         self.actionExport.setIcon(icon8)
         self.actionExport.setObjectName("actionExport")
         self.actionReset = QtGui.QAction(parent=MainWindow)
         icon9 = QtGui.QIcon()
-        icon9.addPixmap(QtGui.QPixmap(":/icon/rc/reset.svg"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
+        icon9.addPixmap(
+            QtGui.QPixmap(":/icon/rc/reset.svg"),
+            QtGui.QIcon.Mode.Normal,
+            QtGui.QIcon.State.Off,
+        )
         self.actionReset.setIcon(icon9)
         self.actionReset.setObjectName("actionReset")
         self.actionExit = QtGui.QAction(parent=MainWindow)
@@ -2558,23 +4236,39 @@ class Ui_MainWindow(object):
         self.actionADC_1.setCheckable(True)
         self.actionADC_1.setChecked(True)
         icon10 = QtGui.QIcon()
-        icon10.addPixmap(QtGui.QPixmap(":/icon/rc/signal_ch1.svg"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
+        icon10.addPixmap(
+            QtGui.QPixmap(":/icon/rc/signal_ch1.svg"),
+            QtGui.QIcon.Mode.Normal,
+            QtGui.QIcon.State.Off,
+        )
         self.actionADC_1.setIcon(icon10)
         self.actionADC_1.setObjectName("actionADC_1")
         self.actionADC_2 = QtGui.QAction(parent=MainWindow)
         self.actionADC_2.setCheckable(True)
         icon11 = QtGui.QIcon()
-        icon11.addPixmap(QtGui.QPixmap(":/icon/rc/signal_ch2.svg"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
+        icon11.addPixmap(
+            QtGui.QPixmap(":/icon/rc/signal_ch2.svg"),
+            QtGui.QIcon.Mode.Normal,
+            QtGui.QIcon.State.Off,
+        )
         self.actionADC_2.setIcon(icon11)
         self.actionADC_2.setObjectName("actionADC_2")
         self.actionSet_Temperature_Sensor = QtGui.QAction(parent=MainWindow)
         icon12 = QtGui.QIcon()
-        icon12.addPixmap(QtGui.QPixmap(":/icon/rc/temp_sensor.svg"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
+        icon12.addPixmap(
+            QtGui.QPixmap(":/icon/rc/temp_sensor.svg"),
+            QtGui.QIcon.Mode.Normal,
+            QtGui.QIcon.State.Off,
+        )
         self.actionSet_Temperature_Sensor.setIcon(icon12)
         self.actionSet_Temperature_Sensor.setObjectName("actionSet_Temperature_Sensor")
         self.actionOpen_VNA = QtGui.QAction(parent=MainWindow)
         icon13 = QtGui.QIcon()
-        icon13.addPixmap(QtGui.QPixmap(":/icon/rc/openvna.svg"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
+        icon13.addPixmap(
+            QtGui.QPixmap(":/icon/rc/openvna.svg"),
+            QtGui.QIcon.Mode.Normal,
+            QtGui.QIcon.State.Off,
+        )
         self.actionOpen_VNA.setIcon(icon13)
         self.actionOpen_VNA.setObjectName("actionOpen_VNA")
         self.actionAdd_Temperature_Data = QtGui.QAction(parent=MainWindow)
@@ -2587,17 +4281,29 @@ class Ui_MainWindow(object):
         self.actionAbout_QCM_py.setObjectName("actionAbout_QCM_py")
         self.actionNew_Exp = QtGui.QAction(parent=MainWindow)
         icon14 = QtGui.QIcon()
-        icon14.addPixmap(QtGui.QPixmap(":/icon/rc/new.svg"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
+        icon14.addPixmap(
+            QtGui.QPixmap(":/icon/rc/new.svg"),
+            QtGui.QIcon.Mode.Normal,
+            QtGui.QIcon.State.Off,
+        )
         self.actionNew_Exp.setIcon(icon14)
         self.actionNew_Exp.setObjectName("actionNew_Exp")
         self.actionClear_All = QtGui.QAction(parent=MainWindow)
         icon15 = QtGui.QIcon()
-        icon15.addPixmap(QtGui.QPixmap(":/icon/rc/delete.svg"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
+        icon15.addPixmap(
+            QtGui.QPixmap(":/icon/rc/delete.svg"),
+            QtGui.QIcon.Mode.Normal,
+            QtGui.QIcon.State.Off,
+        )
         self.actionClear_All.setIcon(icon15)
         self.actionClear_All.setObjectName("actionClear_All")
         self.actionDelete_Selected = QtGui.QAction(parent=MainWindow)
         icon16 = QtGui.QIcon()
-        icon16.addPixmap(QtGui.QPixmap(":/icon/rc/delete_selected.svg"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
+        icon16.addPixmap(
+            QtGui.QPixmap(":/icon/rc/delete_selected.svg"),
+            QtGui.QIcon.Mode.Normal,
+            QtGui.QIcon.State.Off,
+        )
         self.actionDelete_Selected.setIcon(icon16)
         self.actionDelete_Selected.setObjectName("actionDelete_Selected")
         self.actionRegenerate_allsamp = QtGui.QAction(parent=MainWindow)
@@ -2614,7 +4320,11 @@ class Ui_MainWindow(object):
         self.actionRow_s1_Row_s2.setObjectName("actionRow_s1_Row_s2")
         self.actionExport_Settings = QtGui.QAction(parent=MainWindow)
         icon17 = QtGui.QIcon()
-        icon17.addPixmap(QtGui.QPixmap(":/icon/rc/export_settings.svg"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
+        icon17.addPixmap(
+            QtGui.QPixmap(":/icon/rc/export_settings.svg"),
+            QtGui.QIcon.Mode.Normal,
+            QtGui.QIcon.State.Off,
+        )
         self.actionExport_Settings.setIcon(icon17)
         self.actionExport_Settings.setObjectName("actionExport_Settings")
         self.actionRows_Temp = QtGui.QAction(parent=MainWindow)
@@ -2623,7 +4333,11 @@ class Ui_MainWindow(object):
         self.actionRow_s2_Row_s1.setObjectName("actionRow_s2_Row_s1")
         self.actionImport_QCM_D = QtGui.QAction(parent=MainWindow)
         icon18 = QtGui.QIcon()
-        icon18.addPixmap(QtGui.QPixmap(":/icon/rc/import_qcmd.svg"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
+        icon18.addPixmap(
+            QtGui.QPixmap(":/icon/rc/import_qcmd.svg"),
+            QtGui.QIcon.Mode.Normal,
+            QtGui.QIcon.State.Off,
+        )
         self.actionImport_QCM_D.setIcon(icon18)
         self.actionImport_QCM_D.setObjectName("actionImport_QCM_D")
         self.actionRegenerate_allref = QtGui.QAction(parent=MainWindow)
@@ -2634,13 +4348,19 @@ class Ui_MainWindow(object):
         self.actionMaximum_Harmonic.setObjectName("actionMaximum_Harmonic")
         self.actionImport_QCM_Z = QtGui.QAction(parent=MainWindow)
         icon19 = QtGui.QIcon()
-        icon19.addPixmap(QtGui.QPixmap(":/icon/rc/import_qcmz.svg"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
+        icon19.addPixmap(
+            QtGui.QPixmap(":/icon/rc/import_qcmz.svg"),
+            QtGui.QIcon.Mode.Normal,
+            QtGui.QIcon.State.Off,
+        )
         self.actionImport_QCM_Z.setIcon(icon19)
         self.actionImport_QCM_Z.setObjectName("actionImport_QCM_Z")
         self.actionSolve_test = QtGui.QAction(parent=MainWindow)
         self.actionSolve_test.setObjectName("actionSolve_test")
         self.actionfilm_construction_mode_switch = QtGui.QAction(parent=MainWindow)
-        self.actionfilm_construction_mode_switch.setObjectName("actionfilm_construction_mode_switch")
+        self.actionfilm_construction_mode_switch.setObjectName(
+            "actionfilm_construction_mode_switch"
+        )
         self.actionRows_Index = QtGui.QAction(parent=MainWindow)
         self.actionRows_Index.setObjectName("actionRows_Index")
         self.actionSolve_new = QtGui.QAction(parent=MainWindow)
@@ -2700,14 +4420,30 @@ class Ui_MainWindow(object):
         self.stackedWidget_spetratop.setCurrentIndex(0)
         self.stackedWidget_spectra.setCurrentIndex(2)
         self.stackedWidget_data.setCurrentIndex(0)
-        self.pushButton_settings_mechanics_simulator.toggled['bool'].connect(self.groupBox_settings_mechanics_simulator.setVisible) # type: ignore
-        self.pushButton_settings_mechanics_contoursettings.toggled['bool'].connect(self.tableWidget_settings_mechanics_contoursettings.setVisible) # type: ignore
-        self.stackedWidget_spectra.currentChanged['int'].connect(self.stackedWidget_spetratop.setCurrentIndex) # type: ignore
-        self.pushButton_settings_mechanics_errorsettings.toggled['bool'].connect(self.tableWidget_settings_mechanics_errortab.setVisible) # type: ignore
-        self.checkBox_settings_temp_sensor.toggled['bool'].connect(self.checkBox_control_rectemp.setChecked) # type: ignore
-        self.checkBox_control_rectemp.toggled['bool'].connect(self.checkBox_settings_temp_sensor.setChecked) # type: ignore
-        self.dateTimeEdit_reftime.dateTimeChanged['QDateTime'].connect(self.dateTimeEdit_settings_data_t0shifted.setDateTime) # type: ignore
-        self.groupBox_settings_mechanics_contour.toggled['bool'].connect(self.frame_mech_contout.setVisible) # type: ignore
+        self.pushButton_settings_mechanics_simulator.toggled["bool"].connect(
+            self.groupBox_settings_mechanics_simulator.setVisible
+        )  # type: ignore
+        self.pushButton_settings_mechanics_contoursettings.toggled["bool"].connect(
+            self.tableWidget_settings_mechanics_contoursettings.setVisible
+        )  # type: ignore
+        self.stackedWidget_spectra.currentChanged["int"].connect(
+            self.stackedWidget_spetratop.setCurrentIndex
+        )  # type: ignore
+        self.pushButton_settings_mechanics_errorsettings.toggled["bool"].connect(
+            self.tableWidget_settings_mechanics_errortab.setVisible
+        )  # type: ignore
+        self.checkBox_settings_temp_sensor.toggled["bool"].connect(
+            self.checkBox_control_rectemp.setChecked
+        )  # type: ignore
+        self.checkBox_control_rectemp.toggled["bool"].connect(
+            self.checkBox_settings_temp_sensor.setChecked
+        )  # type: ignore
+        self.dateTimeEdit_reftime.dateTimeChanged["QDateTime"].connect(
+            self.dateTimeEdit_settings_data_t0shifted.setDateTime
+        )  # type: ignore
+        self.groupBox_settings_mechanics_contour.toggled["bool"].connect(
+            self.frame_mech_contout.setVisible
+        )  # type: ignore
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
         MainWindow.setTabOrder(self.pushButton_runstop, self.pushButton_newfile)
         MainWindow.setTabOrder(self.pushButton_newfile, self.pushButton_appendfile)
@@ -2718,185 +4454,474 @@ class Ui_MainWindow(object):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "QCM-r"))
         self.groupBox_settings.setTitle(_translate("MainWindow", "Settings"))
-        self.pushButton_settings_control_stop_refit.setText(_translate("MainWindow", "STOP"))
+        self.pushButton_settings_control_stop_refit.setText(
+            _translate("MainWindow", "STOP")
+        )
         self.pushButton_runstop.setText(_translate("MainWindow", "START RECORD"))
-        self.lineEdit_datafilestr.setPlaceholderText(_translate("MainWindow", "<output filename>"))
-        self.pushButton_gotofolder.setToolTip(_translate("MainWindow", "Go to data folder"))
+        self.lineEdit_datafilestr.setPlaceholderText(
+            _translate("MainWindow", "<output filename>")
+        )
+        self.pushButton_gotofolder.setToolTip(
+            _translate("MainWindow", "Go to data folder")
+        )
         self.pushButton_gotofolder.setText(_translate("MainWindow", "Folder"))
         self.groupBox_settings_harmonics.setTitle(_translate("MainWindow", "Harmonics"))
         self.label_9.setText(_translate("MainWindow", "Display mode "))
-        self.label_settings_control_samp.setText(_translate("MainWindow", "<html><head/><body><p><span style=\" color:#00aa00;\">S Channel (Hz)</span></p></body></html>"))
-        self.label_settings_control_ref.setText(_translate("MainWindow", "<html><head/><body><p><span style=\" color:#aa0000;\">R Channel (Hz)</span></p></body></html>"))
+        self.label_settings_control_samp.setText(
+            _translate(
+                "MainWindow",
+                '<html><head/><body><p><span style=" color:#00aa00;">S Channel (Hz)</span></p></body></html>',
+            )
+        )
+        self.label_settings_control_ref.setText(
+            _translate(
+                "MainWindow",
+                '<html><head/><body><p><span style=" color:#aa0000;">R Channel (Hz)</span></p></body></html>',
+            )
+        )
         self.label_settings_control_label1.setText(_translate("MainWindow", "Start"))
         self.label_settings_control_label2_r.setText(_translate("MainWindow", "End"))
         self.checkBox_harm1.setText(_translate("MainWindow", "1"))
         self.label_settings_control_label1_r.setText(_translate("MainWindow", "Start"))
         self.label_settings_control_label2.setText(_translate("MainWindow", "End"))
         self.groupBox_settingstime.setTitle(_translate("MainWindow", "Time"))
-        self.dateTimeEdit_reftime.setDisplayFormat(_translate("MainWindow", "yyyy-MM-dd hh:mm:ss.zzz"))
+        self.dateTimeEdit_reftime.setDisplayFormat(
+            _translate("MainWindow", "yyyy-MM-dd hh:mm:ss.zzz")
+        )
         self.label_reftime.setText(_translate("MainWindow", "Reference time"))
-        self.pushButton_resetreftime.setText(_translate("MainWindow", "Rest reference time"))
-        self.label_3.setText(_translate("MainWindow", "<html><head/><body><p>Record interval (s) = a * b </p></body></html>"))
-        self.label_8.setText(_translate("MainWindow", "<html><head/><body><p>Scan interval (s)<span style=\" vertical-align:super;\">b</span></p></body></html>"))
-        self.label.setText(_translate("MainWindow", "<html><head/><body><p>Refresh resolution<span style=\" vertical-align:super;\">a</span></p></body></html>"))
+        self.pushButton_resetreftime.setText(
+            _translate("MainWindow", "Rest reference time")
+        )
+        self.label_3.setText(
+            _translate(
+                "MainWindow",
+                "<html><head/><body><p>Record interval (s) = a * b </p></body></html>",
+            )
+        )
+        self.label_8.setText(
+            _translate(
+                "MainWindow",
+                '<html><head/><body><p>Scan interval (s)<span style=" vertical-align:super;">b</span></p></body></html>',
+            )
+        )
+        self.label.setText(
+            _translate(
+                "MainWindow",
+                '<html><head/><body><p>Refresh resolution<span style=" vertical-align:super;">a</span></p></body></html>',
+            )
+        )
         self.groupBox_2.setTitle(_translate("MainWindow", "Temperature"))
-        self.checkBox_control_rectemp.setText(_translate("MainWindow", "Rrecord temperature data (setup in Settings Tab)"))
-        self.label_temp_devthrmcpl.setText(_translate("MainWindow", "Device/Thermocouple"))
-        self.groupBox_settings_fitting.setTitle(_translate("MainWindow", "Fitting and Display Options"))
+        self.checkBox_control_rectemp.setText(
+            _translate("MainWindow", "Rrecord temperature data (setup in Settings Tab)")
+        )
+        self.label_temp_devthrmcpl.setText(
+            _translate("MainWindow", "Device/Thermocouple")
+        )
+        self.groupBox_settings_fitting.setTitle(
+            _translate("MainWindow", "Fitting and Display Options")
+        )
         self.checkBox_dynamicfit.setText(_translate("MainWindow", "Dynamicfit"))
-        self.checkBox_dynamicfitbyharm.setText(_translate("MainWindow", "Fit set by harmonic"))
+        self.checkBox_dynamicfitbyharm.setText(
+            _translate("MainWindow", "Fit set by harmonic")
+        )
         self.label_fitfactor.setText(_translate("MainWindow", "Fit factor range"))
-        self.checkBox_fitfactorbyharm.setText(_translate("MainWindow", "Factor set by harmonic"))
+        self.checkBox_fitfactorbyharm.setText(
+            _translate("MainWindow", "Factor set by harmonic")
+        )
         self.groupBox_settings_output.setTitle(_translate("MainWindow", "Output"))
-        self.pushButton_newfile.setToolTip(_translate("MainWindow", "Choose a new file"))
+        self.pushButton_newfile.setToolTip(
+            _translate("MainWindow", "Choose a new file")
+        )
         self.pushButton_newfile.setText(_translate("MainWindow", "New Experiment"))
-        self.pushButton_appendfile.setToolTip(_translate("MainWindow", "Append to existing file"))
+        self.pushButton_appendfile.setToolTip(
+            _translate("MainWindow", "Append to existing file")
+        )
         self.pushButton_appendfile.setText(_translate("MainWindow", "Append/Load"))
         self.groupBox_3.setTitle(_translate("MainWindow", "Sample Description"))
-        self.plainTextEdit_settings_sampledescription.setPlaceholderText(_translate("MainWindow", "Type your sample note here."))
-        self.tabWidget_settings.setTabText(self.tabWidget_settings.indexOf(self.tab_settings_control), _translate("MainWindow", "&Control"))
-        self.groupBox_settings_settings_harm.setTitle(_translate("MainWindow", "Harmonic"))
-        self.tabWidget_settings_settings_samprefchn.setTabText(self.tabWidget_settings_settings_samprefchn.indexOf(self.tab_settings_settings_harmchnsamp), _translate("MainWindow", "&S Channel"))
-        self.tabWidget_settings_settings_samprefchn.setTabText(self.tabWidget_settings_settings_samprefchn.indexOf(self.tab_settings_settings_harmchnref), _translate("MainWindow", "&R Channel"))
-        self.tabWidget_settings_settings_samprefchn.setTabText(self.tabWidget_settings_settings_samprefchn.indexOf(self.tab_settings_settings_harmchnrefit), _translate("MainWindow", "Refit"))
-        self.tabWidget_settings_settings_harm.setTabText(self.tabWidget_settings_settings_harm.indexOf(self.tab_settings_settings_harm1), _translate("MainWindow", "1"))
-        self.treeWidget_settings_settings_harmtree.headerItem().setText(0, _translate("MainWindow", "Factor"))
-        self.treeWidget_settings_settings_harmtree.headerItem().setText(1, _translate("MainWindow", "Value"))
+        self.plainTextEdit_settings_sampledescription.setPlaceholderText(
+            _translate("MainWindow", "Type your sample note here.")
+        )
+        self.tabWidget_settings.setTabText(
+            self.tabWidget_settings.indexOf(self.tab_settings_control),
+            _translate("MainWindow", "&Control"),
+        )
+        self.groupBox_settings_settings_harm.setTitle(
+            _translate("MainWindow", "Harmonic")
+        )
+        self.tabWidget_settings_settings_samprefchn.setTabText(
+            self.tabWidget_settings_settings_samprefchn.indexOf(
+                self.tab_settings_settings_harmchnsamp
+            ),
+            _translate("MainWindow", "&S Channel"),
+        )
+        self.tabWidget_settings_settings_samprefchn.setTabText(
+            self.tabWidget_settings_settings_samprefchn.indexOf(
+                self.tab_settings_settings_harmchnref
+            ),
+            _translate("MainWindow", "&R Channel"),
+        )
+        self.tabWidget_settings_settings_samprefchn.setTabText(
+            self.tabWidget_settings_settings_samprefchn.indexOf(
+                self.tab_settings_settings_harmchnrefit
+            ),
+            _translate("MainWindow", "Refit"),
+        )
+        self.tabWidget_settings_settings_harm.setTabText(
+            self.tabWidget_settings_settings_harm.indexOf(
+                self.tab_settings_settings_harm1
+            ),
+            _translate("MainWindow", "1"),
+        )
+        self.treeWidget_settings_settings_harmtree.headerItem().setText(
+            0, _translate("MainWindow", "Factor")
+        )
+        self.treeWidget_settings_settings_harmtree.headerItem().setText(
+            1, _translate("MainWindow", "Value")
+        )
         __sortingEnabled = self.treeWidget_settings_settings_harmtree.isSortingEnabled()
         self.treeWidget_settings_settings_harmtree.setSortingEnabled(False)
-        self.treeWidget_settings_settings_harmtree.topLevelItem(0).setText(0, _translate("MainWindow", "Scan"))
-        self.treeWidget_settings_settings_harmtree.topLevelItem(0).child(0).setText(0, _translate("MainWindow", "Start"))
-        self.treeWidget_settings_settings_harmtree.topLevelItem(0).child(1).setText(0, _translate("MainWindow", "End"))
-        self.treeWidget_settings_settings_harmtree.topLevelItem(0).child(2).setText(0, _translate("MainWindow", "Steps"))
-        self.treeWidget_settings_settings_harmtree.topLevelItem(1).setText(0, _translate("MainWindow", "Tracking"))
-        self.treeWidget_settings_settings_harmtree.topLevelItem(1).child(0).setText(0, _translate("MainWindow", "Method"))
-        self.treeWidget_settings_settings_harmtree.topLevelItem(1).child(1).setText(0, _translate("MainWindow", "Condition"))
-        self.treeWidget_settings_settings_harmtree.topLevelItem(2).setText(0, _translate("MainWindow", "Fit"))
-        self.treeWidget_settings_settings_harmtree.topLevelItem(2).child(0).setText(0, _translate("MainWindow", "Factor"))
-        self.treeWidget_settings_settings_harmtree.topLevelItem(3).setText(0, _translate("MainWindow", "Peaks"))
-        self.treeWidget_settings_settings_harmtree.topLevelItem(3).child(0).setText(0, _translate("MainWindow", "Num."))
-        self.treeWidget_settings_settings_harmtree.topLevelItem(3).child(1).setText(0, _translate("MainWindow", "Policy"))
-        self.treeWidget_settings_settings_harmtree.topLevelItem(3).child(2).setText(0, _translate("MainWindow", "Phase"))
-        self.treeWidget_settings_settings_harmtree.topLevelItem(3).child(3).setText(0, _translate("MainWindow", "Threshold"))
-        self.treeWidget_settings_settings_harmtree.topLevelItem(3).child(4).setText(0, _translate("MainWindow", "Prominence"))
+        self.treeWidget_settings_settings_harmtree.topLevelItem(0).setText(
+            0, _translate("MainWindow", "Scan")
+        )
+        self.treeWidget_settings_settings_harmtree.topLevelItem(0).child(0).setText(
+            0, _translate("MainWindow", "Start")
+        )
+        self.treeWidget_settings_settings_harmtree.topLevelItem(0).child(1).setText(
+            0, _translate("MainWindow", "End")
+        )
+        self.treeWidget_settings_settings_harmtree.topLevelItem(0).child(2).setText(
+            0, _translate("MainWindow", "Steps")
+        )
+        self.treeWidget_settings_settings_harmtree.topLevelItem(1).setText(
+            0, _translate("MainWindow", "Tracking")
+        )
+        self.treeWidget_settings_settings_harmtree.topLevelItem(1).child(0).setText(
+            0, _translate("MainWindow", "Method")
+        )
+        self.treeWidget_settings_settings_harmtree.topLevelItem(1).child(1).setText(
+            0, _translate("MainWindow", "Condition")
+        )
+        self.treeWidget_settings_settings_harmtree.topLevelItem(2).setText(
+            0, _translate("MainWindow", "Fit")
+        )
+        self.treeWidget_settings_settings_harmtree.topLevelItem(2).child(0).setText(
+            0, _translate("MainWindow", "Factor")
+        )
+        self.treeWidget_settings_settings_harmtree.topLevelItem(3).setText(
+            0, _translate("MainWindow", "Peaks")
+        )
+        self.treeWidget_settings_settings_harmtree.topLevelItem(3).child(0).setText(
+            0, _translate("MainWindow", "Num.")
+        )
+        self.treeWidget_settings_settings_harmtree.topLevelItem(3).child(1).setText(
+            0, _translate("MainWindow", "Policy")
+        )
+        self.treeWidget_settings_settings_harmtree.topLevelItem(3).child(2).setText(
+            0, _translate("MainWindow", "Phase")
+        )
+        self.treeWidget_settings_settings_harmtree.topLevelItem(3).child(3).setText(
+            0, _translate("MainWindow", "Threshold")
+        )
+        self.treeWidget_settings_settings_harmtree.topLevelItem(3).child(4).setText(
+            0, _translate("MainWindow", "Prominence")
+        )
         self.treeWidget_settings_settings_harmtree.setSortingEnabled(__sortingEnabled)
-        self.treeWidget_settings_settings_hardware.headerItem().setText(0, _translate("MainWindow", "Parameter"))
-        self.treeWidget_settings_settings_hardware.headerItem().setText(1, _translate("MainWindow", "Value"))
+        self.treeWidget_settings_settings_hardware.headerItem().setText(
+            0, _translate("MainWindow", "Parameter")
+        )
+        self.treeWidget_settings_settings_hardware.headerItem().setText(
+            1, _translate("MainWindow", "Value")
+        )
         __sortingEnabled = self.treeWidget_settings_settings_hardware.isSortingEnabled()
         self.treeWidget_settings_settings_hardware.setSortingEnabled(False)
-        self.treeWidget_settings_settings_hardware.topLevelItem(0).setText(0, _translate("MainWindow", "Analyzer"))
-        self.treeWidget_settings_settings_hardware.topLevelItem(1).setText(0, _translate("MainWindow", "VNA"))
-        self.treeWidget_settings_settings_hardware.topLevelItem(1).child(0).setText(0, _translate("MainWindow", "S Channel"))
-        self.treeWidget_settings_settings_hardware.topLevelItem(1).child(1).setText(0, _translate("MainWindow", "R Channel"))
-        self.treeWidget_settings_settings_hardware.topLevelItem(2).setText(0, _translate("MainWindow", "Crystal"))
-        self.treeWidget_settings_settings_hardware.topLevelItem(2).child(0).setText(0, _translate("MainWindow", "Base Frequency"))
-        self.treeWidget_settings_settings_hardware.topLevelItem(2).child(1).setText(0, _translate("MainWindow", "Range"))
-        self.treeWidget_settings_settings_hardware.topLevelItem(2).child(2).setText(0, _translate("MainWindow", "Cut"))
-        self.treeWidget_settings_settings_hardware.topLevelItem(3).setText(0, _translate("MainWindow", "Temperature"))
-        self.treeWidget_settings_settings_hardware.topLevelItem(3).child(0).setText(0, _translate("MainWindow", "Module"))
-        self.treeWidget_settings_settings_hardware.topLevelItem(3).child(1).setText(0, _translate("MainWindow", "Device"))
-        self.treeWidget_settings_settings_hardware.topLevelItem(3).child(2).setText(0, _translate("MainWindow", "Thrmcpl Type"))
+        self.treeWidget_settings_settings_hardware.topLevelItem(0).setText(
+            0, _translate("MainWindow", "Analyzer")
+        )
+        self.treeWidget_settings_settings_hardware.topLevelItem(1).setText(
+            0, _translate("MainWindow", "VNA")
+        )
+        self.treeWidget_settings_settings_hardware.topLevelItem(1).child(0).setText(
+            0, _translate("MainWindow", "S Channel")
+        )
+        self.treeWidget_settings_settings_hardware.topLevelItem(1).child(1).setText(
+            0, _translate("MainWindow", "R Channel")
+        )
+        self.treeWidget_settings_settings_hardware.topLevelItem(2).setText(
+            0, _translate("MainWindow", "Crystal")
+        )
+        self.treeWidget_settings_settings_hardware.topLevelItem(2).child(0).setText(
+            0, _translate("MainWindow", "Base Frequency")
+        )
+        self.treeWidget_settings_settings_hardware.topLevelItem(2).child(1).setText(
+            0, _translate("MainWindow", "Range")
+        )
+        self.treeWidget_settings_settings_hardware.topLevelItem(2).child(2).setText(
+            0, _translate("MainWindow", "Cut")
+        )
+        self.treeWidget_settings_settings_hardware.topLevelItem(3).setText(
+            0, _translate("MainWindow", "Temperature")
+        )
+        self.treeWidget_settings_settings_hardware.topLevelItem(3).child(0).setText(
+            0, _translate("MainWindow", "Module")
+        )
+        self.treeWidget_settings_settings_hardware.topLevelItem(3).child(1).setText(
+            0, _translate("MainWindow", "Device")
+        )
+        self.treeWidget_settings_settings_hardware.topLevelItem(3).child(2).setText(
+            0, _translate("MainWindow", "Thrmcpl Type")
+        )
         self.treeWidget_settings_settings_hardware.setSortingEnabled(__sortingEnabled)
-        self.toolBox.setItemText(self.toolBox.indexOf(self.page_settings_settings_hardwares), _translate("MainWindow", "Hardwares"))
-        self.treeWidget_settings_settings_plots.headerItem().setText(0, _translate("MainWindow", "Parameter"))
-        self.treeWidget_settings_settings_plots.headerItem().setText(1, _translate("MainWindow", "Value"))
+        self.toolBox.setItemText(
+            self.toolBox.indexOf(self.page_settings_settings_hardwares),
+            _translate("MainWindow", "Hardwares"),
+        )
+        self.treeWidget_settings_settings_plots.headerItem().setText(
+            0, _translate("MainWindow", "Parameter")
+        )
+        self.treeWidget_settings_settings_plots.headerItem().setText(
+            1, _translate("MainWindow", "Value")
+        )
         __sortingEnabled = self.treeWidget_settings_settings_plots.isSortingEnabled()
         self.treeWidget_settings_settings_plots.setSortingEnabled(False)
-        self.treeWidget_settings_settings_plots.topLevelItem(0).setText(0, _translate("MainWindow", "Plots"))
-        self.treeWidget_settings_settings_plots.topLevelItem(0).child(0).setText(0, _translate("MainWindow", "Time Unit"))
-        self.treeWidget_settings_settings_plots.topLevelItem(0).child(1).setText(0, _translate("MainWindow", "Temp. Unit"))
-        self.treeWidget_settings_settings_plots.topLevelItem(0).child(2).setText(0, _translate("MainWindow", "X Scale"))
-        self.treeWidget_settings_settings_plots.topLevelItem(0).child(3).setText(0, _translate("MainWindow", "Y Scale"))
-        self.treeWidget_settings_settings_plots.topLevelItem(0).child(4).setText(0, _translate("MainWindow", "Link Time"))
+        self.treeWidget_settings_settings_plots.topLevelItem(0).setText(
+            0, _translate("MainWindow", "Plots")
+        )
+        self.treeWidget_settings_settings_plots.topLevelItem(0).child(0).setText(
+            0, _translate("MainWindow", "Time Unit")
+        )
+        self.treeWidget_settings_settings_plots.topLevelItem(0).child(1).setText(
+            0, _translate("MainWindow", "Temp. Unit")
+        )
+        self.treeWidget_settings_settings_plots.topLevelItem(0).child(2).setText(
+            0, _translate("MainWindow", "X Scale")
+        )
+        self.treeWidget_settings_settings_plots.topLevelItem(0).child(3).setText(
+            0, _translate("MainWindow", "Y Scale")
+        )
+        self.treeWidget_settings_settings_plots.topLevelItem(0).child(4).setText(
+            0, _translate("MainWindow", "Link Time")
+        )
         self.treeWidget_settings_settings_plots.setSortingEnabled(__sortingEnabled)
-        self.toolBox.setItemText(self.toolBox.indexOf(self.page_settings_settings_plots), _translate("MainWindow", "Plots"))
+        self.toolBox.setItemText(
+            self.toolBox.indexOf(self.page_settings_settings_plots),
+            _translate("MainWindow", "Plots"),
+        )
         self.pushButton_settings_harm_cntr.setText(_translate("MainWindow", "cntr"))
         self.radioButton_peaks_num_max.setText(_translate("MainWindow", "Max"))
         self.radioButton_peaks_num_fixed.setText(_translate("MainWindow", "Fixed"))
-        self.radioButton_peaks_policy_minf.setText(_translate("MainWindow", "min freq."))
-        self.radioButton_peaks_policy_maxamp.setText(_translate("MainWindow", "max Amp."))
+        self.radioButton_peaks_policy_minf.setText(
+            _translate("MainWindow", "min freq.")
+        )
+        self.radioButton_peaks_policy_maxamp.setText(
+            _translate("MainWindow", "max Amp.")
+        )
         self.checkBox_settings_temp_sensor.setText(_translate("MainWindow", "Record"))
-        self.checkBox_settings_settings_harmlockphase.setText(_translate("MainWindow", "Fix to 0"))
+        self.checkBox_settings_settings_harmlockphase.setText(
+            _translate("MainWindow", "Fix to 0")
+        )
         self.label_status_f0RNG.setText(_translate("MainWindow", "f0/RNG..."))
-        self.pushButton_status_signal_ch.setToolTip(_translate("MainWindow", "Active recording channel(s)."))
+        self.pushButton_status_signal_ch.setToolTip(
+            _translate("MainWindow", "Active recording channel(s).")
+        )
         self.label_status_pts.setText(_translate("MainWindow", "pts"))
-        self.tabWidget_settings.setTabText(self.tabWidget_settings.indexOf(self.tab_settings_settings), _translate("MainWindow", "Se&ttings"))
-        self.toolButton_settings_data_regenerate_from_raw.setText(_translate("MainWindow", "Regenerate from raw data"))
-        self.groupBox_settings_data_settings.setTitle(_translate("MainWindow", "Data Settings"))
-        self.treeWidget_settings_data_refs.headerItem().setText(0, _translate("MainWindow", "Parameter"))
-        self.treeWidget_settings_data_refs.headerItem().setText(1, _translate("MainWindow", "Value"))
+        self.tabWidget_settings.setTabText(
+            self.tabWidget_settings.indexOf(self.tab_settings_settings),
+            _translate("MainWindow", "Se&ttings"),
+        )
+        self.toolButton_settings_data_regenerate_from_raw.setText(
+            _translate("MainWindow", "Regenerate from raw data")
+        )
+        self.groupBox_settings_data_settings.setTitle(
+            _translate("MainWindow", "Data Settings")
+        )
+        self.treeWidget_settings_data_refs.headerItem().setText(
+            0, _translate("MainWindow", "Parameter")
+        )
+        self.treeWidget_settings_data_refs.headerItem().setText(
+            1, _translate("MainWindow", "Value")
+        )
         __sortingEnabled = self.treeWidget_settings_data_refs.isSortingEnabled()
         self.treeWidget_settings_data_refs.setSortingEnabled(False)
-        self.treeWidget_settings_data_refs.topLevelItem(0).setText(0, _translate("MainWindow", "Time Shift"))
-        self.treeWidget_settings_data_refs.topLevelItem(0).child(0).setText(0, _translate("MainWindow", "t0"))
-        self.treeWidget_settings_data_refs.topLevelItem(0).child(1).setText(0, _translate("MainWindow", "Shifted t0"))
-        self.treeWidget_settings_data_refs.topLevelItem(1).setText(0, _translate("MainWindow", "Channels"))
-        self.treeWidget_settings_data_refs.topLevelItem(1).child(0).setText(0, _translate("MainWindow", "S chn."))
-        self.treeWidget_settings_data_refs.topLevelItem(1).child(1).setText(0, _translate("MainWindow", "R chn."))
-        self.treeWidget_settings_data_refs.topLevelItem(2).setText(0, _translate("MainWindow", "Reference"))
-        self.treeWidget_settings_data_refs.topLevelItem(2).child(0).setText(0, _translate("MainWindow", "S ref."))
-        self.treeWidget_settings_data_refs.topLevelItem(2).child(1).setText(0, _translate("MainWindow", "R ref."))
+        self.treeWidget_settings_data_refs.topLevelItem(0).setText(
+            0, _translate("MainWindow", "Time Shift")
+        )
+        self.treeWidget_settings_data_refs.topLevelItem(0).child(0).setText(
+            0, _translate("MainWindow", "t0")
+        )
+        self.treeWidget_settings_data_refs.topLevelItem(0).child(1).setText(
+            0, _translate("MainWindow", "Shifted t0")
+        )
+        self.treeWidget_settings_data_refs.topLevelItem(1).setText(
+            0, _translate("MainWindow", "Channels")
+        )
+        self.treeWidget_settings_data_refs.topLevelItem(1).child(0).setText(
+            0, _translate("MainWindow", "S chn.")
+        )
+        self.treeWidget_settings_data_refs.topLevelItem(1).child(1).setText(
+            0, _translate("MainWindow", "R chn.")
+        )
+        self.treeWidget_settings_data_refs.topLevelItem(2).setText(
+            0, _translate("MainWindow", "Reference")
+        )
+        self.treeWidget_settings_data_refs.topLevelItem(2).child(0).setText(
+            0, _translate("MainWindow", "S ref.")
+        )
+        self.treeWidget_settings_data_refs.topLevelItem(2).child(1).setText(
+            0, _translate("MainWindow", "R ref.")
+        )
         self.treeWidget_settings_data_refs.setSortingEnabled(__sortingEnabled)
         self.groupBox.setTitle(_translate("MainWindow", "Marks"))
         self.label_settings_data_marknpts.setText(_translate("MainWindow", "# of pts:"))
-        self.radioButton_settings_data_marklinear.setText(_translate("MainWindow", "linear"))
+        self.radioButton_settings_data_marklinear.setText(
+            _translate("MainWindow", "linear")
+        )
         self.radioButton_settings_data_marklog.setText(_translate("MainWindow", "log"))
         self.pushButton_settings_data_marknpts.setText(_translate("MainWindow", "Mark"))
-        self.textEdit_settings_data_sampmarks.setHtml(_translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
-"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
-"p, li { white-space: pre-wrap; }\n"
-"</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:8.25pt; font-weight:400; font-style:normal;\">\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">To be added!</p></body></html>"))
-        self.tabWidget_settings_data_markindex.setTabText(self.tabWidget_settings_data_markindex.indexOf(self.tab_sampmarks), _translate("MainWindow", "&S Marks"))
-        self.textEdit_settings_data_refmarks.setHtml(_translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
-"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
-"p, li { white-space: pre-wrap; }\n"
-"</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:8.25pt; font-weight:400; font-style:normal;\">\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">To be added!</p></body></html>"))
-        self.tabWidget_settings_data_markindex.setTabText(self.tabWidget_settings_data_markindex.indexOf(self.tab_refmarks), _translate("MainWindow", "&R Marks"))
+        self.textEdit_settings_data_sampmarks.setHtml(
+            _translate(
+                "MainWindow",
+                '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd">\n'
+                '<html><head><meta name="qrichtext" content="1" /><style type="text/css">\n'
+                "p, li { white-space: pre-wrap; }\n"
+                "</style></head><body style=\" font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;\">\n"
+                '<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">To be added!</p></body></html>',
+            )
+        )
+        self.tabWidget_settings_data_markindex.setTabText(
+            self.tabWidget_settings_data_markindex.indexOf(self.tab_sampmarks),
+            _translate("MainWindow", "&S Marks"),
+        )
+        self.textEdit_settings_data_refmarks.setHtml(
+            _translate(
+                "MainWindow",
+                '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd">\n'
+                '<html><head><meta name="qrichtext" content="1" /><style type="text/css">\n'
+                "p, li { white-space: pre-wrap; }\n"
+                "</style></head><body style=\" font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;\">\n"
+                '<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">To be added!</p></body></html>',
+            )
+        )
+        self.tabWidget_settings_data_markindex.setTabText(
+            self.tabWidget_settings_data_markindex.indexOf(self.tab_refmarks),
+            _translate("MainWindow", "&R Marks"),
+        )
         self.pushButton_settings_data_marksadd.setText(_translate("MainWindow", "1"))
         self.pushButton_settings_data_marksdel.setText(_translate("MainWindow", "0"))
-        self.pushButton_settings_data_marksclear.setText(_translate("MainWindow", "Clr"))
-        self.label_settings_data_t0.setText(_translate("MainWindow", "yyyy-MM-dd hh:mm:ss.zzz"))
-        self.dateTimeEdit_settings_data_t0shifted.setDisplayFormat(_translate("MainWindow", "yyyy-MM-dd hh:mm:ss.zzz"))
-        self.comboBox_settings_data_samprefsource.setToolTip(_translate("MainWindow", "c"))
-        self.lineEdit_settings_data_samprefidx.setToolTip(_translate("MainWindow", "Indices of reference"))
-        self.comboBox_settings_data_refrefsource.setToolTip(_translate("MainWindow", "Source of reference"))
-        self.lineEdit_settings_data_refrefidx.setToolTip(_translate("MainWindow", "Indices of reference"))
-        self.pushButton_settings_data_resetshiftedt0.setToolTip(_translate("MainWindow", "Reset \"Shifted t0\" to \"t0\""))
-        self.pushButton_settings_data_resetshiftedt0.setText(_translate("MainWindow", "Reset Shifted t0"))
-        self.label_settings_data_refdescription.setText(_translate("MainWindow", "Reference - [indices]"))
-        self.pushButton_settings_data_recalcref.setText(_translate("MainWindow", "Recalc."))
-        self.tabWidget_settings.setTabText(self.tabWidget_settings.indexOf(self.tab_settings_data), _translate("MainWindow", "&Data"))
-        self.tabWidget_mechanics_chn.setTabText(self.tabWidget_mechanics_chn.indexOf(self.tab_settings_mechanis_sampchn), _translate("MainWindow", "&S Channel"))
-        self.tabWidget_mechanics_chn.setTabText(self.tabWidget_mechanics_chn.indexOf(self.tab_settings_mechanis_refchn), _translate("MainWindow", "&R Channel"))
-        self.checkBox_settings_mech_liveupdate.setToolTip(_translate("MainWindow", "<html><head/><body><p>Live update solving results in table. This may make the solving process slower!</p></body></html>"))
-        self.checkBox_settings_mech_liveupdate.setText(_translate("MainWindow", "live update"))
-        self.toolButton_settings_mechanics_solve.setText(_translate("MainWindow", " Solve"))
-        self.groupBox_settings_mechanics_mech_film.setTitle(_translate("MainWindow", "Film Construction"))
+        self.pushButton_settings_data_marksclear.setText(
+            _translate("MainWindow", "Clr")
+        )
+        self.label_settings_data_t0.setText(
+            _translate("MainWindow", "yyyy-MM-dd hh:mm:ss.zzz")
+        )
+        self.dateTimeEdit_settings_data_t0shifted.setDisplayFormat(
+            _translate("MainWindow", "yyyy-MM-dd hh:mm:ss.zzz")
+        )
+        self.comboBox_settings_data_samprefsource.setToolTip(
+            _translate("MainWindow", "c")
+        )
+        self.lineEdit_settings_data_samprefidx.setToolTip(
+            _translate("MainWindow", "Indices of reference")
+        )
+        self.comboBox_settings_data_refrefsource.setToolTip(
+            _translate("MainWindow", "Source of reference")
+        )
+        self.lineEdit_settings_data_refrefidx.setToolTip(
+            _translate("MainWindow", "Indices of reference")
+        )
+        self.pushButton_settings_data_resetshiftedt0.setToolTip(
+            _translate("MainWindow", 'Reset "Shifted t0" to "t0"')
+        )
+        self.pushButton_settings_data_resetshiftedt0.setText(
+            _translate("MainWindow", "Reset Shifted t0")
+        )
+        self.label_settings_data_refdescription.setText(
+            _translate("MainWindow", "Reference - [indices]")
+        )
+        self.pushButton_settings_data_recalcref.setText(
+            _translate("MainWindow", "Recalc.")
+        )
+        self.tabWidget_settings.setTabText(
+            self.tabWidget_settings.indexOf(self.tab_settings_data),
+            _translate("MainWindow", "&Data"),
+        )
+        self.tabWidget_mechanics_chn.setTabText(
+            self.tabWidget_mechanics_chn.indexOf(self.tab_settings_mechanis_sampchn),
+            _translate("MainWindow", "&S Channel"),
+        )
+        self.tabWidget_mechanics_chn.setTabText(
+            self.tabWidget_mechanics_chn.indexOf(self.tab_settings_mechanis_refchn),
+            _translate("MainWindow", "&R Channel"),
+        )
+        self.checkBox_settings_mech_liveupdate.setToolTip(
+            _translate(
+                "MainWindow",
+                "<html><head/><body><p>Live update solving results in table. This may make the solving process slower!</p></body></html>",
+            )
+        )
+        self.checkBox_settings_mech_liveupdate.setText(
+            _translate("MainWindow", "live update")
+        )
+        self.toolButton_settings_mechanics_solve.setText(
+            _translate("MainWindow", " Solve")
+        )
+        self.groupBox_settings_mechanics_mech_film.setTitle(
+            _translate("MainWindow", "Film Construction")
+        )
         self.label_6.setText(_translate("MainWindow", "Calc. Type"))
         self.label_13.setText(_translate("MainWindow", "Bulk limit"))
-        self.doubleSpinBox_settings_mechanics_bulklimit.setToolTip(_translate("MainWindow", "The minimum value of rd to be considered as bulk."))
-        self.radioButton_settings_mech_refto_air.setToolTip(_translate("MainWindow", "The film is referenced to bare crystal in air."))
-        self.radioButton_settings_mech_refto_air.setText(_translate("MainWindow", "Film ref. to air"))
-        self.radioButton_settings_mech_refto_overlayer.setToolTip(_translate("MainWindow", "The film is referenced to the overlayer (medium)."))
-        self.radioButton_settings_mech_refto_overlayer.setText(_translate("MainWindow", "Film ref. to overlayer"))
+        self.doubleSpinBox_settings_mechanics_bulklimit.setToolTip(
+            _translate(
+                "MainWindow", "The minimum value of rd to be considered as bulk."
+            )
+        )
+        self.radioButton_settings_mech_refto_air.setToolTip(
+            _translate("MainWindow", "The film is referenced to bare crystal in air.")
+        )
+        self.radioButton_settings_mech_refto_air.setText(
+            _translate("MainWindow", "Film ref. to air")
+        )
+        self.radioButton_settings_mech_refto_overlayer.setToolTip(
+            _translate(
+                "MainWindow", "The film is referenced to the overlayer (medium)."
+            )
+        )
+        self.radioButton_settings_mech_refto_overlayer.setText(
+            _translate("MainWindow", "Film ref. to overlayer")
+        )
         self.label_2.setText(_translate("MainWindow", "Reference all data to air!"))
-        self.label_settings_mechanics_model_overlayer.setText(_translate("MainWindow", "Medium"))
-        self.label_settings_mechanics_model_samplayer.setText(_translate("MainWindow", "Sample"))
-        self.lineEdit_settings_mechanics_model_overlayer_idx.setText(_translate("MainWindow", "[]"))
-        self.lineEdit_settings_mechanics_model_samplayer_idx.setText(_translate("MainWindow", "[]"))
-        self.label_mech_expertmode_layernum.setText(_translate("MainWindow", "Num. of layers: "))
+        self.label_settings_mechanics_model_overlayer.setText(
+            _translate("MainWindow", "Medium")
+        )
+        self.label_settings_mechanics_model_samplayer.setText(
+            _translate("MainWindow", "Sample")
+        )
+        self.lineEdit_settings_mechanics_model_overlayer_idx.setText(
+            _translate("MainWindow", "[]")
+        )
+        self.lineEdit_settings_mechanics_model_samplayer_idx.setText(
+            _translate("MainWindow", "[]")
+        )
+        self.label_mech_expertmode_layernum.setText(
+            _translate("MainWindow", "Num. of layers: ")
+        )
         self.label_19.setText(_translate("MainWindow", "Layers"))
         self.label_20.setText(_translate("MainWindow", "Source"))
         self.label_21.setText(_translate("MainWindow", "Value"))
-        self.groupBox_settings_mechanics_nhcalc.setTitle(_translate("MainWindow", "Solution"))
-        self.pushButton_settings_mechanics_clrallprops.setText(_translate("MainWindow", "Clear All Props."))
+        self.groupBox_settings_mechanics_nhcalc.setTitle(
+            _translate("MainWindow", "Solution")
+        )
+        self.pushButton_settings_mechanics_clrallprops.setText(
+            _translate("MainWindow", "Clear All Props.")
+        )
         self.groupBox_nhplot.setTitle(_translate("MainWindow", "Plot Settings"))
         self.label_14.setText(_translate("MainWindow", "Harmonics: "))
         self.checkBox_nhplot1.setText(_translate("MainWindow", "1"))
-        self.checkBox_settings_mechanics_witherror.setText(_translate("MainWindow", "Errorbar"))
-        self.pushButton_settings_mechanics_errorsettings.setText(_translate("MainWindow", "..."))
+        self.checkBox_settings_mechanics_witherror.setText(
+            _translate("MainWindow", "Errorbar")
+        )
+        self.pushButton_settings_mechanics_errorsettings.setText(
+            _translate("MainWindow", "...")
+        )
         item = self.tableWidget_settings_mechanics_errortab.verticalHeaderItem(0)
         item.setText(_translate("MainWindow", "1"))
         item = self.tableWidget_settings_mechanics_errortab.verticalHeaderItem(1)
@@ -2913,17 +4938,39 @@ class Ui_MainWindow(object):
         item.setText(_translate("MainWindow", "f (Hz)"))
         item = self.tableWidget_settings_mechanics_errortab.horizontalHeaderItem(1)
         item.setText(_translate("MainWindow", "Γ (Hz)"))
-        self.groupBox_settings_mechanics_contour.setTitle(_translate("MainWindow", "Contour"))
-        self.pushButton_settings_mechanics_contourplot.setToolTip(_translate("MainWindow", "Update data in contours."))
-        self.pushButton_settings_mechanics_contourplot.setText(_translate("MainWindow", "Update Data"))
-        self.comboBox_settings_mechanics_contourtype.setToolTip(_translate("MainWindow", "Select contour type."))
-        self.comboBox_settings_mechanics_contourcmap.setToolTip(_translate("MainWindow", "Select color map for contours."))
-        self.comboBox_settings_mechanics_contourdata.setToolTip(_translate("MainWindow", "Select how to plot data in contour."))
-        self.pushButton_settings_mechanics_contoursettings.setToolTip(_translate("MainWindow", "Set contour limits."))
-        self.pushButton_settings_mechanics_contoursettings.setText(_translate("MainWindow", "..."))
-        self.pushButton_settings_mechanics_simulator.setText(_translate("MainWindow", "Shift Simulator"))
-        self.radioButton_settings_mechanics_simulator1l.setText(_translate("MainWindow", "1 layer"))
-        self.radioButton_settings_mechanics_simulatro2l.setText(_translate("MainWindow", "2 layers"))
+        self.groupBox_settings_mechanics_contour.setTitle(
+            _translate("MainWindow", "Contour")
+        )
+        self.pushButton_settings_mechanics_contourplot.setToolTip(
+            _translate("MainWindow", "Update data in contours.")
+        )
+        self.pushButton_settings_mechanics_contourplot.setText(
+            _translate("MainWindow", "Update Data")
+        )
+        self.comboBox_settings_mechanics_contourtype.setToolTip(
+            _translate("MainWindow", "Select contour type.")
+        )
+        self.comboBox_settings_mechanics_contourcmap.setToolTip(
+            _translate("MainWindow", "Select color map for contours.")
+        )
+        self.comboBox_settings_mechanics_contourdata.setToolTip(
+            _translate("MainWindow", "Select how to plot data in contour.")
+        )
+        self.pushButton_settings_mechanics_contoursettings.setToolTip(
+            _translate("MainWindow", "Set contour limits.")
+        )
+        self.pushButton_settings_mechanics_contoursettings.setText(
+            _translate("MainWindow", "...")
+        )
+        self.pushButton_settings_mechanics_simulator.setText(
+            _translate("MainWindow", "Shift Simulator")
+        )
+        self.radioButton_settings_mechanics_simulator1l.setText(
+            _translate("MainWindow", "1 layer")
+        )
+        self.radioButton_settings_mechanics_simulatro2l.setText(
+            _translate("MainWindow", "2 layers")
+        )
         item = self.tableWidgetsettings_mechanics_simulatorin.verticalHeaderItem(0)
         item.setText(_translate("MainWindow", "Value"))
         item = self.tableWidgetsettings_mechanics_simulatorin.horizontalHeaderItem(0)
@@ -2943,27 +4990,33 @@ class Ui_MainWindow(object):
         item = self.tableWidgetsettings_mechanics_simulatorout.verticalHeaderItem(4)
         item.setText(_translate("MainWindow", "n9"))
         item = self.tableWidgetsettings_mechanics_simulatorout.horizontalHeaderItem(0)
-        item.setText(_translate("MainWindow", "Δf\n"
-"(Hz)"))
+        item.setText(_translate("MainWindow", "Δf\n" "(Hz)"))
         item = self.tableWidgetsettings_mechanics_simulatorout.horizontalHeaderItem(1)
-        item.setText(_translate("MainWindow", "ΔΓ\n"
-"(Hz)"))
+        item.setText(_translate("MainWindow", "ΔΓ\n" "(Hz)"))
         item = self.tableWidgetsettings_mechanics_simulatorout.horizontalHeaderItem(2)
         item.setText(_translate("MainWindow", "d/λ"))
         item = self.tableWidgetsettings_mechanics_simulatorout.horizontalHeaderItem(3)
         item.setText(_translate("MainWindow", "dev"))
         item = self.tableWidgetsettings_mechanics_simulatorout.horizontalHeaderItem(4)
-        item.setText(_translate("MainWindow", "δρ\n"
-"(g/cm²)"))
-        __sortingEnabled = self.tableWidgetsettings_mechanics_simulatorout.isSortingEnabled()
+        item.setText(_translate("MainWindow", "δρ\n" "(g/cm²)"))
+        __sortingEnabled = (
+            self.tableWidgetsettings_mechanics_simulatorout.isSortingEnabled()
+        )
         self.tableWidgetsettings_mechanics_simulatorout.setSortingEnabled(False)
-        self.tableWidgetsettings_mechanics_simulatorout.setSortingEnabled(__sortingEnabled)
-        self.tabWidget_settings.setTabText(self.tabWidget_settings.indexOf(self.tab_settings_mechanics), _translate("MainWindow", "&Mechanics"))
+        self.tableWidgetsettings_mechanics_simulatorout.setSortingEnabled(
+            __sortingEnabled
+        )
+        self.tabWidget_settings.setTabText(
+            self.tabWidget_settings.indexOf(self.tab_settings_mechanics),
+            _translate("MainWindow", "&Mechanics"),
+        )
         self.groupBox_spectra.setTitle(_translate("MainWindow", "Spectra"))
         self.label_18.setText(_translate("MainWindow", "Show: "))
         self.radioButton_spectra_showGp.setText(_translate("MainWindow", "Gp"))
         self.radioButton_spectra_showBp.setText(_translate("MainWindow", "Gp+Bp"))
-        self.radioButton_spectra_showpolar.setText(_translate("MainWindow", "Polar plot"))
+        self.radioButton_spectra_showpolar.setText(
+            _translate("MainWindow", "Polar plot")
+        )
         self.checkBox_spectra_showchi.setText(_translate("MainWindow", "Χsq "))
         self.pushButton_manual_refit.setText(_translate("MainWindow", "Manual refit"))
         self.pushButton_settings_data_tostart.setText(_translate("MainWindow", "⏮"))
@@ -2971,20 +5024,55 @@ class Ui_MainWindow(object):
         self.pushButton_settings_data_tonext.setText(_translate("MainWindow", "⏩"))
         self.pushButton_settings_data_toend.setText(_translate("MainWindow", "⏭"))
         self.label_10.setText(_translate("MainWindow", "Select ROW headers to plot"))
-        self.label_11.setText(_translate("MainWindow", "<html><head/><body><p>10<span style=\" vertical-align:super;\">-2</span></p></body></html>"))
-        self.label_12.setText(_translate("MainWindow", "<html><head/><body><p>10<span style=\" vertical-align:super;\">-1</span></p></body></html>"))
-        self.label_15.setText(_translate("MainWindow", "<html><head/><body><p>10<span style=\" vertical-align:super;\">0</span></p></body></html>"))
-        self.label_16.setText(_translate("MainWindow", "<html><head/><body><p>10<span style=\" vertical-align:super;\">1</span></p></body></html>"))
-        self.label_17.setText(_translate("MainWindow", "<html><head/><body><p>10<span style=\" vertical-align:super;\">2</span></p></body></html>"))
+        self.label_11.setText(
+            _translate(
+                "MainWindow",
+                '<html><head/><body><p>10<span style=" vertical-align:super;">-2</span></p></body></html>',
+            )
+        )
+        self.label_12.setText(
+            _translate(
+                "MainWindow",
+                '<html><head/><body><p>10<span style=" vertical-align:super;">-1</span></p></body></html>',
+            )
+        )
+        self.label_15.setText(
+            _translate(
+                "MainWindow",
+                '<html><head/><body><p>10<span style=" vertical-align:super;">0</span></p></body></html>',
+            )
+        )
+        self.label_16.setText(
+            _translate(
+                "MainWindow",
+                '<html><head/><body><p>10<span style=" vertical-align:super;">1</span></p></body></html>',
+            )
+        )
+        self.label_17.setText(
+            _translate(
+                "MainWindow",
+                '<html><head/><body><p>10<span style=" vertical-align:super;">2</span></p></body></html>',
+            )
+        )
         self.label_spectra_fit_zoomtimes.setText(_translate("MainWindow", "1 *"))
         self.label_5.setText(_translate("MainWindow", "kHz"))
-        self.pushButton_spectra_fit_showall.setText(_translate("MainWindow", "Whole Range"))
+        self.pushButton_spectra_fit_showall.setText(
+            _translate("MainWindow", "Whole Range")
+        )
         self.pushButton_spectra_fit_refresh.setText(_translate("MainWindow", "Refresh"))
-        self.pushButton_spectra_fit_autocntr.setText(_translate("MainWindow", "Auto Center"))
+        self.pushButton_spectra_fit_autocntr.setText(
+            _translate("MainWindow", "Auto Center")
+        )
         self.pushButton_spectra_fit_fit.setText(_translate("MainWindow", "Fit"))
-        self.pushButton_spectra_mechanics_refreshtable.setText(_translate("MainWindow", "Refresh table"))
-        self.pushButton_spectra_mechanics_clear.setText(_translate("MainWindow", "Clear plots"))
-        self.toolButton_spectra_mechanics_plotrows.setText(_translate("MainWindow", "Plot"))
+        self.pushButton_spectra_mechanics_refreshtable.setText(
+            _translate("MainWindow", "Refresh table")
+        )
+        self.pushButton_spectra_mechanics_clear.setText(
+            _translate("MainWindow", "Clear plots")
+        )
+        self.toolButton_spectra_mechanics_plotrows.setText(
+            _translate("MainWindow", "Plot")
+        )
         self.groupBox_data.setTitle(_translate("MainWindow", "Data"))
         self.radioButton_data_showall.setText(_translate("MainWindow", "All"))
         self.radioButton_data_showmarked.setText(_translate("MainWindow", "Marked"))
@@ -3018,10 +5106,19 @@ class Ui_MainWindow(object):
         self.actionExit.setShortcut(_translate("MainWindow", "Ctrl+Q"))
         self.actionADC_1.setText(_translate("MainWindow", "ADC 1"))
         self.actionADC_2.setText(_translate("MainWindow", "ADC 2"))
-        self.actionSet_Temperature_Sensor.setText(_translate("MainWindow", "Set Temperature Sensor"))
+        self.actionSet_Temperature_Sensor.setText(
+            _translate("MainWindow", "Set Temperature Sensor")
+        )
         self.actionOpen_VNA.setText(_translate("MainWindow", "Open MyVNA"))
-        self.actionOpen_VNA.setToolTip(_translate("MainWindow", "Open MyVNA (The changes of setup will work only after the window is closed.)"))
-        self.actionAdd_Temperature_Data.setText(_translate("MainWindow", "Add Temperature Data"))
+        self.actionOpen_VNA.setToolTip(
+            _translate(
+                "MainWindow",
+                "Open MyVNA (The changes of setup will work only after the window is closed.)",
+            )
+        )
+        self.actionAdd_Temperature_Data.setText(
+            _translate("MainWindow", "Add Temperature Data")
+        )
         self.actionHelp_Manual.setText(_translate("MainWindow", "Help Manual"))
         self.actionAbout_QCM_py.setText(_translate("MainWindow", "About QCMpy"))
         self.actionAbout_QCM_py.setToolTip(_translate("MainWindow", "About QCMpy"))
@@ -3030,40 +5127,88 @@ class Ui_MainWindow(object):
         self.actionNew_Exp.setShortcut(_translate("MainWindow", "Ctrl+N"))
         self.actionClear_All.setText(_translate("MainWindow", "Clear Data"))
         self.actionDelete_Selected.setText(_translate("MainWindow", "Delete Selected"))
-        self.actionRegenerate_allsamp.setText(_translate("MainWindow", "Regenerate S chn. all"))
-        self.actionRegenerate_allsamp.setToolTip(_translate("MainWindow", "Regenerate all data in S chn."))
-        self.actionFit_markedsamp.setText(_translate("MainWindow", "Refit S chn. marked"))
-        self.actionFit_markedsamp.setToolTip(_translate("MainWindow", "refiit marked data in S chn."))
+        self.actionRegenerate_allsamp.setText(
+            _translate("MainWindow", "Regenerate S chn. all")
+        )
+        self.actionRegenerate_allsamp.setToolTip(
+            _translate("MainWindow", "Regenerate all data in S chn.")
+        )
+        self.actionFit_markedsamp.setText(
+            _translate("MainWindow", "Refit S chn. marked")
+        )
+        self.actionFit_markedsamp.setToolTip(
+            _translate("MainWindow", "refiit marked data in S chn.")
+        )
         self.actionSolve_all.setText(_translate("MainWindow", "Solve all"))
-        self.actionSolve_all.setToolTip(_translate("MainWindow", "Solve all data in current channel."))
+        self.actionSolve_all.setToolTip(
+            _translate("MainWindow", "Solve all data in current channel.")
+        )
         self.actionSolve_marked.setText(_translate("MainWindow", "Solve marked"))
-        self.actionSolve_marked.setToolTip(_translate("MainWindow", "Solve marked data in current channel."))
+        self.actionSolve_marked.setToolTip(
+            _translate("MainWindow", "Solve marked data in current channel.")
+        )
         self.actionRows_Time.setText(_translate("MainWindow", "Rows - Time"))
-        self.actionRows_Time.setToolTip(_translate("MainWindow", "Plot selected rows vs. time"))
+        self.actionRows_Time.setToolTip(
+            _translate("MainWindow", "Plot selected rows vs. time")
+        )
         self.actionRow_s1_Row_s2.setText(_translate("MainWindow", "Row[s1] - Row[s2]"))
-        self.actionRow_s1_Row_s2.setToolTip(_translate("MainWindow", "Plot selected two rows (Row[s1] vs. Row[s2])"))
+        self.actionRow_s1_Row_s2.setToolTip(
+            _translate("MainWindow", "Plot selected two rows (Row[s1] vs. Row[s2])")
+        )
         self.actionExport_Settings.setText(_translate("MainWindow", "Export Settings"))
-        self.actionExport_Settings.setToolTip(_translate("MainWindow", "Export Settings to a file"))
+        self.actionExport_Settings.setToolTip(
+            _translate("MainWindow", "Export Settings to a file")
+        )
         self.actionRows_Temp.setText(_translate("MainWindow", "Rows - Temp"))
-        self.actionRows_Temp.setToolTip(_translate("MainWindow", "Plot variables vs. temperature"))
+        self.actionRows_Temp.setToolTip(
+            _translate("MainWindow", "Plot variables vs. temperature")
+        )
         self.actionRow_s2_Row_s1.setText(_translate("MainWindow", "Row[s2] - Row[s1]"))
-        self.actionRow_s2_Row_s1.setToolTip(_translate("MainWindow", "Plot selected two rows (Row[s2] vs. Row[s1])"))
+        self.actionRow_s2_Row_s1.setToolTip(
+            _translate("MainWindow", "Plot selected two rows (Row[s2] vs. Row[s1])")
+        )
         self.actionImport_QCM_D.setText(_translate("MainWindow", "Import QCM-D"))
-        self.actionImport_QCM_D.setToolTip(_translate("MainWindow", "Import QCM-D data"))
-        self.actionRegenerate_allref.setText(_translate("MainWindow", "Regenerate R chn. all"))
-        self.actionRegenerate_allref.setToolTip(_translate("MainWindow", "Regenerate all data in R chn."))
-        self.actionFit_markedref.setText(_translate("MainWindow", "Refit S chn. marked"))
-        self.actionFit_markedref.setToolTip(_translate("MainWindow", "refiit marked data in R chn."))
-        self.actionMaximum_Harmonic.setText(_translate("MainWindow", "Maximum Harmonic"))
+        self.actionImport_QCM_D.setToolTip(
+            _translate("MainWindow", "Import QCM-D data")
+        )
+        self.actionRegenerate_allref.setText(
+            _translate("MainWindow", "Regenerate R chn. all")
+        )
+        self.actionRegenerate_allref.setToolTip(
+            _translate("MainWindow", "Regenerate all data in R chn.")
+        )
+        self.actionFit_markedref.setText(
+            _translate("MainWindow", "Refit S chn. marked")
+        )
+        self.actionFit_markedref.setToolTip(
+            _translate("MainWindow", "refiit marked data in R chn.")
+        )
+        self.actionMaximum_Harmonic.setText(
+            _translate("MainWindow", "Maximum Harmonic")
+        )
         self.actionImport_QCM_Z.setText(_translate("MainWindow", "Import QCM-Z"))
-        self.actionImport_QCM_Z.setToolTip(_translate("MainWindow", "Import QCM-Z Data (impedance analysis)"))
+        self.actionImport_QCM_Z.setToolTip(
+            _translate("MainWindow", "Import QCM-Z Data (impedance analysis)")
+        )
         self.actionSolve_test.setText(_translate("MainWindow", "Solve test"))
-        self.actionSolve_test.setToolTip(_translate("MainWindow", "this is for testing"))
-        self.actionfilm_construction_mode_switch.setText(_translate("MainWindow", "film construction mode switch"))
-        self.actionfilm_construction_mode_switch.setShortcut(_translate("MainWindow", "Ctrl+Alt+M"))
+        self.actionSolve_test.setToolTip(
+            _translate("MainWindow", "this is for testing")
+        )
+        self.actionfilm_construction_mode_switch.setText(
+            _translate("MainWindow", "film construction mode switch")
+        )
+        self.actionfilm_construction_mode_switch.setShortcut(
+            _translate("MainWindow", "Ctrl+Alt+M")
+        )
         self.actionRows_Index.setText(_translate("MainWindow", "Rows - Index"))
-        self.actionRows_Index.setToolTip(_translate("MainWindow", "Plot variables vs. indices"))
+        self.actionRows_Index.setToolTip(
+            _translate("MainWindow", "Plot variables vs. indices")
+        )
         self.actionSolve_new.setText(_translate("MainWindow", "Solve new"))
-        self.actionSolve_new.setToolTip(_translate("MainWindow", "Solve new collected data in current channel."))
+        self.actionSolve_new.setToolTip(
+            _translate("MainWindow", "Solve new collected data in current channel.")
+        )
         self.actionOpen_openQCM.setText(_translate("MainWindow", "Open openQCM"))
-        self.actionOpen_openQCM.setToolTip(_translate("MainWindow", "Open openQCM program"))
+        self.actionOpen_openQCM.setToolTip(
+            _translate("MainWindow", "Open openQCM program")
+        )

@@ -34,15 +34,12 @@ rheoQCM.core.jax_config : JAX configuration
 """
 
 from functools import partial
-from typing import Tuple
-from typing import Union
 
+import interpax
 import jax
 import jax.numpy as jnp
 from jax import lax
 from jax.scipy.signal import convolve
-
-import interpax
 
 # =============================================================================
 # Physical Constants
@@ -97,10 +94,10 @@ air_default: dict = {
 }
 
 # Variable limits for fitting
-dlam_refh_range: Tuple[float, float] = (0.0, 10.0)
-drho_range: Tuple[float, float] = (0.0, 3e-2)  # kg/m^2
-grho_refh_range: Tuple[float, float] = (1e4, 1e14)  # Pa kg/m^3
-phi_range: Tuple[float, float] = (0.0, jnp.pi / 2)  # radians
+dlam_refh_range: tuple[float, float] = (0.0, 10.0)
+drho_range: tuple[float, float] = (0.0, 3e-2)  # kg/m^2
+grho_refh_range: tuple[float, float] = (1e4, 1e14)  # Pa kg/m^3
+phi_range: tuple[float, float] = (0.0, jnp.pi / 2)  # radians
 
 
 # =============================================================================
@@ -816,7 +813,7 @@ def normdelfstar(
 def bulk_props(
     delfstar: jnp.ndarray,
     f1: float = f1_default,
-) -> Tuple[jnp.ndarray, jnp.ndarray]:
+) -> tuple[jnp.ndarray, jnp.ndarray]:
     """
     Determine properties of bulk material from complex frequency shift.
 
@@ -916,11 +913,15 @@ def _kotula_equation(
     """
     A = (1 - xi_crit) / xi_crit
 
-    term1 = (1 - xi) * (Gmstar ** (1 / s) - gstar ** (1 / s)) / (
-        Gmstar ** (1 / s) + A * gstar ** (1 / s)
+    term1 = (
+        (1 - xi)
+        * (Gmstar ** (1 / s) - gstar ** (1 / s))
+        / (Gmstar ** (1 / s) + A * gstar ** (1 / s))
     )
-    term2 = xi * (Gfstar ** (1 / t) - gstar ** (1 / t)) / (
-        Gfstar ** (1 / t) + A * gstar ** (1 / t)
+    term2 = (
+        xi
+        * (Gfstar ** (1 / t) - gstar ** (1 / t))
+        / (Gfstar ** (1 / t) + A * gstar ** (1 / t))
     )
 
     return term1 + term2
@@ -1229,7 +1230,7 @@ def interp_cubic(
     x_new: jnp.ndarray,
     x: jnp.ndarray,
     y: jnp.ndarray,
-    extrap: Union[bool, float, tuple] = jnp.nan,
+    extrap: bool | float | tuple = jnp.nan,
 ) -> jnp.ndarray:
     """
     Cubic spline interpolation using interpax.
@@ -1272,7 +1273,7 @@ def create_interp_func(
     x: jnp.ndarray,
     y: jnp.ndarray,
     method: str = "linear",
-    extrap: Union[bool, float, tuple] = jnp.nan,
+    extrap: bool | float | tuple = jnp.nan,
 ):
     """
     Create an interpolation function similar to scipy.interpolate.interp1d.
@@ -1312,9 +1313,7 @@ def create_interp_func(
             x_new = jnp.asarray(x_new, dtype=jnp.float64)
             # Handle out-of-bounds with NaN
             result = jnp.interp(x_new, x, y)
-            if extrap is False or (
-                isinstance(extrap, float) and jnp.isnan(extrap)
-            ):
+            if extrap is False or (isinstance(extrap, float) and jnp.isnan(extrap)):
                 # Set out-of-bounds to NaN
                 mask_low = x_new < x[0]
                 mask_high = x_new > x[-1]

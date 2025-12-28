@@ -67,7 +67,7 @@
 
 - Fix multiprocessing bug where the retruned variables were placed in wrong order. This bug made the calulated overlayer values (grho, phi, drho) in the wrong order (drho, grho, phi) and made the follwing calculation failed and the program would just use the results from SLA guesses.
 
-- Fix mpl_sp_[harm] plots x/y labels when plot polor plots.  
+- Fix mpl_sp_[harm] plots x/y labels when plot polor plots.
 
 ### Removed
 
@@ -156,7 +156,7 @@
 ## [0.18.2] - 2019-09-11
 
 ### Added
-  
+
 ### Changed
 
 - Change the way to save string in h5 file to prevent the file size increasing while repeated saving.
@@ -192,22 +192,22 @@
 
 - Add contour plots.
 - Add slove new property to save the time from solving all.
-- Add D (dissipition from QCM-D) to calculated properties.  
+- Add D (dissipition from QCM-D) to calculated properties.
 - Add a simple function to mark data in linear or log.
- 
+
 ### Changed
 
 - Change code to that property calculation will not remove previous data. <span style="color:red">NOTE</span>: If you want to recalculate previous data, make sure use `slove all`.
 - Change exported Excel file format. The columns with repeated data are combined.
-- Change HOME button of data plots to show all & auto scale.  
-- Change debuging to logger. 
+- Change HOME button of data plots to show all & auto scale.
+- Change debuging to logger.
 - Change the name `settings_ini` to `config_default` for the basic settings.
 
 ### Fixed
 
 - Fix data plot does not change limit after ZOOM OR PAN.
 - Fix issues of peak tracking condition settings with constrained conditions didn't work. <span style="color:red">NOTE</span>: When `Fix center` is set, the peak may come of the scan range!
-  
+
 ### Removed
 
 ## [0.17.2] - 2019-07-05
@@ -246,14 +246,14 @@
 
 ### Added
 
-- Add spinBox for selecting index for displaying property in table.  
+- Add spinBox for selecting index for displaying property in table.
 - Add sample description.
 - Add scipy functions to peak factors guess.
 - Add viscocity to property calculation.
 
 ### Changed
 
-- Change data structure. Copy some keys in settings_init to settings_default to keep enough information of data collecting parameter.  
+- Change data structure. Copy some keys in settings_init to settings_default to keep enough information of data collecting parameter.
 - Change the way to get display data from all harmonic together to by harmonics.
 - Change multiple peak fitting to use separate data ranges. The range plotted in the figures are still a connected range.
 - Change variable names with "rh", reference harmonics, to "refh". This resulted in exported excel file column names change.
@@ -263,7 +263,7 @@
 
 ### Fixed
 
-- Fix property of none calculated index value which is signed to value from other rows.  
+- Fix property of none calculated index value which is signed to value from other rows.
 - Fix harmonic setting items update bugs.
 
 ### Removed
@@ -352,11 +352,11 @@
 - Add base frequency check for property claculation in UI. Now, the base frequency set in UI will be used as f1 when first harmonic data is not collected.
 - Add load calibration file when switch channel
 
-### Changed 
+### Changed
 
 ### Fixed
 
-- Fix program crashes when collecting data with VNA disconnected on Windows  
+- Fix program crashes when collecting data with VNA disconnected on Windows
 
 ### Removed
 
@@ -364,8 +364,8 @@
 
 ### Added
 
-- Add "CHANGELOG.md" file  
-  
+- Add "CHANGELOG.md" file
+
 ### Changed
 
 ### Fixed

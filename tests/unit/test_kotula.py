@@ -7,12 +7,11 @@ Tests verify:
 - Numerical precision < 1e-8 (T012)
 """
 
+import jax.numpy as jnp
 import numpy as np
 import pytest
 
-import jax.numpy as jnp
-
-from rheoQCM.core.physics import kotula_gstar, kotula_xi, _kotula_equation
+from rheoQCM.core.physics import _kotula_equation, kotula_gstar, kotula_xi
 
 
 # Standard test parameters for Kotula model
@@ -22,9 +21,9 @@ def kotula_params():
     return {
         "Gmstar": 1e6 + 1e5j,  # Matrix modulus (Pa)
         "Gfstar": 1e9 + 1e8j,  # Filler modulus (Pa)
-        "xi_crit": 0.16,       # Percolation threshold
-        "s": 0.8,              # Matrix exponent
-        "t": 1.8,              # Filler exponent
+        "xi_crit": 0.16,  # Percolation threshold
+        "s": 0.8,  # Matrix exponent
+        "t": 1.8,  # Filler exponent
     }
 
 
@@ -354,9 +353,9 @@ class TestKotulaFallback:
         from rheoQCM.core import physics
 
         # Verify key functions exist
-        assert hasattr(physics, 'kotula_gstar')
-        assert hasattr(physics, 'kotula_xi')
-        assert hasattr(physics, '_kotula_equation')
+        assert hasattr(physics, "kotula_gstar")
+        assert hasattr(physics, "kotula_xi")
+        assert hasattr(physics, "_kotula_equation")
 
         # Verify functions are callable
         assert callable(physics.kotula_gstar)

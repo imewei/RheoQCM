@@ -9,15 +9,13 @@ Requirement: 1000 measurements in <5s on GPU.
 
 import time
 
+import jax
+import jax.numpy as jnp
 import numpy as np
 import pytest
 
-import jax
-import jax.numpy as jnp
-
-from rheoQCM.core.physics import kotula_gstar
 from rheoQCM.core.jax_config import get_jax_backend, is_gpu_available
-
+from rheoQCM.core.physics import kotula_gstar
 
 # Standard test parameters
 GMSTAR = 1e6 + 1e5j
@@ -79,13 +77,10 @@ class TestKotulaBenchmark:
         def mpmath_kotula_single(xi_val):
             def ftosolve(gstar_val):
                 A = (1 - XI_CRIT) / XI_CRIT
-                func = (
-                    (1 - xi_val)
-                    * (GMSTAR ** (1 / S) - gstar_val ** (1 / S))
-                    / (GMSTAR ** (1 / S) + A * gstar_val ** (1 / S))
-                    + xi_val
-                    * (GFSTAR ** (1 / T) - gstar_val ** (1 / T))
-                    / (GFSTAR ** (1 / T) + A * gstar_val ** (1 / T))
+                func = (1 - xi_val) * (GMSTAR ** (1 / S) - gstar_val ** (1 / S)) / (
+                    GMSTAR ** (1 / S) + A * gstar_val ** (1 / S)
+                ) + xi_val * (GFSTAR ** (1 / T) - gstar_val ** (1 / T)) / (
+                    GFSTAR ** (1 / T) + A * gstar_val ** (1 / T)
                 )
                 return func
 
@@ -118,7 +113,9 @@ class TestKotulaBenchmark:
         print(f"  Speedup: {speedup:.1f}x")
 
         # Verify numerical consistency on subset
-        jax_subset = np.array(kotula_gstar(jnp.array(xi_np), GMSTAR, GFSTAR, XI_CRIT, S, T))
+        jax_subset = np.array(
+            kotula_gstar(jnp.array(xi_np), GMSTAR, GFSTAR, XI_CRIT, S, T)
+        )
         mpmath_np = np.array(mpmath_results)
         relative_diff = np.abs(jax_subset - mpmath_np) / np.abs(mpmath_np)
         max_diff = np.max(relative_diff)
@@ -158,7 +155,9 @@ class TestKotulaBenchmark:
         print(f"  Time/point ratio (10000 vs 100): {ratio:.2f}x")
 
         # Linear scaling means ratio should be close to 1
-        assert ratio < 5, f"Scaling is super-linear: {ratio:.2f}x increase in time/point"
+        assert (
+            ratio < 5
+        ), f"Scaling is super-linear: {ratio:.2f}x increase in time/point"
 
     def test_memory_efficiency(self):
         """Memory usage scales linearly with input size (SC-003)."""
@@ -206,10 +205,12 @@ class TestBatchProcessingBenchmark:
         delfstars_list = []
         for i in range(n_measurements):
             scale = 1.0 + 0.1 * (i % 10)  # Cycle through scales
-            delfstars_list.append([
-                (-87768.0 * scale) + (155.7 * scale) * 1j,  # n=3
-                (-159742.7 * scale) + (888.7 * scale) * 1j,  # n=5
-            ])
+            delfstars_list.append(
+                [
+                    (-87768.0 * scale) + (155.7 * scale) * 1j,  # n=3
+                    (-159742.7 * scale) + (888.7 * scale) * 1j,  # n=5
+                ]
+            )
 
         delfstars_array = jnp.array(delfstars_list)
 
@@ -253,11 +254,15 @@ class TestBatchProcessingBenchmark:
         # Performance assertions based on backend
         if backend == "gpu":
             # GPU should be very fast
-            assert elapsed < 5.0, f"GPU should process 1000 measurements in <5s, took {elapsed:.2f}s"
+            assert (
+                elapsed < 5.0
+            ), f"GPU should process 1000 measurements in <5s, took {elapsed:.2f}s"
         else:
             # CPU is slower but should still be reasonable
             # Allow 30s for CPU (vmap still provides parallelization benefits)
-            assert elapsed < 30.0, f"CPU should process 1000 measurements in <30s, took {elapsed:.2f}s"
+            assert (
+                elapsed < 30.0
+            ), f"CPU should process 1000 measurements in <30s, took {elapsed:.2f}s"
 
     def test_batch_analyze_scaling(self):
         """Test that batch_analyze_vmap scales linearly with batch size."""
@@ -272,10 +277,12 @@ class TestBatchProcessingBenchmark:
             delfstars_list = []
             for i in range(n):
                 scale = 1.0 + 0.05 * (i % 20)
-                delfstars_list.append([
-                    (-87768.0 * scale) + (155.7 * scale) * 1j,
-                    (-159742.7 * scale) + (888.7 * scale) * 1j,
-                ])
+                delfstars_list.append(
+                    [
+                        (-87768.0 * scale) + (155.7 * scale) * 1j,
+                        (-159742.7 * scale) + (888.7 * scale) * 1j,
+                    ]
+                )
 
             delfstars_array = jnp.array(delfstars_list)
 
@@ -306,11 +313,13 @@ class TestBatchProcessingBenchmark:
         print(f"  Time/measurement ratio (1000 vs 100): {ratio:.2f}x")
 
         # Allow some overhead for larger batches, but should be roughly linear
-        assert ratio < 3.0, f"Scaling is super-linear: {ratio:.2f}x increase in time/measurement"
+        assert (
+            ratio < 3.0
+        ), f"Scaling is super-linear: {ratio:.2f}x increase in time/measurement"
 
     def test_batch_vs_sequential_speedup(self):
         """Test that batch processing is faster than sequential processing."""
-        from rheoQCM.core.analysis import batch_analyze_vmap, QCMAnalyzer
+        from rheoQCM.core.analysis import QCMAnalyzer, batch_analyze_vmap
 
         n_measurements = 100
         harmonics = [3, 5]
@@ -387,10 +396,12 @@ class TestBatchProcessingBenchmark:
         delfstars_list = []
         for i in range(n):
             scale = 1.0 + 0.05 * (i % 20)
-            delfstars_list.append([
-                (-87768.0 * scale) + (155.7 * scale) * 1j,
-                (-159742.7 * scale) + (888.7 * scale) * 1j,
-            ])
+            delfstars_list.append(
+                [
+                    (-87768.0 * scale) + (155.7 * scale) * 1j,
+                    (-159742.7 * scale) + (888.7 * scale) * 1j,
+                ]
+            )
 
         delfstars_array = jnp.array(delfstars_list)
 
@@ -406,8 +417,9 @@ class TestBatchProcessingBenchmark:
 
         # Check that backend info is in messages
         if result.messages:
-            assert any(backend in msg for msg in result.messages), \
-                f"Backend '{backend}' should be mentioned in result messages"
+            assert any(
+                backend in msg for msg in result.messages
+            ), f"Backend '{backend}' should be mentioned in result messages"
 
         # Report device placement
         devices = jax.devices()

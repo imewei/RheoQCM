@@ -7,12 +7,16 @@ comparing outputs against scipy.signal reference implementations.
 Feature: 003-scipy-to-jax
 """
 
-import numpy as np
 import jax.numpy as jnp
+import numpy as np
 import pytest
 from scipy.signal import (
     find_peaks as scipy_find_peaks,
+)
+from scipy.signal import (
     peak_prominences as scipy_peak_prominences,
+)
+from scipy.signal import (
     peak_widths as scipy_peak_widths,
 )
 
@@ -40,16 +44,16 @@ class TestPeakProminences:
 
         # Compare results
         np.testing.assert_allclose(
-            np.asarray(jax_proms), scipy_proms, rtol=1e-10,
-            err_msg="Prominences do not match scipy"
+            np.asarray(jax_proms),
+            scipy_proms,
+            rtol=1e-10,
+            err_msg="Prominences do not match scipy",
         )
         np.testing.assert_array_equal(
-            np.asarray(jax_left), scipy_left,
-            err_msg="Left bases do not match scipy"
+            np.asarray(jax_left), scipy_left, err_msg="Left bases do not match scipy"
         )
         np.testing.assert_array_equal(
-            np.asarray(jax_right), scipy_right,
-            err_msg="Right bases do not match scipy"
+            np.asarray(jax_right), scipy_right, err_msg="Right bases do not match scipy"
         )
 
     def test_edge_cases_empty_peaks(self):
@@ -123,7 +127,9 @@ class TestPeakWidths:
         x = np.array([0, 0, 1, 2, 3, 2, 1, 0, 0], dtype=np.float64)
         peaks = np.array([4])
 
-        scipy_widths, scipy_heights, scipy_left, scipy_right = scipy_peak_widths(x, peaks)
+        scipy_widths, scipy_heights, scipy_left, scipy_right = scipy_peak_widths(
+            x, peaks
+        )
         jax_widths, jax_heights, jax_left, jax_right = peak_widths(x, peaks)
 
         np.testing.assert_allclose(np.asarray(jax_widths), scipy_widths, rtol=1e-10)
@@ -141,12 +147,16 @@ class TestPeakWidths:
             jax_result = peak_widths(x, peaks, rel_height=rel_height)
 
             np.testing.assert_allclose(
-                np.asarray(jax_result[0]), scipy_result[0], rtol=1e-10,
-                err_msg=f"Widths differ at rel_height={rel_height}"
+                np.asarray(jax_result[0]),
+                scipy_result[0],
+                rtol=1e-10,
+                err_msg=f"Widths differ at rel_height={rel_height}",
             )
             np.testing.assert_allclose(
-                np.asarray(jax_result[1]), scipy_result[1], rtol=1e-10,
-                err_msg=f"Width heights differ at rel_height={rel_height}"
+                np.asarray(jax_result[1]),
+                scipy_result[1],
+                rtol=1e-10,
+                err_msg=f"Width heights differ at rel_height={rel_height}",
             )
 
     def test_multiple_peaks(self):
@@ -157,8 +167,12 @@ class TestPeakWidths:
         scipy_result = scipy_peak_widths(x, peaks)
         jax_result = peak_widths(x, peaks)
 
-        np.testing.assert_allclose(np.asarray(jax_result[0]), scipy_result[0], rtol=1e-10)
-        np.testing.assert_allclose(np.asarray(jax_result[1]), scipy_result[1], rtol=1e-10)
+        np.testing.assert_allclose(
+            np.asarray(jax_result[0]), scipy_result[0], rtol=1e-10
+        )
+        np.testing.assert_allclose(
+            np.asarray(jax_result[1]), scipy_result[1], rtol=1e-10
+        )
 
     def test_with_prominence_data(self):
         """Test width calculation with pre-computed prominence data."""
@@ -173,7 +187,9 @@ class TestPeakWidths:
 
         # Compare with scipy
         scipy_result = scipy_peak_widths(x, peaks)
-        np.testing.assert_allclose(np.asarray(jax_result[0]), scipy_result[0], rtol=1e-10)
+        np.testing.assert_allclose(
+            np.asarray(jax_result[0]), scipy_result[0], rtol=1e-10
+        )
 
 
 class TestFindPeaks:
@@ -206,8 +222,9 @@ class TestFindPeaks:
             jax_peaks, _ = find_peaks(x, distance=distance)
 
             np.testing.assert_array_equal(
-                np.asarray(jax_peaks), scipy_peaks,
-                err_msg=f"Peaks differ with distance={distance}"
+                np.asarray(jax_peaks),
+                scipy_peaks,
+                err_msg=f"Peaks differ with distance={distance}",
             )
 
     def test_with_prominence_constraint(self):
@@ -219,9 +236,7 @@ class TestFindPeaks:
 
         np.testing.assert_array_equal(np.asarray(jax_peaks), scipy_peaks)
         np.testing.assert_allclose(
-            np.asarray(jax_props['prominences']),
-            scipy_props['prominences'],
-            rtol=1e-10
+            np.asarray(jax_props["prominences"]), scipy_props["prominences"], rtol=1e-10
         )
 
     def test_with_prominence_range(self):
@@ -236,7 +251,9 @@ class TestFindPeaks:
     def test_with_width_constraint(self):
         """T014: Test peak detection with width constraint."""
         # Create signal with varying width peaks
-        x = np.array([0, 0, 1, 0, 0, 1, 2, 1, 0, 0, 1, 2, 3, 2, 1, 0, 0], dtype=np.float64)
+        x = np.array(
+            [0, 0, 1, 0, 0, 1, 2, 1, 0, 0, 1, 2, 3, 2, 1, 0, 0], dtype=np.float64
+        )
 
         scipy_peaks, scipy_props = scipy_find_peaks(x, width=2)
         jax_peaks, jax_props = find_peaks(x, width=2)
@@ -245,7 +262,9 @@ class TestFindPeaks:
 
     def test_with_width_range(self):
         """T014: Test width as min/max range."""
-        x = np.array([0, 0, 1, 0, 0, 1, 2, 1, 0, 0, 1, 2, 3, 2, 1, 0, 0], dtype=np.float64)
+        x = np.array(
+            [0, 0, 1, 0, 0, 1, 2, 1, 0, 0, 1, 2, 3, 2, 1, 0, 0], dtype=np.float64
+        )
 
         scipy_peaks, _ = scipy_find_peaks(x, width=(1, 5))
         jax_peaks, _ = find_peaks(x, width=(1, 5))
@@ -261,9 +280,9 @@ class TestFindPeaks:
 
         np.testing.assert_array_equal(np.asarray(jax_peaks), scipy_peaks)
         np.testing.assert_allclose(
-            np.asarray(jax_props['peak_heights']),
-            scipy_props['peak_heights'],
-            rtol=1e-10
+            np.asarray(jax_props["peak_heights"]),
+            scipy_props["peak_heights"],
+            rtol=1e-10,
         )
 
     def test_with_threshold_constraint(self):
@@ -278,33 +297,52 @@ class TestFindPeaks:
     def test_combined_constraints(self):
         """T015: Test all constraints together."""
         # Create realistic QCM-like signal
-        x = np.array([
-            0, 0.5, 1, 0.5, 0,  # small peak
-            0.5, 1.5, 2, 1.5, 0.5,  # medium peak
-            0, 0.5, 1.5, 2.5, 3, 2.5, 1.5, 0.5, 0,  # large wide peak
-            0.5, 1, 0.5,  # small peak
-            0, 0.5, 2, 0.5, 0,  # medium peak
-        ], dtype=np.float64)
+        x = np.array(
+            [
+                0,
+                0.5,
+                1,
+                0.5,
+                0,  # small peak
+                0.5,
+                1.5,
+                2,
+                1.5,
+                0.5,  # medium peak
+                0,
+                0.5,
+                1.5,
+                2.5,
+                3,
+                2.5,
+                1.5,
+                0.5,
+                0,  # large wide peak
+                0.5,
+                1,
+                0.5,  # small peak
+                0,
+                0.5,
+                2,
+                0.5,
+                0,  # medium peak
+            ],
+            dtype=np.float64,
+        )
 
         scipy_peaks, scipy_props = scipy_find_peaks(
             x, distance=3, prominence=1.0, width=2
         )
-        jax_peaks, jax_props = find_peaks(
-            x, distance=3, prominence=1.0, width=2
-        )
+        jax_peaks, jax_props = find_peaks(x, distance=3, prominence=1.0, width=2)
 
         np.testing.assert_array_equal(np.asarray(jax_peaks), scipy_peaks)
 
         # Verify properties match
         np.testing.assert_allclose(
-            np.asarray(jax_props['prominences']),
-            scipy_props['prominences'],
-            rtol=1e-10
+            np.asarray(jax_props["prominences"]), scipy_props["prominences"], rtol=1e-10
         )
         np.testing.assert_allclose(
-            np.asarray(jax_props['widths']),
-            scipy_props['widths'],
-            rtol=1e-10
+            np.asarray(jax_props["widths"]), scipy_props["widths"], rtol=1e-10
         )
 
     def test_no_peaks_found(self):

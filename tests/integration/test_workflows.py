@@ -152,13 +152,13 @@ class TestScriptingWorkflow:
         # This simulates a typical user script
         from rheoQCM.core.analysis import (
             QCMAnalyzer,
+            Zq,
             analyze_delfstar,
-            sauerbreyf,
-            sauerbreym,
+            f1_default,
             grho,
             grhostar,
-            Zq,
-            f1_default,
+            sauerbreyf,
+            sauerbreym,
         )
 
         # Verify constants are accessible
@@ -223,8 +223,8 @@ class TestHDF5RoundtripWithNewPhysics:
 
     def test_save_analyze_reload(self) -> None:
         """Test complete HDF5 save/analyze/reload cycle."""
-        from rheoQCM.core.model import QCMModel
         from rheoQCM.core import physics
+        from rheoQCM.core.model import QCMModel
 
         # Create test data
         harmonics = [1, 3, 5]
@@ -353,8 +353,8 @@ class TestFloat64PrecisionEndToEnd:
 
     def test_precision_through_full_pipeline(self) -> None:
         """Test Float64 precision is maintained throughout pipeline."""
-        from rheoQCM.core.analysis import QCMAnalyzer
         from rheoQCM.core import physics
+        from rheoQCM.core.analysis import QCMAnalyzer
 
         analyzer = QCMAnalyzer(f1=5e6, refh=3)
 
@@ -471,8 +471,9 @@ class TestNLSQCurveFittingWorkflow:
 
     def test_nlsq_curve_fit_integration(self) -> None:
         """Test NLSQ curve_fit works correctly in model context."""
-        from rheoQCM.core.model import QCMModel
         import jax
+
+        from rheoQCM.core.model import QCMModel
 
         model = QCMModel(f1=5e6, refh=3)
 
@@ -508,8 +509,9 @@ class TestNLSQCurveFittingWorkflow:
 
     def test_nlsq_replaces_lmfit(self) -> None:
         """Test that NLSQ curve_fit can replace lmfit patterns."""
-        from rheoQCM.core.analysis import QCMAnalyzer
         import jax
+
+        from rheoQCM.core.analysis import QCMAnalyzer
 
         analyzer = QCMAnalyzer(f1=5e6, refh=3)
 

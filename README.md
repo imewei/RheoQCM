@@ -15,9 +15,9 @@ The analysis portions of the software should work on Windows/Mac/Linux platforms
 
 ### Capabilities
 
-* Graphical data interface to collect QCM data with network analyzers.  
-* Fast data recording without openning the dependent external software. Fewer resources are required than in previous MATLAB-based versions of the software.  
-* Data collection and analysis are combined in one package.  
+* Graphical data interface to collect QCM data with network analyzers.
+* Fast data recording without openning the dependent external software. Fewer resources are required than in previous MATLAB-based versions of the software.
+* Data collection and analysis are combined in one package.
 * Other variables (Temperature, for example) can be simultaneously recorded and saved with the QCM data. (with NI devices)
 
 ### Prerequisites
@@ -79,18 +79,18 @@ pip install "rheoQCM[fallback]"
 If neither JAX nor mpmath is available, an informative ImportError is raised with installation instructions.
 
 * If you want to run data collection, hardware and external software for data collection: The AccessMyVNA and myVNA programs were obtained from <http://g8kbb.co.uk/html/downloads.html>.
-  
-* The Anaconda python environment is suggested.  You can  download and install the Anaconda distribution of python from [anaconda.com](https://anaconda.com/download).  
 
-* Separated scripts works with data stored in a MATLAB-compatible .mat files (collected by our [Matlab data collecting program](https://github.com/Shull-Research-Group/QCM_Data_Acquisition_Program)).  In order to read and write these and get the analysis scripts to work, you need to install the hdf5storage package, which you can add with the following command (assuming you have already added the conda python distribution):  
+* The Anaconda python environment is suggested.  You can  download and install the Anaconda distribution of python from [anaconda.com](https://anaconda.com/download).
+
+* Separated scripts works with data stored in a MATLAB-compatible .mat files (collected by our [Matlab data collecting program](https://github.com/Shull-Research-Group/QCM_Data_Acquisition_Program)).  In order to read and write these and get the analysis scripts to work, you need to install the hdf5storage package, which you can add with the following command (assuming you have already added the conda python distribution):
 
 ```bash
-conda install -c conda-forge hdf5storage  
+conda install -c conda-forge hdf5storage
 ```
 
 ## Using Python code
 
-### Installation  
+### Installation
 
 To install everything you need from this repository, run the following command from a command window in the directory where you want everthing to be installed:
 
@@ -100,32 +100,32 @@ git clone https://github.com/zhczq/QCM_py
 
 If you just need the updated analysis script, everything you need is in QCMFuncs/QCM_functions.py. In this same directory you will also find some example data obtained with polystyrene films at different temperatures, and a run file called PS_plots.py. You should be able to run PS_plots.py directly and end up with some property plots that illustrate how the process works, and how you need to set up the file structure to include your own data.
 
-All the modules needed for the data collection program are in the `rheoQCM/` folder. Go to that folder and run rheoQCM.py will open the program.  
+All the modules needed for the data collection program are in the `rheoQCM/` folder. Go to that folder and run rheoQCM.py will open the program.
 
 ### Running the UI from Terminal
 
-Go to the `rheoQCM/` folder and run `rheoQCM.py` or `rheoQCM` will start the UI and it will check the environment by itself.  
+Go to the `rheoQCM/` folder and run `rheoQCM.py` or `rheoQCM` will start the UI and it will check the environment by itself.
 
 ## Using UI with QCM-D Data
 
 * Export the QCM-D data as .xlsx file. column names: t(s), delf1, delg1, delf3, delg3, ... The time column name could also be time(s).
-* Start the UI and from the menu bar and select `File>Import QCM-D data`.  This will import the QCM-D data and save a .h5 file with the same name in * the same folder. This will save all the calculated property data for future use.  
+* Start the UI and from the menu bar and select `File>Import QCM-D data`.  This will import the QCM-D data and save a .h5 file with the same name in * the same folder. This will save all the calculated property data for future use.
 * Select the corresponding fundamental frequency at `Settings>Hardwares>Crystal>Base Frequency` before import the data.
 * Now the UI can display your data and do the analysis the same as the data generated with the UI.
 * Don't forget to save the data when you finish the calculation.
 * Click export to export a .xlsx file with all the data in it.
 
-## Using the Analysis Code for .mat Files  
+## Using the Analysis Code for .mat Files
 
-If you just need the updated analysis code for .mat files, everything you really need is in `QCMFuncs/QCM_functions.py`. In order to read and write these and get the analysis scripts to work, you need to install the hdf5storage package, which you can add with the following command (assuming you have already added the conda python distribution):  
+If you just need the updated analysis code for .mat files, everything you really need is in `QCMFuncs/QCM_functions.py`. In order to read and write these and get the analysis scripts to work, you need to install the hdf5storage package, which you can add with the following command (assuming you have already added the conda python distribution):
 
 ```bash
-conda install -c conda-forge hdf5storage  
+conda install -c conda-forge hdf5storage
 ```
 
 In this same directory you will also find some example data obtained with polystyrene films at different temperatures, and a run file called PS_plots.py. You should be able to run PS_plots.py directly and end up with some property plots that illustrate how the process works, and how you need to set up the file structure to include your own data.
 
-## Using the Analysis Code for .h5 Files  
+## Using the Analysis Code for .h5 Files
 
 The `QCM_functions.py` code also works with .h5 data files collected by the UI of this project. The file definitions are similar to those of the .mat files. Example files (`example_plot.py` and `example_sampledefs.py`) which demostrate both .mat and .h5 analysis with `QCM_functions.py` can be found in  `QCMFuncs/`.
 
@@ -135,16 +135,16 @@ The QCMnotes.pdf file has some background information on the rheometric mode of 
 
 Modules `DataSaver` and `QCM` in `Modules/` folder are availabe for dealing with the data and doing ananlysis manually. Those modules include functions run out of the software. You can simply import those modules and do almost the same thing in the software by running your own codes. An example code of extracting data from data file can be found in hte `example/` folder.
 
-The functions for the Matlab version of the data are locoalized in `QCMFuncs/` folder.  
+The functions for the Matlab version of the data are locoalized in `QCMFuncs/` folder.
 
-Export the current settings as a json file named `settings_default.json` and save in the same folder as `rheoQCM.py` or `rheoQCM.exe`. The UI will use the settings you saved as default after the next time you opend it. If you want the setup go back the original one, just simply delete or rename that file.  
+Export the current settings as a json file named `settings_default.json` and save in the same folder as `rheoQCM.py` or `rheoQCM.exe`. The UI will use the settings you saved as default after the next time you opend it. If you want the setup go back the original one, just simply delete or rename that file.
 
 There is a `rheoQCM.bat` file in  `rheoQCM/` for running the program with Python by just double clicking it. You need to change the path of python and rheoQCM.py to them on your computer to make it work. Meanwhile, you can make a shortcut of this bat file and put the shortcut in a location of your choosing.
 There is a `rheoQCM.bat` file in  `rheoQCM/` for running the program with Python by just double clicking it on Windows. You need to change the path of python and rheoQCM.py to them on your computer to make it work. Meanwhile, you can make a shortcut of this bat file and put the shortcut somewhere you want.
 
 ### Known Issues
 
-* Please set MyVNA to `Basic Mode` from the left pannel of MyVNA software by selecting VNA Hardware>Configure CSD / Harmonic Mode and checking Basic Mode in Select Mode. This will make sure the time counting in the Python program fits the hardware scanning time. You will not loose any precision as far as we know.  
+* Please set MyVNA to `Basic Mode` from the left pannel of MyVNA software by selecting VNA Hardware>Configure CSD / Harmonic Mode and checking Basic Mode in Select Mode. This will make sure the time counting in the Python program fits the hardware scanning time. You will not loose any precision as far as we know.
 
 ## To Do List (work in Progress)
 
@@ -160,7 +160,7 @@ There is a `rheoQCM.bat` file in  `rheoQCM/` for running the program with Python
 
 ## Other Versions
 
-If you are a MATLAB user, our previously developed MATLAB version software can be found here: <https://github.com/Shull-Research-Group/QCM_Data_Acquisition_Program>. It was developed Josh Yeh. This Python project is based on this previous MATLAB version developed by Josh.  
+If you are a MATLAB user, our previously developed MATLAB version software can be found here: <https://github.com/Shull-Research-Group/QCM_Data_Acquisition_Program>. It was developed Josh Yeh. This Python project is based on this previous MATLAB version developed by Josh.
 
 A MATLAB version of our data analysis software, written by Kazi Sadman can be found here: <https://github.com/sadmankazi/QCM-D-Analysis-GUI>.
 

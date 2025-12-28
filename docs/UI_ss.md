@@ -22,45 +22,45 @@
 #### `run function`
 
 
-checking myVNA connection  
-if True:  
->read parameters from `self.settings`  
-set timer  
-initiate `accvna` module  
+checking myVNA connection
+if True:
+>read parameters from `self.settings`
+set timer
+initiate `accvna` module
 start timer
-timer loop:  
+timer loop:
 >> harmonic loop: [1, 3, 5, ...]
->>> set vna parameter  
-get time  
-get temp if `checkBox_control_rectemp` is checked AND harm == 1  
-`single_scan`  
-`get_data` (if Failed, try again)  
-set frmae_sp[n]: .l['Gpre'] = .l['G'], .l['Bpre'] = .l['B'] and .l['Ppre'] = .l['P']  
-clear frame_sp[n]: .l['Gfit'], .l['Bfit'], .l['Pfit'], .l['lf'], .l['lg'] and .l['G'] , .l['B'] , l['P']  
-plot frame_sp[n]: raw to .l['G'] , .l['B'] , l['P'] 
->> harmonic loop: [1, 3, 5, ...]  
->>> fit data with parameters in `self.settings`  
-plot frame_sp[n]: fit to .l['Gfit'] , .l['Bfit'] , l['Pfit'] .l['lf'], .l['lg']  
-plot data in `frame_plt1`: check `comboBox_plt1_opts` and plot with right data form (func: ?)  
+>>> set vna parameter
+get time
+get temp if `checkBox_control_rectemp` is checked AND harm == 1
+`single_scan`
+`get_data` (if Failed, try again)
+set frmae_sp[n]: .l['Gpre'] = .l['G'], .l['Bpre'] = .l['B'] and .l['Ppre'] = .l['P']
+clear frame_sp[n]: .l['Gfit'], .l['Bfit'], .l['Pfit'], .l['lf'], .l['lg'] and .l['G'] , .l['B'] , l['P']
+plot frame_sp[n]: raw to .l['G'] , .l['B'] , l['P']
+>> harmonic loop: [1, 3, 5, ...]
+>>> fit data with parameters in `self.settings`
+plot frame_sp[n]: fit to .l['Gfit'] , .l['Bfit'] , l['Pfit'] .l['lf'], .l['lg']
+plot data in `frame_plt1`: check `comboBox_plt1_opts` and plot with right data form (func: ?)
 plot data in `frame_plt2`: check `comboBox_plt2_opts` and plot with right data form (func: ?)
-save data to `self.data.samp` and append raw scan to `<file name>`  
+save data to `self.data.samp` and append raw scan to `<file name>`
 `check span` for next scan and save it to `self.settings.`
->> `if pushButton_runstop.clicked():`  
->>> wait for timer  
->>> start progressBar_status_interval_time counting  
+>> `if pushButton_runstop.clicked():`
+>>> wait for timer
+>>> start progressBar_status_interval_time counting
 >>> update label_status_pts
 >>
->> `elif pushButton_runstop.text() == 'Resume'`: unlicked, timer paused by other function  
+>> `elif pushButton_runstop.text() == 'Resume'`: unlicked, timer paused by other function
 >>> wait for `pushButton_runstop` clicked again to resume test
 
 if False:
-> set self to toggoled(False)  
+> set self to toggoled(False)
 > statusbar: failure information
-> 
+>
 
-data file structure:  
+data file structure:
 ```
-# data file 
+# data file
 samp = {
     'index',
     'time',
@@ -94,7 +94,7 @@ ref = {
 }
 
 # has the same rows with samp
-# more columns may add 
+# more columns may add
 calc = {
     'index',
     'delf1',
@@ -124,7 +124,7 @@ calc_para = {
 }
 ```
 
-Raw data file structure:  
+Raw data file structure:
 ```
 # raw spectra in a separate file
 # n is the index in the data file
@@ -135,7 +135,7 @@ raw = {
             1: {
                 'f': {},
                 'Gp': {},
-                'Bp': {},  
+                'Bp': {},
             },
             3: {
                 'f': {},
@@ -159,7 +159,7 @@ settings = {
 
 ```
 
-## tabWidget_settings  
+## tabWidget_settings
 
 ### tab_settings_control
 
@@ -179,12 +179,12 @@ settings = {
 
 `goto_cnetering(harm)`
 
-> set tabWidget_settings currentIndex(1) (settings)  
-set stackedWidget_spectra currentIndex(1) (page_spectra_fit)  
-set stackedWidget_data currentIndex(0) (page_data_data)  
-set tabWidget_settings_settings_harm currentTabName('harm')  
-set treeWidget_settings_settings_harmtree values to `harm` corresponding values  
-start a `single_scan` and plot the data in mpl_spectra_fit  
+> set tabWidget_settings currentIndex(1) (settings)
+set stackedWidget_spectra currentIndex(1) (page_spectra_fit)
+set stackedWidget_data currentIndex(0) (page_data_data)
+set tabWidget_settings_settings_harm currentTabName('harm')
+set treeWidget_settings_settings_harmtree values to `harm` corresponding values
+start a `single_scan` and plot the data in mpl_spectra_fit
 
 #### pushButton_resetreftime
 
@@ -199,9 +199,9 @@ start a `single_scan` and plot the data in mpl_spectra_fit
 | ||lineEdit_scaninterval |`set_lineEdit_scaninterval`||
 
 `set_lineEdit_scaninterval`
-> get int value of lineEdit_recordinterval and lineEdit_refreshresolution  
-set lineEdit_scaninterval value = lineEdit_recordinterval / lineEdit_refreshresolution  
-save values in those three widgets to `self.settings`  
+> get int value of lineEdit_recordinterval and lineEdit_refreshresolution
+set lineEdit_scaninterval value = lineEdit_recordinterval / lineEdit_refreshresolution
+save values in those three widgets to `self.settings`
 
 #### lineEdit_refreshresolution
 
@@ -211,11 +211,11 @@ save values in those three widgets to `self.settings`
 | ||lineEdit_scaninterval |`set_lineEdit_scaninterval`||
 
 `set_lineEdit_scaninterval`
-> get int value of lineEdit_recordinterval and lineEdit_refreshresolution  
-set lineEdit_scaninterval value = lineEdit_recordinterval / lineEdit_refreshresolution  
-save values in those three widgets to `self.settings`  
+> get int value of lineEdit_recordinterval and lineEdit_refreshresolution
+set lineEdit_scaninterval value = lineEdit_recordinterval / lineEdit_refreshresolution
+save values in those three widgets to `self.settings`
 
-#### checkBox_control_rectemp  
+#### checkBox_control_rectemp
 
 | | signal|receiver|slot|note|
 |-|----|----|----|----|
@@ -225,20 +225,20 @@ save values in those three widgets to `self.settings`
 
 `on_statechanged_set_temp_sensor`
 
-> if True:  
->> get all temp sensor setting parameters  
+> if True:
+>> get all temp sensor setting parameters
 >> if the sensor is available:
->>> setChecked(True) checkBox_settings_temp_sensor  
-setEnabled(True) label_status_temp_sensor  
-save values of those three to `self.settings` 
->> else:  
->>> set self setChecked(False)  
-show result in statusbar  
->  
+>>> setChecked(True) checkBox_settings_temp_sensor
+setEnabled(True) label_status_temp_sensor
+save values of those three to `self.settings`
+>> else:
+>>> set self setChecked(False)
+show result in statusbar
+>
 > else
->> setChecked(False) checkBox_settings_temp_sensor  
-setEnabled(False) label_status_temp_sensor  
-save values of those three to `self.settings`  
+>> setChecked(False) checkBox_settings_temp_sensor
+setEnabled(False) label_status_temp_sensor
+save values of those three to `self.settings`
 
 #### pushButton_gotofolder
 
@@ -246,7 +246,7 @@ save values of those three to `self.settings`
 |-|----|----|----|----|
 | |clicked()| |`on_clicked_pushButton_gotofolder`|open data the folder (lineEdit_datafilestr.text()) in a window|
 
-#### pushButton_newfile  
+#### pushButton_newfile
 
 | | signal|receiver|slot|note|
 |-|----|----|----|----|
@@ -254,14 +254,14 @@ save values of those three to `self.settings`
 | |clicked()|dateTimeEdit_reftime|`on_triggered_new_data`|readOnly(False), show current time as ref time|
 | |clicked()|pushButton_resetreftime|`on_triggered_new_data`|setEnabled(True)|
 
-`on_triggered_new_data`  
+`on_triggered_new_data`
 > if fileName:
->> show the new file path in lineEdit_datafilestr  
-rest ref time `reset_reftime`  
-set dateTimeEdit_reftime eadOnly(False)  
-set pushButton_resetreftime enabled  
-save dateTimeEdit_reftime to `self.settings`  
-save filename to `self.fileName`  
+>> show the new file path in lineEdit_datafilestr
+rest ref time `reset_reftime`
+set dateTimeEdit_reftime eadOnly(False)
+set pushButton_resetreftime enabled
+save dateTimeEdit_reftime to `self.settings`
+save filename to `self.fileName`
 
 #### pushButton_appendfile
 
@@ -271,20 +271,20 @@ save filename to `self.fileName`
 | |clicked()|dateTimeEdit_reftime|`on_triggered_new_data`|readOnly(True), show time in fileName|
 | |clicked()|pushButton_resetreftime|`on_triggered_new_data`|setEnabled(False)|
 
-`on_triggered_new_data`  
+`on_triggered_new_data`
 > if fileName:
->> show the appended file path in lineEdit_datafilestr  
-rest ref time `reset_reftime`  
-set dateTimeEdit_reftime eadOnly(True)  
-set pushButton_resetreftime setEnabled(False)  
-load settings in fileName to `self.settings`  
-save filename to `self.fileName`  
+>> show the appended file path in lineEdit_datafilestr
+rest ref time `reset_reftime`
+set dateTimeEdit_reftime eadOnly(True)
+set pushButton_resetreftime setEnabled(False)
+load settings in fileName to `self.settings`
+save filename to `self.fileName`
 
-### tab_settings_settings  
+### tab_settings_settings
 
-#### groupBox_settings_settings_harm  
+#### groupBox_settings_settings_harm
 
-##### tabWidget_settings_settings_harm  
+##### tabWidget_settings_settings_harm
 
 | | signal|receiver|slot|note|
 |-|----|----|----|----|
@@ -297,10 +297,10 @@ save filename to `self.fileName`
 | |valueChanged()||`updatesettings_settings_harmtree`|update values to `self.settings`|
 
 
-values also inclued:  
-comboBox_tracking_method  
-comboBox_tracking_condition  
-comboBox_harmfitfactor  
+values also inclued:
+comboBox_tracking_method
+comboBox_tracking_condition
+comboBox_harmfitfactor
 
 ##### pushButton_settings_harm_cntr
 
@@ -308,9 +308,9 @@ comboBox_harmfitfactor
 |-|----|----|----|----|
 | |clicked()|  |`goto_cnetering(harm)`|set UI for fitting and starts a scan|
 
-`goto_cnetering(harm)`  
-defined above  
-get harm from treeWidget_settings_settings_harmtree.currentIndex()  
+`goto_cnetering(harm)`
+defined above
+get harm from treeWidget_settings_settings_harmtree.currentIndex()
 
 #### groupBox_settings_settings_hardwares
 
@@ -322,46 +322,46 @@ get harm from treeWidget_settings_settings_harmtree.currentIndex()
 |-|----|----|----|----|
 | |currentIndexChanged()|  |`updatesettings_samp_ref_chn`|check sample and reference channel selection and save them to `self.settings`|
 
-`updatesettings_samp_ref_chn`  
-> get comboBox_samp_channel selection  
-get comboBox_ref_channel selection  
-if samp == ref:  
->> set comboBox_ref_channel setCurrentIndex(0) ('--')  
-> 
-> save values of those two to `self.settings`  
+`updatesettings_samp_ref_chn`
+> get comboBox_samp_channel selection
+get comboBox_ref_channel selection
+if samp == ref:
+>> set comboBox_ref_channel setCurrentIndex(0) ('--')
+>
+> save values of those two to `self.settings`
 
-###### comboBox_ref_channel  
+###### comboBox_ref_channel
 
 | | signal|receiver|slot|note|
 |-|----|----|----|----|
 | |currentIndexChanged()|  |`updatesettings_samp_ref_chn`|check sample and reference channel selection and save them to `self.settings`|
 
-`updatesettings_samp_ref_chn`  
-defined above  
+`updatesettings_samp_ref_chn`
+defined above
 
-###### comboBox_base_frequency  
+###### comboBox_base_frequency
 
 | | signal|receiver|slot|note|
 |-|----|----|----|----|
 | |currentIndexChanged()|  |`update_base_freq`|save value to `self.settings` and update frequency display (`update_frequencies`)|
 
-###### comboBox_base_frequency  
+###### comboBox_base_frequency
 
 | | signal|receiver|slot|note|
 |-|----|----|----|----|
 | |currentIndexChanged()|  |`update_bandwidth`|save value to `self.settings` and update frequency display (`update_frequencies`)|
 
-###### checkBox_settings_temp_sensor  
+###### checkBox_settings_temp_sensor
 
 | | signal|receiver|slot|note|
 |-|----|----|----|----|
 | |clicked(bool)|checkBox_control_rectemp|setChecked(bool))|done in Designer|
 | |clicked(bool)|label_status_temp_sensor |`set_temp_sensor`|enabled(bool)|
 
-`on_statechanged_set_temp_sensor`  
-defined above  
+`on_statechanged_set_temp_sensor`
+defined above
 
-###### comboBox_settings_settings_tempmodule  
+###### comboBox_settings_settings_tempmodule
 
 | | signal|receiver|slot|note|
 |-|----|----|----|----|
@@ -420,26 +420,25 @@ defined above
 
 #### `refesh_spectra_fit`
 
-> `single_scan`  
- `get_data` (if Failed, try again)  
-set mpl_spectra_fit:.l['Gpre'] = .l['G'] and .l['Bpre'] = .l['B']  
-set mpl_spectra_fit_polar:.l['Ppre'] = .l['P']  
-clear mpl_spectra_fit: .l['Gfit'], .l['Bfit'], .l['lf'], .l['lg'] and .l['G'] , .l['B']  
-clear mpl_spectra_fit_polar: .l['Pfit'] and .l['P']  
-plot mpl_spectra_fit: data to .l['G'], l['B']  
-plot mpl_spectra_fit_polar: data to .l['P']  
+> `single_scan`
+ `get_data` (if Failed, try again)
+set mpl_spectra_fit:.l['Gpre'] = .l['G'] and .l['Bpre'] = .l['B']
+set mpl_spectra_fit_polar:.l['Ppre'] = .l['P']
+clear mpl_spectra_fit: .l['Gfit'], .l['Bfit'], .l['lf'], .l['lg'] and .l['G'] , .l['B']
+clear mpl_spectra_fit_polar: .l['Pfit'] and .l['P']
+plot mpl_spectra_fit: data to .l['G'], l['B']
+plot mpl_spectra_fit_polar: data to .l['P']
 
-### pushButton_spectra_fit_fit  
+### pushButton_spectra_fit_fit
 
 | | signal|receiver|slot|note|
 |-|----|----|----|----|
 | |click()|mpl_spectra_fit    |`fit_spectra_fit`|fit data in mpl_spectra_fit|
 | |click()|mpl_spectra_fit_polar    |`fit_spectra_fit`|fit data in mpl_spectra_fit|
 
-#### `fit_spectra_fit`  
+#### `fit_spectra_fit`
 
-> read data from mpl_spectra_fit ax[0]: `f`, `Gp` and `Bp`  
-`fit function` return parameters  
-plot mpl_spectra_fit: .l['Gfit'], .l['Bfit'], .l['lf'], .l['lg']  
-plot mpl_spectra_fit_polar: .l['Pfit']  
-
+> read data from mpl_spectra_fit ax[0]: `f`, `Gp` and `Bp`
+`fit function` return parameters
+plot mpl_spectra_fit: .l['Gfit'], .l['Bfit'], .l['lf'], .l['lg']
+plot mpl_spectra_fit_polar: .l['Pfit']

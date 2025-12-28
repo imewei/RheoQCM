@@ -8,6 +8,7 @@ using the QCMFuncs legacy interface.
 For new scripts, consider using the modern rheoQCM.core API:
     from rheoQCM.core.analysis import QCMAnalyzer
 """
+
 import os
 import sys
 from pathlib import Path
@@ -35,14 +36,12 @@ df = qcm.read_xlsx(str(data_path))
 # pick a calculation
 # we fit to the frequency shifts for the values before the colon
 # we fit to the dissipation shifts for the values after the colon
-calc = '3.5_5'
+calc = "3.5_5"
 
 # solve for the properties
-layers = {1:{'grho3':1e12, 'phi':1, 'drho':5e-3}}
-soln = qcm.solve_for_props(df, calc, ['grho3', 'phi', 'drho'], layers)
+layers = {1: {"grho3": 1e12, "phi": 1, "drho": 5e-3}}
+soln = qcm.solve_for_props(df, calc, ["grho3", "phi", "drho"], layers)
 
 # now make the property axes and plot the property values on it
-figinfo = qcm.make_prop_axes(['grho3.linear', 'phi', 'drho'], xunit = 'index')
-qcm.plot_props(soln, figinfo, fmt='+-', num = 'BCB properties',
-               nplot = [3,5,7])
-
+figinfo = qcm.make_prop_axes(["grho3.linear", "phi", "drho"], xunit="index")
+qcm.plot_props(soln, figinfo, fmt="+-", num="BCB properties", nplot=[3, 5, 7])

@@ -5,8 +5,8 @@ This module provides the main() function used by the console script entry point.
 """
 
 import os
-import sys
 import runpy
+import sys
 
 
 def main():

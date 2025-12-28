@@ -4,16 +4,17 @@ Temperature sensor modules for NI DAQ hardware.
 This module provides temperature sensor classes for National Instruments
 data acquisition hardware.
 """
-import nidaqmx
-import numpy as np
 
 import logging
+
+import nidaqmx
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
 # Registry of available temperature sensor classes
 class_list = {
-    'NITempSensor': 'NITempSensor',
+    "NITempSensor": "NITempSensor",
 }
 
 
@@ -33,17 +34,19 @@ class NITempSensor:
         thrmcpl_type : str
             Thermocouple type (e.g., 'J', 'K', 'T').
         """
-        self.thrmcpl_chan = device.name + '/' + device_params['thrmcpl_chan']
+        self.thrmcpl_chan = device.name + "/" + device_params["thrmcpl_chan"]
         self.thrmcpl_type = getattr(nidaqmx.constants.ThermocoupleType, thrmcpl_type)
-        if device_params['cjc_source']:
-            self.cjc_source = getattr(nidaqmx.constants.CJCSource, device_params['cjc_source'])
+        if device_params["cjc_source"]:
+            self.cjc_source = getattr(
+                nidaqmx.constants.CJCSource, device_params["cjc_source"]
+            )
         else:
-            self.cjc_source = ''
+            self.cjc_source = ""
 
-        self.nsamples = device_params['nsamples']
+        self.nsamples = device_params["nsamples"]
 
         if not self.nsamples:
-            logger.warning('device is not found or not available.')
+            logger.warning("device is not found or not available.")
             return
 
     def get_tempC(self):

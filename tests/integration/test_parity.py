@@ -18,6 +18,7 @@ User Story 2: ensuring GUI and scripts produce identical results.
 from __future__ import annotations
 
 import os
+
 import numpy as np
 import pytest
 
@@ -159,8 +160,9 @@ class TestSolveForPropsParity:
 
     def test_solve_for_props_signature_preserved(self):
         """solve_for_props should have the expected legacy signature."""
-        from QCMFuncs.QCM_functions import solve_for_props
         import inspect
+
+        from QCMFuncs.QCM_functions import solve_for_props
 
         sig = inspect.signature(solve_for_props)
         param_names = list(sig.parameters.keys())
@@ -171,16 +173,21 @@ class TestSolveForPropsParity:
         assert "props_calc_in" in param_names
         assert "layers_in" in param_names
 
-    def test_solve_for_props_returns_dataframe(self, sample_delfstar_data, layers_degrees):
+    def test_solve_for_props_returns_dataframe(
+        self, sample_delfstar_data, layers_degrees
+    ):
         """solve_for_props should return a DataFrame."""
         import pandas as pd
+
         from QCMFuncs.QCM_functions import solve_for_props
 
         # Create input dataframe with proper column names (delfstar_expt_n format)
-        df = pd.DataFrame({
-            "delfstar_expt_3": [sample_delfstar_data[3]],
-            "delfstar_expt_5": [sample_delfstar_data[5]],
-        })
+        df = pd.DataFrame(
+            {
+                "delfstar_expt_3": [sample_delfstar_data[3]],
+                "delfstar_expt_5": [sample_delfstar_data[5]],
+            }
+        )
 
         # Use simple calc string for Sauerbrey (single harmonic) with no properties to fit
         result = solve_for_props(df, "3", [], layers_degrees)
@@ -189,8 +196,9 @@ class TestSolveForPropsParity:
 
     def test_solve_for_props_uses_core(self):
         """solve_for_props should use core module (no scipy.optimize)."""
-        from QCMFuncs import QCM_functions
         import inspect
+
+        from QCMFuncs import QCM_functions
 
         # Get the source code
         source = inspect.getsource(QCM_functions)
@@ -240,19 +248,15 @@ class TestDegreeRadianConversion:
 
     def test_legacy_functions_accept_degrees(self, single_layer_props_degrees):
         """Legacy QCM_functions should accept phi in degrees."""
-        from QCMFuncs.QCM_functions import grho, calc_lamrho, calc_deltarho
+        from QCMFuncs.QCM_functions import calc_deltarho, calc_lamrho, grho
 
         # All these should work with phi in degrees
         grho_val = grho(3, single_layer_props_degrees)
         lamrho_val = calc_lamrho(
-            3,
-            single_layer_props_degrees["grho3"],
-            single_layer_props_degrees["phi"]
+            3, single_layer_props_degrees["grho3"], single_layer_props_degrees["phi"]
         )
         deltarho_val = calc_deltarho(
-            3,
-            single_layer_props_degrees["grho3"],
-            single_layer_props_degrees["phi"]
+            3, single_layer_props_degrees["grho3"], single_layer_props_degrees["phi"]
         )
 
         assert np.isfinite(grho_val)
@@ -268,12 +272,14 @@ class TestDegreeRadianConversion:
             3,
             single_layer_props_radians["grho"],
             single_layer_props_radians["phi"],
-            refh=3
+            refh=3,
         )
 
         assert np.isfinite(float(result))
 
-    def test_degree_radian_equivalence(self, single_layer_props_degrees, single_layer_props_radians):
+    def test_degree_radian_equivalence(
+        self, single_layer_props_degrees, single_layer_props_radians
+    ):
         """Same physics result whether using degrees (legacy) or radians (core)."""
         from QCMFuncs.QCM_functions import grho as legacy_grho
         from rheoQCM.core import grho as core_grho
@@ -282,16 +288,19 @@ class TestDegreeRadianConversion:
         legacy_result = legacy_grho(5, single_layer_props_degrees)
 
         # Core with radians
-        core_result = float(core_grho(
-            5,
-            single_layer_props_radians["grho"],
-            single_layer_props_radians["phi"],
-            refh=3
-        ))
+        core_result = float(
+            core_grho(
+                5,
+                single_layer_props_radians["grho"],
+                single_layer_props_radians["phi"],
+                refh=3,
+            )
+        )
 
         # Should be identical within numerical precision
-        assert np.isclose(legacy_result, core_result, rtol=1e-10), \
-            f"Legacy: {legacy_result}, Core: {core_result}"
+        assert np.isclose(
+            legacy_result, core_result, rtol=1e-10
+        ), f"Legacy: {legacy_result}, Core: {core_result}"
 
     def test_normdelfstar_degree_input(self):
         """normdelfstar should accept phi in degrees."""
@@ -315,8 +324,9 @@ class TestDegreeRadianConversion:
         legacy_result = legacy_normdelfstar(3, dlam3, phi_deg)
         core_result = complex(core_normdelfstar(3, dlam3, phi_rad))
 
-        assert np.isclose(legacy_result, core_result, rtol=1e-10), \
-            f"Legacy: {legacy_result}, Core: {core_result}"
+        assert np.isclose(
+            legacy_result, core_result, rtol=1e-10
+        ), f"Legacy: {legacy_result}, Core: {core_result}"
 
     def test_bulk_props_returns_degrees(self):
         """bulk_props should return phi in degrees."""
@@ -393,7 +403,7 @@ class TestParityVerification:
 
     def test_sauerbreyf_parity(self):
         """sauerbreyf should match reference within 1e-10."""
-        from QCMFuncs.QCM_functions import sauerbreyf, Zq, f1_default
+        from QCMFuncs.QCM_functions import Zq, f1_default, sauerbreyf
 
         drho = 1e-6  # 1 um * 1 g/cm^3
 
@@ -404,12 +414,13 @@ class TestParityVerification:
             # This is opposite of the negative delf convention in some literature
             expected = 2 * n * f1_default**2 * drho / Zq
 
-            assert np.isclose(result, expected, rtol=1e-10), \
-                f"sauerbreyf mismatch at n={n}: {result} vs {expected}"
+            assert np.isclose(
+                result, expected, rtol=1e-10
+            ), f"sauerbreyf mismatch at n={n}: {result} vs {expected}"
 
     def test_sauerbreym_parity(self):
         """sauerbreym should match reference within 1e-10."""
-        from QCMFuncs.QCM_functions import sauerbreym, Zq, f1_default
+        from QCMFuncs.QCM_functions import Zq, f1_default, sauerbreym
 
         delf = -500.0  # Hz
 
@@ -418,8 +429,9 @@ class TestParityVerification:
             # Analytical formula (inverse of sauerbreyf)
             expected = -delf * Zq / (2 * n * f1_default**2)
 
-            assert np.isclose(result, expected, rtol=1e-10), \
-                f"sauerbreym mismatch at n={n}: {result} vs {expected}"
+            assert np.isclose(
+                result, expected, rtol=1e-10
+            ), f"sauerbreym mismatch at n={n}: {result} vs {expected}"
 
     def test_grho_parity(self, single_layer_props_degrees):
         """grho should match power law formula within 1e-10."""
@@ -433,8 +445,9 @@ class TestParityVerification:
             # Power law formula
             expected = grho3 * (n / 3) ** (phi_deg / 90)
 
-            assert np.isclose(result, expected, rtol=1e-10), \
-                f"grho mismatch at n={n}: {result} vs {expected}"
+            assert np.isclose(
+                result, expected, rtol=1e-10
+            ), f"grho mismatch at n={n}: {result} vs {expected}"
 
     def test_calc_delfstar_sauerbrey_limit(self):
         """For thin elastic film, delfstar should match Sauerbrey within tolerance."""
@@ -460,8 +473,9 @@ class TestParityVerification:
             # but delfstar.real is actually negative for mass loading
             # So compare absolute values
             rel_error = abs(abs(delfstar.real) - abs(sauerbrey)) / abs(sauerbrey)
-            assert rel_error < 0.05, \
-                f"Sauerbrey limit not approached at n={n}: rel_error={rel_error}, delfstar={delfstar}, sauerbrey={sauerbrey}"
+            assert (
+                rel_error < 0.05
+            ), f"Sauerbrey limit not approached at n={n}: rel_error={rel_error}, delfstar={delfstar}, sauerbrey={sauerbrey}"
 
     def test_core_multilayer_parity(self, layers_radians):
         """Core multilayer should match legacy within tolerance."""
@@ -484,12 +498,13 @@ class TestParityVerification:
             # Should match within 1e-10 relative tolerance
             if abs(legacy_result) > 1e-10:
                 rel_error = abs(legacy_result - core_result) / abs(legacy_result)
-                assert rel_error < 1e-10, \
-                    f"Multilayer parity failed at n={n}: legacy={legacy_result}, core={core_result}"
+                assert (
+                    rel_error < 1e-10
+                ), f"Multilayer parity failed at n={n}: legacy={legacy_result}, core={core_result}"
 
     def test_bulk_props_parity(self):
         """bulk_props should match reference within 1e-10."""
-        from QCMFuncs.QCM_functions import bulk_props, Zq, f1_default
+        from QCMFuncs.QCM_functions import Zq, bulk_props, f1_default
 
         # Test several delfstar values
         test_cases = [
@@ -503,12 +518,16 @@ class TestParityVerification:
 
             # Reference formula
             expected_grho = (np.pi * Zq * abs(delfstar) / f1_default) ** 2
-            expected_phi = min(-np.degrees(2 * np.arctan(delfstar.real / delfstar.imag)), 90)
+            expected_phi = min(
+                -np.degrees(2 * np.arctan(delfstar.real / delfstar.imag)), 90
+            )
 
-            assert np.isclose(grho_val, expected_grho, rtol=1e-10), \
-                f"bulk_props grho mismatch: {grho_val} vs {expected_grho}"
-            assert np.isclose(phi_val, expected_phi, rtol=1e-10), \
-                f"bulk_props phi mismatch: {phi_val} vs {expected_phi}"
+            assert np.isclose(
+                grho_val, expected_grho, rtol=1e-10
+            ), f"bulk_props grho mismatch: {grho_val} vs {expected_grho}"
+            assert np.isclose(
+                phi_val, expected_phi, rtol=1e-10
+            ), f"bulk_props phi mismatch: {phi_val} vs {expected_phi}"
 
 
 # =============================================================================
@@ -521,34 +540,35 @@ class TestGUIvsScriptParity:
 
     def test_gui_qcm_imports_core(self):
         """GUI QCM module should import from core."""
-        from rheoQCM.modules import QCM as qcm_module
         from pathlib import Path
 
+        from rheoQCM.modules import QCM as qcm_module
+
         qcm_path = Path(qcm_module.__file__)
-        with open(qcm_path, "r") as f:
+        with open(qcm_path) as f:
             source = f.read()
 
-        assert "from rheoQCM.core" in source, \
-            "QCM.py should import from rheoQCM.core"
+        assert "from rheoQCM.core" in source, "QCM.py should import from rheoQCM.core"
 
     def test_gui_no_scipy_optimize(self):
         """GUI QCM module should not use scipy.optimize."""
-        from rheoQCM.modules import QCM as qcm_module
         from pathlib import Path
 
+        from rheoQCM.modules import QCM as qcm_module
+
         qcm_path = Path(qcm_module.__file__)
-        with open(qcm_path, "r") as f:
+        with open(qcm_path) as f:
             source = f.read()
 
-        assert "from scipy import optimize" not in source, \
-            "QCM.py should not import scipy.optimize"
-        assert "optimize.root" not in source, \
-            "QCM.py should not use optimize.root"
+        assert (
+            "from scipy import optimize" not in source
+        ), "QCM.py should not import scipy.optimize"
+        assert "optimize.root" not in source, "QCM.py should not use optimize.root"
 
     def test_gui_script_sauerbreyf_parity(self):
         """GUI and script should produce identical sauerbreyf results."""
-        from rheoQCM.modules.QCM import QCM
         from QCMFuncs.QCM_functions import sauerbreyf as script_sauerbreyf
+        from rheoQCM.modules.QCM import QCM
 
         qcm = QCM()
         qcm.f1 = 5e6
@@ -559,14 +579,16 @@ class TestGUIvsScriptParity:
                 script_result = script_sauerbreyf(n, drho)
 
                 np.testing.assert_allclose(
-                    gui_result, script_result, rtol=1e-10,
-                    err_msg=f"sauerbreyf mismatch at n={n}, drho={drho}"
+                    gui_result,
+                    script_result,
+                    rtol=1e-10,
+                    err_msg=f"sauerbreyf mismatch at n={n}, drho={drho}",
                 )
 
     def test_gui_script_sauerbreym_parity(self):
         """GUI and script should produce identical sauerbreym results."""
-        from rheoQCM.modules.QCM import QCM
         from QCMFuncs.QCM_functions import sauerbreym as script_sauerbreym
+        from rheoQCM.modules.QCM import QCM
 
         qcm = QCM()
         qcm.f1 = 5e6
@@ -577,14 +599,16 @@ class TestGUIvsScriptParity:
                 script_result = script_sauerbreym(n, delf)
 
                 np.testing.assert_allclose(
-                    gui_result, script_result, rtol=1e-10,
-                    err_msg=f"sauerbreym mismatch at n={n}, delf={delf}"
+                    gui_result,
+                    script_result,
+                    rtol=1e-10,
+                    err_msg=f"sauerbreym mismatch at n={n}, delf={delf}",
                 )
 
     def test_gui_script_grho_parity(self):
         """GUI and script should produce identical grho results."""
-        from rheoQCM.modules.QCM import QCM
         from QCMFuncs.QCM_functions import grho as script_grho
+        from rheoQCM.modules.QCM import QCM
 
         qcm = QCM()
         qcm.f1 = 5e6
@@ -602,14 +626,13 @@ class TestGUIvsScriptParity:
             script_result = script_grho(n, props_legacy)
 
             np.testing.assert_allclose(
-                gui_result, script_result, rtol=1e-10,
-                err_msg=f"grho mismatch at n={n}"
+                gui_result, script_result, rtol=1e-10, err_msg=f"grho mismatch at n={n}"
             )
 
     def test_gui_script_delfstar_thin_film(self, bcb_film_data):
         """GUI and script produce identical results for thin film."""
-        from rheoQCM.modules.QCM import QCM
         from QCMFuncs.QCM_functions import calc_delfstar as script_calc_delfstar
+        from rheoQCM.modules.QCM import QCM
 
         qcm = QCM()
         qcm.f1 = 5e6
@@ -649,8 +672,10 @@ class TestGUIvsScriptParity:
 
                 # Should be within 1e-8 (accounting for solver differences)
                 np.testing.assert_allclose(
-                    gui_delfstar, script_delfstar, rtol=1e-8,
-                    err_msg=f"delfstar mismatch at n={n}"
+                    gui_delfstar,
+                    script_delfstar,
+                    rtol=1e-8,
+                    err_msg=f"delfstar mismatch at n={n}",
                 )
 
     def test_gui_script_bulk_material(self, water_bulk_data):
@@ -676,8 +701,8 @@ class TestGUIvsScriptParity:
 
     def test_gui_uses_qcmmodel_internally(self):
         """GUI QCM should use QCMModel internally for solving."""
-        from rheoQCM.modules.QCM import QCM
         from rheoQCM.core.model import QCMModel
+        from rheoQCM.modules.QCM import QCM
 
         qcm = QCM()
         qcm.f1 = 5e6
@@ -714,9 +739,9 @@ class TestDeprecationWarning:
 
     def test_deprecation_warning_emitted(self):
         """Importing QCM_functions should emit DeprecationWarning."""
-        import warnings
         import importlib
         import sys
+        import warnings
 
         # Remove suppression and reload
         if "QCMFUNCS_SUPPRESS_DEPRECATION" in os.environ:
@@ -736,13 +761,15 @@ class TestDeprecationWarning:
             deprecation_warnings = [
                 x for x in w if issubclass(x.category, DeprecationWarning)
             ]
-            assert len(deprecation_warnings) > 0, \
-                "No DeprecationWarning emitted on QCM_functions import"
+            assert (
+                len(deprecation_warnings) > 0
+            ), "No DeprecationWarning emitted on QCM_functions import"
 
             # Verify message content
             msg = str(deprecation_warnings[0].message)
-            assert "deprecated" in msg.lower(), \
-                f"Warning message should mention deprecation: {msg}"
+            assert (
+                "deprecated" in msg.lower()
+            ), f"Warning message should mention deprecation: {msg}"
 
 
 # =============================================================================
@@ -756,17 +783,20 @@ class TestScipyOptimizeRemoval:
     def test_no_scipy_optimize_import(self):
         """QCM_functions should not import scipy.optimize after refactoring."""
         import inspect
+
         from QCMFuncs import QCM_functions
 
         source = inspect.getsource(QCM_functions)
 
         # Check that scipy.optimize is not imported as 'optimize' alias
-        assert "import scipy.optimize as optimize" not in source, \
-            "scipy.optimize should not be imported as 'optimize'"
+        assert (
+            "import scipy.optimize as optimize" not in source
+        ), "scipy.optimize should not be imported as 'optimize'"
 
         # Check that optimize.least_squares is not used (should use NLSQ instead)
-        assert "optimize.least_squares" not in source, \
-            "optimize.least_squares should not be used (use NLSQ instead)"
+        assert (
+            "optimize.least_squares" not in source
+        ), "optimize.least_squares should not be used (use NLSQ instead)"
 
 
 if __name__ == "__main__":

@@ -1,14 +1,15 @@
-'''
+"""
 matplotlibplugin.py
-'''
+"""
 
 import os
-from PyQt6.QtGui import QIcon
-from PyQt6.QtDesigner import QPyDesignerCustomWidgetPlugin
+
 from matplotlib import rcParams
 from matplotlibwidget import MatplotlibWidget
+from PyQt6.QtDesigner import QPyDesignerCustomWidgetPlugin
+from PyQt6.QtGui import QIcon
 
-rcParams['font.size'] = 9
+rcParams["font.size"] = 9
 
 
 class MatplotlibPlugin(QPyDesignerCustomWidgetPlugin):
@@ -26,27 +27,25 @@ class MatplotlibPlugin(QPyDesignerCustomWidgetPlugin):
         return MatplotlibWidget(parent)
 
     def name(self):
-        return 'MatplotlibWidget'
+        return "MatplotlibWidget"
 
     def group(self):
-        return 'PyQt'
+        return "PyQt"
 
     def icon(self):
-        return QIcon(os.path.join(
-            rcParams['datapath'], 'images', 'matplotlib.png'))
+        return QIcon(os.path.join(rcParams["datapath"], "images", "matplotlib.png"))
 
     def toolTip(self):
-        return ''
+        return ""
 
     def whatsThis(self):
-        return ''
+        return ""
 
     def isContainer(self):
         return False
 
     def domXml(self):
-        return '<widget class="MatplotlibWidget" name="mplwidget">\n' \
-               '</widget>\n'
+        return '<widget class="MatplotlibWidget" name="mplwidget">\n' "</widget>\n"
 
     def includeFile(self):
-        return 'matplotlibwidget'
+        return "matplotlibwidget"

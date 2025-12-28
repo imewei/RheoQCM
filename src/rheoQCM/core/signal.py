@@ -19,12 +19,9 @@ Note:
     in a performance-critical inner loop.
 """
 
-from typing import Optional, Union
-
 import jax.numpy as jnp
 import numpy as np
 from numpy.typing import ArrayLike
-
 
 # =============================================================================
 # Type Aliases
@@ -75,7 +72,9 @@ def _validate_signal(x: ArrayLike, min_length: int = 0) -> np.ndarray:
     if x_np.ndim != 1:
         raise ValueError(f"Signal must be 1D, got {x_np.ndim}D")
     if min_length > 0 and len(x_np) < min_length:
-        raise ValueError(f"Signal must have at least {min_length} points, got {len(x_np)}")
+        raise ValueError(
+            f"Signal must have at least {min_length} points, got {len(x_np)}"
+        )
     return x_np
 
 
@@ -111,7 +110,9 @@ def _validate_peaks(peaks: ArrayLike, signal_length: int) -> np.ndarray:
     return peaks_np
 
 
-def _normalize_constraint(value: Optional[Union[float, tuple[float, float]]]) -> Optional[tuple[float, float]]:
+def _normalize_constraint(
+    value: float | tuple[float, float] | None,
+) -> tuple[float, float] | None:
     """
     Normalize constraint to (min, max) tuple.
 
@@ -166,7 +167,9 @@ def _find_local_maxima(x: np.ndarray) -> np.ndarray:
     return np.where(is_peak)[0] + 1
 
 
-def _select_by_distance(peaks: np.ndarray, heights: np.ndarray, distance: float) -> np.ndarray:
+def _select_by_distance(
+    peaks: np.ndarray, heights: np.ndarray, distance: float
+) -> np.ndarray:
     """
     Filter peaks by minimum distance, keeping the highest in each cluster.
 
@@ -211,7 +214,7 @@ def _select_by_distance(peaks: np.ndarray, heights: np.ndarray, distance: float)
 def peak_prominences(
     x: ArrayLike,
     peaks: ArrayLike,
-    wlen: Optional[int] = None,
+    wlen: int | None = None,
 ) -> Prominences:
     """
     Calculate the prominence of peaks.
@@ -316,8 +319,8 @@ def peak_widths(
     x: ArrayLike,
     peaks: ArrayLike,
     rel_height: float = 0.5,
-    prominence_data: Optional[Prominences] = None,
-    wlen: Optional[int] = None,
+    prominence_data: Prominences | None = None,
+    wlen: int | None = None,
 ) -> Widths:
     """
     Calculate the width of peaks at a relative height.
@@ -443,14 +446,14 @@ def peak_widths(
 
 def find_peaks(
     x: ArrayLike,
-    height: Optional[Union[float, tuple[float, float]]] = None,
-    threshold: Optional[Union[float, tuple[float, float]]] = None,
-    distance: Optional[float] = None,
-    prominence: Optional[Union[float, tuple[float, float]]] = None,
-    width: Optional[Union[float, tuple[float, float]]] = None,
-    wlen: Optional[int] = None,
+    height: float | tuple[float, float] | None = None,
+    threshold: float | tuple[float, float] | None = None,
+    distance: float | None = None,
+    prominence: float | tuple[float, float] | None = None,
+    width: float | tuple[float, float] | None = None,
+    wlen: int | None = None,
     rel_height: float = 0.5,
-    plateau_size: Optional[Union[int, tuple[int, int]]] = None,
+    plateau_size: int | tuple[int, int] | None = None,
 ) -> tuple[jnp.ndarray, PeakProperties]:
     """
     Find peaks in a 1D signal with optional filtering.
@@ -577,7 +580,15 @@ def find_peaks(
             widths_np = np.asarray(widths_arr)
             mask = (widths_np >= width_range[0]) & (widths_np <= width_range[1])
             peaks = peaks[mask]
-            for key in ["prominences", "left_bases", "right_bases", "widths", "width_heights", "left_ips", "right_ips"]:
+            for key in [
+                "prominences",
+                "left_bases",
+                "right_bases",
+                "widths",
+                "width_heights",
+                "left_ips",
+                "right_ips",
+            ]:
                 if key in properties:
                     properties[key] = properties[key][mask]
 

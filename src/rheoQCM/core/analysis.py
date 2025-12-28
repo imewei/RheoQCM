@@ -48,18 +48,15 @@ from __future__ import annotations
 
 import logging
 import warnings
+from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import Any
-from typing import Callable
-from typing import Sequence
 
 import jax
 import jax.numpy as jnp
 import numpy as np
 
-from rheoQCM.core.jax_config import configure_jax
-from rheoQCM.core.jax_config import get_jax_backend
-from rheoQCM.core.jax_config import is_gpu_available
+from rheoQCM.core.jax_config import configure_jax, get_jax_backend, is_gpu_available
 
 # Ensure JAX is configured
 configure_jax()
@@ -70,65 +67,62 @@ logger = logging.getLogger(__name__)
 # Import all physics functions from Layer 1
 # =============================================================================
 
+# =============================================================================
+# Import model class from Layer 2
+# =============================================================================
+from rheoQCM.core.model import (
+    BatchResult,
+    QCMModel,
+    SolveResult,
+    bulk_drho,
+)
 from rheoQCM.core.physics import (
+    C0byA,
     # Constants
     Zq,
-    f1_default,
-    e26,
-    d26,
-    g0_default,
-    epsq,
-    eps0,
-    dq,
-    C0byA,
-    electrode_default,
-    water_default,
     air_default,
+    bulk_props,
+    calc_D,
+    # SLA equations
+    calc_delfstar_sla,
+    calc_deltarho,
+    calc_dlam,
+    calc_lamrho,
+    create_interp_func,
+    d26,
+    deltarho_bulk,
     dlam_refh_range,
+    dq,
     drho_range,
+    e26,
+    electrode_default,
+    eps0,
+    epsq,
+    etarho,
+    f1_default,
+    # Utility functions
+    find_peaks,
+    g0_default,
+    # Complex modulus calculations
+    grho,
+    grho_from_dlam,
     grho_refh_range,
+    grhostar,
+    grhostar_from_refh,
+    interp_cubic,
+    interp_linear,
+    # Kotula model
+    kotula_gstar,
+    kotula_xi,
+    normdelfstar,
     phi_range,
     # Sauerbrey equations
     sauerbreyf,
     sauerbreym,
-    # Complex modulus calculations
-    grho,
-    grhostar,
-    grhostar_from_refh,
-    grho_from_dlam,
-    calc_dlam,
-    calc_lamrho,
-    calc_deltarho,
-    etarho,
-    zstar_bulk,
-    # SLA equations
-    calc_delfstar_sla,
-    calc_D,
-    normdelfstar,
-    bulk_props,
-    deltarho_bulk,
-    # Kotula model
-    kotula_gstar,
-    kotula_xi,
-    # Utility functions
-    find_peaks,
-    interp_linear,
-    interp_cubic,
-    create_interp_func,
     savgol_filter,
+    water_default,
+    zstar_bulk,
 )
-
-# =============================================================================
-# Import model class from Layer 2
-# =============================================================================
-
-from rheoQCM.core.model import (
-    QCMModel,
-    BatchResult,
-    SolveResult,
-    bulk_drho,
-)
-
 
 # =============================================================================
 # QCMAnalyzer - High-level analysis interface
@@ -409,9 +403,7 @@ class QCMAnalyzer:
             **kwargs,
         )
 
-    def format_result(
-        self, result: Any | None = None
-    ) -> dict[str, Any]:
+    def format_result(self, result: Any | None = None) -> dict[str, Any]:
         """
         Format result for export.
 
@@ -431,9 +423,7 @@ class QCMAnalyzer:
             result = self._results[-1]
         return self._model.format_result_for_export(result)
 
-    def convert_to_display_units(
-        self, result: Any | None = None
-    ) -> dict[str, Any]:
+    def convert_to_display_units(self, result: Any | None = None) -> dict[str, Any]:
         """
         Convert result units from SI to display units.
 
@@ -712,7 +702,9 @@ def _jacobian_autodiff(
         [[drh/ddlam, drh/dphi],
          [drd/ddlam, drd/dphi]]
     """
-    return jax.jacfwd(lambda p: _residual_fn(p, n1, n2, n3, refh, rh_exp, rd_exp))(params)
+    return jax.jacfwd(lambda p: _residual_fn(p, n1, n2, n3, refh, rh_exp, rd_exp))(
+        params
+    )
 
 
 def _solve_single_measurement(
@@ -773,7 +765,9 @@ def _solve_single_measurement(
             params = jnp.array([dlam_r, phi_r])
 
             # T044: Compute Jacobian using autodiff (1 call vs 4 finite-diff calls)
-            jac = _jacobian_autodiff(params, n1, n2, n3, refh, rh_exp_local, rd_exp_local)
+            jac = _jacobian_autodiff(
+                params, n1, n2, n3, refh, rh_exp_local, rd_exp_local
+            )
             drh_ddlam = jac[0, 0]
             drh_dphi = jac[0, 1]
             drd_ddlam = jac[1, 0]
@@ -834,7 +828,7 @@ def _solve_single_measurement(
             lambda: delfstar_n1,  # refh == n1
             lambda: delfstar_n2,  # refh == n2
             lambda: delfstar_n3,  # refh == n3
-        ]
+        ],
     )
 
     inputs = (delfstar_refh, delfstar_n1, delfstar_n2, delfstar_n3, rd_exp, rh_exp)
@@ -949,9 +943,7 @@ def batch_analyze_vmap(
         )(ds_n1, ds_n2, ds_n3)
 
     # Run vectorized computation
-    drho, grho_refh, phi, success = solve_batch(
-        delfstar_n1, delfstar_n2, delfstar_n3
-    )
+    drho, grho_refh, phi, success = solve_batch(delfstar_n1, delfstar_n2, delfstar_n3)
 
     # Calculate dlam_refh from results
     grho_n_refh = grho_refh  # At refh, grho_n = grho_refh

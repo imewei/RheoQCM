@@ -22,8 +22,7 @@ from typing import Any
 
 import jax.numpy as jnp
 
-from rheoQCM.core import multilayer
-from rheoQCM.core import physics
+from rheoQCM.core import multilayer, physics
 from rheoQCM.core.model import QCMModel
 
 
