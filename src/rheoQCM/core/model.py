@@ -62,10 +62,17 @@ from typing import Any
 from typing import Callable
 from typing import Literal
 
+import warnings
+
 import h5py
 import jax
 import jax.numpy as jnp
-import jaxopt
+
+# Suppress JAXopt deprecation warning - library still functional, migration planned
+with warnings.catch_warnings():
+    warnings.filterwarnings("ignore", message="JAXopt is no longer maintained")
+    import jaxopt
+
 import numpy as np
 
 from rheoQCM.core import physics
