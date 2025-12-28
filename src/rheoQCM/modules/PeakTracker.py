@@ -1468,6 +1468,125 @@ class PeakTracker:
             buff.append(txt)
         return "\n".join(buff)
 
+    def plot_peak_fit(
+        self,
+        chn_name: str | None = None,
+        harm: str | None = None,
+        *,
+        confidence_level: float = 0.95,
+        ax=None,
+    ):
+        """Plot peak fit with uncertainty bands.
+
+        Generates a plot showing the measured data, fitted curve,
+        and confidence bands computed using error propagation.
+
+        Parameters
+        ----------
+        chn_name : str | None
+            Channel name ("samp" or "ref"). Default: active channel.
+        harm : str | None
+            Harmonic number as string. Default: active harmonic.
+        confidence_level : float
+            Confidence level for bands (default: 0.95)
+        ax : matplotlib.axes.Axes | None
+            Axes to plot on. Creates new figure if None.
+
+        Returns
+        -------
+        matplotlib.figure.Figure
+            Figure containing the plot.
+
+        Notes
+        -----
+        Requires that a fit has been completed for the specified
+        channel and harmonic.
+        """
+        import matplotlib.pyplot as plt
+
+        from rheoQCM.core.uncertainty import UncertaintyCalculator
+
+        if chn_name is None:
+            chn_name = self.active_chn
+        if harm is None:
+            harm = self.active_harm
+
+        if chn_name is None or harm is None:
+            raise ValueError("No active channel/harmonic. Specify chn_name and harm.")
+
+        harminput = self.harminput[chn_name][harm]
+        harmoutput = self.harmoutput[chn_name][harm]
+        result = harmoutput.get("result")
+
+        if not result or not hasattr(result, "popt"):
+            raise ValueError(f"No fit result available for {chn_name}/{harm}")
+
+        f = np.array(harminput["f"])
+        G = np.array(harminput["G"])
+        B = np.array(harminput["B"])
+
+        n_peaks = harmoutput.get("found_n", 1)
+        model = create_composite_model(n_peaks)
+
+        popt = result.popt
+        pcov = result.pcov
+
+        x_stacked = np.concatenate([f, f])
+        y_data = np.concatenate([G, B])
+
+        f_pred = np.linspace(f.min(), f.max(), 200)
+        x_pred = np.concatenate([f_pred, f_pred])
+
+        calc = UncertaintyCalculator()
+        band = calc.compute_band(
+            model=model,
+            x=x_pred,
+            popt=popt,
+            pcov=pcov,
+            confidence_level=confidence_level,
+        )
+
+        if ax is None:
+            fig, axes = plt.subplots(2, 1, figsize=(8, 8), sharex=True)
+        else:
+            fig = ax.figure
+            axes = [ax, ax]
+
+        n = len(f_pred)
+
+        # Plot G (conductance)
+        axes[0].scatter(f, G, color="black", alpha=0.6, s=10, label="G data")
+        axes[0].plot(f_pred, band.y_fit[:n], "b-", linewidth=2, label="G fit")
+        axes[0].fill_between(
+            f_pred,
+            band.y_lower[:n],
+            band.y_upper[:n],
+            alpha=0.3,
+            color="blue",
+            label=f"{confidence_level:.0%} CI",
+        )
+        axes[0].set_ylabel("G (mS)")
+        axes[0].legend()
+        axes[0].set_title(f"Peak Fit - {chn_name} Harmonic {harm}")
+
+        # Plot B (susceptance)
+        axes[1].scatter(f, B, color="black", alpha=0.6, s=10, label="B data")
+        axes[1].plot(f_pred, band.y_fit[n:], "r-", linewidth=2, label="B fit")
+        axes[1].fill_between(
+            f_pred,
+            band.y_lower[n:],
+            band.y_upper[n:],
+            alpha=0.3,
+            color="red",
+            label=f"{confidence_level:.0%} CI",
+        )
+        axes[1].set_ylabel("B (mS)")
+        axes[1].set_xlabel("Frequency (Hz)")
+        axes[1].legend()
+
+        fig.tight_layout()
+        return fig
+
 
 if __name__ == "__main__":
     # Test the JAX model functions

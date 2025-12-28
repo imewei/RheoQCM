@@ -157,6 +157,78 @@ class SolveResult:
     residuals: np.ndarray | None = None
     success: bool = False
     message: str = ""
+    # Optional fit context for uncertainty calculations
+    pcov: np.ndarray | None = None
+    model_func: Callable | None = None
+    x_data: np.ndarray | None = None
+    y_data: np.ndarray | None = None
+    popt: np.ndarray | None = None
+
+    def uncertainty_at(
+        self,
+        x: np.ndarray | None = None,
+        *,
+        confidence_level: float = 0.95,
+    ) -> Any:
+        """Compute uncertainty band at specified x-values.
+
+        Parameters
+        ----------
+        x : np.ndarray | None
+            X-values for prediction (default: original fit x-data)
+        confidence_level : float
+            Confidence level for interval (default: 0.95)
+
+        Returns
+        -------
+        UncertaintyBand
+            Dataclass with x, y_fit, y_lower, y_upper, std, confidence_level
+
+        Raises
+        ------
+        ValueError
+            If pcov or model_func are not available
+        """
+        from rheoQCM.core.uncertainty import UncertaintyCalculator
+
+        if self.pcov is None:
+            msg = "Parameter covariance (pcov) not available"
+            raise ValueError(msg)
+        if self.model_func is None:
+            msg = "Model function (model_func) not available"
+            raise ValueError(msg)
+        if self.popt is None:
+            msg = "Optimal parameters (popt) not available"
+            raise ValueError(msg)
+
+        if x is None:
+            if self.x_data is None:
+                msg = "x_data not available and x not provided"
+                raise ValueError(msg)
+            x = self.x_data
+
+        calculator = UncertaintyCalculator()
+        return calculator.compute_band(
+            model=self.model_func,
+            x=x,
+            popt=self.popt,
+            pcov=self.pcov,
+            confidence_level=confidence_level,
+        )
+
+    def to_bayesian_warmstart(self) -> dict[str, float]:
+        """Extract warm-start values for Bayesian fitting.
+
+        Returns
+        -------
+        dict[str, float]
+            Parameter estimates for initializing Bayesian MCMC
+        """
+        return {
+            "drho": float(self.drho),
+            "grho_refh": float(self.grho_refh),
+            "phi": float(self.phi),
+        }
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for backward compatibility."""
