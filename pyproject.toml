@@ -67,7 +67,7 @@ dependencies = [
     # GPU users: see installation instructions above
     "jax==0.8.0",     # JAX 0.8.0 CPU-only - exact version required
     "jaxlib==0.8.0",  # jaxlib 0.8.0 CPU-only - must match JAX version exactly
-    "jaxopt",
+    "optimistix>=0.0.6",  # JAX-native optimization (replaces deprecated jaxopt)
 
     # Curve fitting (replaces lmfit)
     "nlsq>=0.4.1",

@@ -7,7 +7,7 @@ handling state management, data loading, and JAX solver orchestration.
 Key Features:
     - State management: f1, g1, f0s, g0s, refh, calctype
     - Data loading from HDF5 and numpy arrays
-    - Unified optimizer using jaxopt.LevenbergMarquardt
+    - Unified optimizer using optimistix.LevenbergMarquardt
     - NLSQ curve_fit integration for curve fitting
     - Queue-based processing for batch operations
     - Error propagation from Jacobian using JAX autodiff
@@ -55,7 +55,6 @@ from __future__ import annotations
 
 import logging
 import sys
-import warnings
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -65,27 +64,25 @@ import h5py
 import jax
 import jax.numpy as jnp
 
-# Suppress JAXopt deprecation warning - library still functional, migration planned
-with warnings.catch_warnings():
-    warnings.filterwarnings("ignore", message="JAXopt is no longer maintained")
-    import jaxopt
+# Import optimistix for least-squares optimization (replaces deprecated jaxopt)
+import optimistix as optx
 
-# Log JAXopt import with version and deprecation status
-_jaxopt_logger = logging.getLogger(__name__)
+# Log optimistix import with version
+_optx_logger = logging.getLogger(__name__)
 try:
     import importlib.metadata
 
-    _jaxopt_version = importlib.metadata.version("jaxopt")
+    _optx_version = importlib.metadata.version("optimistix")
 except Exception:
-    _jaxopt_version = "unknown"
-_jaxopt_logger.info(
-    f"JAXopt version {_jaxopt_version} loaded (deprecated, migration to Optax planned)"
+    _optx_version = "unknown"
+_optx_logger.info(
+    f"Optimistix version {_optx_version} loaded for least-squares optimization"
 )
 
-import numpy as np
+import numpy as np  # noqa: E402
 
-from rheoQCM.core import physics
-from rheoQCM.core.jax_config import configure_jax
+from rheoQCM.core import physics  # noqa: E402
+from rheoQCM.core.jax_config import configure_jax  # noqa: E402
 
 # Ensure JAX is configured
 configure_jax()
@@ -95,7 +92,7 @@ NLSQ_PATH = Path("/home/wei/Documents/GitHub/NLSQ")
 if NLSQ_PATH.exists() and str(NLSQ_PATH) not in sys.path:
     sys.path.insert(0, str(NLSQ_PATH))
 
-from nlsq import curve_fit as nlsq_curve_fit
+from nlsq import curve_fit as nlsq_curve_fit  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
@@ -248,7 +245,6 @@ class BatchResult:
     @classmethod
     def from_solve_results(cls, results: list[SolveResult]) -> BatchResult:
         """Create BatchResult from list of SolveResult objects."""
-        n = len(results)
         return cls(
             drho=np.array([r.drho for r in results]),
             grho_refh=np.array([r.grho_refh for r in results]),
@@ -516,7 +512,7 @@ class QCMModel:
         }
 
         # Optimizer instance (created on first use)
-        self._optimizer: jaxopt.LevenbergMarquardt | None = None
+        self._optimizer: optx.LevenbergMarquardt | None = None
 
         # Instance-level calctype registry (inherits from global)
         self._instance_calctypes: dict[str, CalctypeResidualFn] = {}
@@ -846,16 +842,11 @@ class QCMModel:
                     self.g1 = self.g0s[h] / h
                     break
 
-    def _get_optimizer(self) -> jaxopt.LevenbergMarquardt:
-        """Get or create the unified jaxopt optimizer."""
+    def _get_optimizer(self) -> optx.LevenbergMarquardt:
+        """Get or create the unified optimistix optimizer."""
         if self._optimizer is None:
             # Create Levenberg-Marquardt optimizer with default settings
-            self._optimizer = jaxopt.LevenbergMarquardt(
-                residual_fun=lambda p, *a: jnp.zeros(1),  # Placeholder
-                tol=1e-8,
-                maxiter=100,
-                damping_parameter=1.0,
-            )
+            self._optimizer = optx.LevenbergMarquardt(rtol=1e-8, atol=1e-8)
         return self._optimizer
 
     def _fstar_err_calc(self, delfstar: complex) -> complex:
@@ -1012,23 +1003,22 @@ class QCMModel:
         phi_init = np.pi / 180 * 5
 
         # Create pure JAX residual function (captures n1, n2, n3, refh, rh_exp, rd_exp)
-        def residual_fn(x: jnp.ndarray) -> jnp.ndarray:
+        # Optimistix requires fn(y, args) signature
+        def residual_fn(x: jnp.ndarray, args: None) -> jnp.ndarray:
+            del args  # unused
             dlam = x[0]
             phi_val = x[1]
             rh_calc = _jax_rhcalc(n1, n2, refh, dlam, phi_val)
             rd_calc = _jax_rdcalc(n3, refh, dlam, phi_val)
             return jnp.array([rh_calc - rh_exp, rd_calc - rd_exp])
 
-        solver = jaxopt.LevenbergMarquardt(
-            residual_fun=residual_fn,
-            maxiter=50,
-        )
+        solver = optx.LevenbergMarquardt(rtol=1e-8, atol=1e-8)
 
         x0 = jnp.array([dlam_refh_init, phi_init])
-        result = solver.run(x0)
+        result = optx.least_squares(residual_fn, solver, x0, args=None, throw=False)
 
-        dlam_refh = float(result.params[0])
-        phi = float(result.params[1])
+        dlam_refh = float(result.value[0])
+        phi = float(result.value[1])
 
         # Clamp to valid ranges
         dlam_refh = np.clip(dlam_refh, dlam_refh_range[0] + 1e-10, dlam_refh_range[1])
@@ -1169,28 +1159,29 @@ class QCMModel:
             exp_imag = np.imag(delfstar[refh])
 
             # Refine with optimizer - pure JAX residual
-            def residual_bulk(x: jnp.ndarray) -> jnp.ndarray:
+            # Optimistix requires fn(y, args) signature
+            def residual_bulk(x: jnp.ndarray, args: None) -> jnp.ndarray:
+                del args  # unused
                 grho = x[0]
                 phi_val = x[1]
                 calc = _jax_calc_delfstar_bulk(refh, grho, phi_val, f1, Zq, refh)
                 return jnp.array([jnp.real(calc) - exp_real, jnp.imag(calc) - exp_imag])
 
-            solver = jaxopt.LevenbergMarquardt(
-                residual_fun=residual_bulk,
-                maxiter=100,
-            )
+            solver = optx.LevenbergMarquardt(rtol=1e-8, atol=1e-8)
 
             x0 = jnp.array([grho_refh, phi])
-            result = solver.run(x0)
+            result = optx.least_squares(
+                residual_bulk, solver, x0, args=None, throw=False
+            )
 
-            grho_refh = float(result.params[0])
-            phi = float(result.params[1])
+            grho_refh = float(result.value[0])
+            phi = float(result.value[1])
 
             # Clamp phi
             phi = min(phi, np.pi / 2)
 
             covariance = None
-            residuals = np.array(residual_bulk(result.params))
+            residuals = np.array(residual_bulk(result.value, None))
 
             return SolveResult(
                 drho=drho,
@@ -1221,7 +1212,9 @@ class QCMModel:
             exp_imag_n3 = np.imag(delfstar[n3])
 
             # Refine with optimizer - pure JAX residual
-            def residual_thin(x: jnp.ndarray) -> jnp.ndarray:
+            # Optimistix requires fn(y, args) signature
+            def residual_thin(x: jnp.ndarray, args: None) -> jnp.ndarray:
+                del args  # unused
                 grho = x[0]
                 phi_val = x[1]
                 d = x[2]
@@ -1238,17 +1231,16 @@ class QCMModel:
                     ]
                 )
 
-            solver = jaxopt.LevenbergMarquardt(
-                residual_fun=residual_thin,
-                maxiter=100,
-            )
+            solver = optx.LevenbergMarquardt(rtol=1e-8, atol=1e-8)
 
             x0 = jnp.array([grho_refh, phi, drho])
-            result = solver.run(x0)
+            result = optx.least_squares(
+                residual_thin, solver, x0, args=None, throw=False
+            )
 
-            grho_refh = float(result.params[0])
-            phi = float(result.params[1])
-            drho = float(result.params[2])
+            grho_refh = float(result.value[0])
+            phi = float(result.value[1])
+            drho = float(result.value[2])
 
             # Clamp values
             grho_refh = np.clip(grho_refh, grho_refh_range[0], grho_refh_range[1])
@@ -1261,7 +1253,7 @@ class QCMModel:
                 physics.calc_dlam(self.refh, grho_n, phi, drho, f1=self.f1)
             )
 
-            residuals = np.array(residual_thin(result.params))
+            residuals = np.array(residual_thin(result.value, None))
 
             # Error propagation from Jacobian using JAX autodiff (T014)
             covariance = None
@@ -1269,7 +1261,8 @@ class QCMModel:
             if calculate_errors:
                 try:
                     # Compute Jacobian at solution using JAX jacfwd
-                    jac_fn = jax.jacfwd(residual_thin)
+                    # Create a wrapper that only takes x for jacfwd (args fixed to None)
+                    jac_fn = jax.jacfwd(lambda x: residual_thin(x, None))
                     jac = jac_fn(jnp.array([grho_refh, phi, drho]))
                     jac_np = np.array(jac)
 
@@ -1553,7 +1546,6 @@ class QCMModel:
         if isinstance(initial_params, SolveResult):
             initial_params = initial_params.to_dict()
         grho0 = initial_params.get("grho_refh", 1e8)
-        phi0 = initial_params.get("phi", np.pi / 4)
         drho0 = initial_params.get("drho", 1e-6)
 
         # Define NumPyro model
