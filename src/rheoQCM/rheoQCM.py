@@ -228,6 +228,9 @@ class QCMApp(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
+        # Set minimum window size to prevent UI elements becoming too small
+        self.setMinimumSize(800, 600)
+
         # Store injected services (for testability)
         self._hardware_service = hardware_service
         self._plot_manager = plot_manager
@@ -327,6 +330,20 @@ class QCMApp(QMainWindow):
         # region main UI
         # link tabWidget_settings and stackedWidget_spectra and stackedWidget_data
         self.ui.tabWidget_settings.currentChanged.connect(self.link_tab_page)
+
+        # Set proportional stretch factors for main splitter
+        # Index 0 = settings panel (left), Index 1 = content area (right)
+        # Give more space to content/plot area when window resizes
+        self.ui.splitter.setStretchFactor(0, 1)  # Settings: weight 1
+        self.ui.splitter.setStretchFactor(1, 3)  # Content: weight 3
+
+        # Ensure plot/data containers expand to fill available space
+        self.ui.stackedWidget_spectra.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
+        )
+        self.ui.stackedWidget_data.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
+        )
 
         # endregion
 
