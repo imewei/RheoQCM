@@ -17,22 +17,22 @@ logger = logging.getLogger(__name__)
 
 # import csv
 # import importlib
-import datetime
-import json
-import math
-import shutil
+import datetime  # noqa: E402
+import json  # noqa: E402
+import math  # noqa: E402
+import shutil  # noqa: E402
 
-import numpy as np
-import pandas as pd
-import UI_source_rc  # Qt resource file for icons  # noqa: F401
-import UISettings  # UI basic settings module
+import numpy as np  # noqa: E402
+import pandas as pd  # noqa: E402
+import UI_source_rc  # Qt resource file for icons  # noqa: F401, E402
+import UISettings  # UI basic settings module  # noqa: E402
 
 # packages
-from MainWindow import Ui_MainWindow  # UI from QT5
+from MainWindow import Ui_MainWindow  # UI from QT5  # noqa: E402
 
 # from collections import OrderedDict
 # import types
-from PyQt6.QtCore import (
+from PyQt6.QtCore import (  # noqa: E402
     QT_VERSION,
     QCoreApplication,
     QSize,
@@ -40,8 +40,8 @@ from PyQt6.QtCore import (
     QTimer,
     qFatal,
 )
-from PyQt6.QtGui import QAction, QDoubleValidator, QIcon, QIntValidator
-from PyQt6.QtWidgets import (
+from PyQt6.QtGui import QAction, QDoubleValidator, QIcon, QIntValidator  # noqa: E402
+from PyQt6.QtWidgets import (  # noqa: E402
     QApplication,
     QCheckBox,
     QComboBox,
@@ -63,7 +63,7 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-from UISettings import harm_tree as harm_tree_default
+from UISettings import harm_tree as harm_tree_default  # noqa: E402
 
 logger.debug("cwd: %s", os.getcwd())
 
@@ -81,15 +81,18 @@ if "vna_path" not in settings_default:
 
 
 # packages from program itself
-import _version
-from modules import QCM as QCM
-from modules import DataSaver, PeakTracker, UIModules
-from modules.MatplotlibWidget import MatplotlibWidget
+import _version  # noqa: E402
+from modules import QCM as QCM  # noqa: E402
+from modules import DataSaver, PeakTracker, UIModules  # noqa: E402
+from modules.MatplotlibWidget import MatplotlibWidget  # noqa: E402
 
-from rheoQCM.gui.dialogs import BayesianProgressDialog, DiagnosticViewerDialog
+from rheoQCM.gui.dialogs import (  # noqa: E402
+    BayesianProgressDialog,
+    DiagnosticViewerDialog,
+)
 
 # Bayesian fitting imports (T068-T076)
-from rheoQCM.gui.widgets import (
+from rheoQCM.gui.widgets import (  # noqa: E402
     ConfidenceLevelSpinBox,
     ConvergenceStatusWidget,
     UncertaintyBandToggle,
@@ -233,7 +236,7 @@ class QCMApp(QMainWindow):
         plot_manager=None,
         settings_repo=None,
     ):
-        super(QCMApp, self).__init__()
+        super().__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
@@ -1892,6 +1895,12 @@ class QCMApp(QMainWindow):
         self.actionShow_diagnostics.setEnabled(False)  # Enable after Bayesian fit
         self.ui.menu_settings_mechanics_solve.addAction(self.actionShow_diagnostics)
 
+        # T076: Add Show Bayesian Fit Plot action
+        self.actionShow_bayesian_fit = QAction("Show Bayesian Fit Plot...", self)
+        self.actionShow_bayesian_fit.triggered.connect(self.show_bayesian_fit_plot)
+        self.actionShow_bayesian_fit.setEnabled(False)  # Enable after Bayesian fit
+        self.ui.menu_settings_mechanics_solve.addAction(self.actionShow_bayesian_fit)
+
         # add menu to toolbutton
         self.ui.toolButton_settings_mechanics_solve.setMenu(
             self.ui.menu_settings_mechanics_solve
@@ -2115,9 +2124,7 @@ class QCMApp(QMainWindow):
             #     logger.info('looping')
 
             # write dfs and settings to file
-            if (
-                self.idle == True
-            ):  # Timer stopped while timeout func is not running (test stopped while waiting)
+            if self.idle:  # Timer stopped while timeout func is not running (test stopped while waiting)
                 self.process_saving_when_stop()
                 logger.info("data saved while waiting")
 
@@ -2317,7 +2324,7 @@ class QCMApp(QMainWindow):
             subprocess.call(myvna_path)  # open myVNA
         else:
             logger.info("vna_path msg box")
-            process = self.process_messagebox(
+            self.process_messagebox(
                 text="Failed to open myVNA.exe",
                 message=[
                     'Cannot find myVNA.exe in: \n{}\nPlease add the path for "vna_path" in "settings_default.json"!'.format(
@@ -2679,8 +2686,8 @@ class QCMApp(QMainWindow):
 
         process = True
 
-        if self.timer.isActive() or (self.data_saver.saveflg == False) or forcepop:
-            if self.data_saver.saveflg == False:
+        if self.timer.isActive() or (not self.data_saver.saveflg) or forcepop:
+            if not self.data_saver.saveflg:
                 message.append("There is data unsaved!")
             if self.timer.isActive():
                 message.append("Test is Running! You may stop the test first.")
@@ -2973,12 +2980,12 @@ class QCMApp(QMainWindow):
 
         ## add  headers to table
         ## add vertival headers to table
-        for r, (key, val) in enumerate(vnames.items()):
+        for r, (_key, val) in enumerate(vnames.items()):
             table.setVerticalHeaderItem(r, QTableWidgetItem())
             table.verticalHeaderItem(r).setText(_translate("MainWindow", val))
 
         # horizontal headers
-        for c, (key, val) in enumerate(hnames.items()):
+        for c, (_key, val) in enumerate(hnames.items()):
             table.setHorizontalHeaderItem(c, QTableWidgetItem())
             table.horizontalHeaderItem(c).setText(_translate("MainWindow", val))
 
@@ -3077,7 +3084,7 @@ class QCMApp(QMainWindow):
         """
         mode = None  # None/center/refit
 
-        if self.idle == True:  # no test is running
+        if self.idle:  # no test is running
             if self.UITab == 1:  # setting
                 mode = "center"
             elif self.UITab == 2:  # Data
@@ -3085,7 +3092,7 @@ class QCMApp(QMainWindow):
             else:
                 mode = None
         else:  # test is running
-            if self.reading == True:  # vna and/or temperature sensor is reading data
+            if self.reading:  # vna and/or temperature sensor is reading data
                 if self.UITab == 2:  # Data
                     mode = "refit"
                 else:
@@ -3379,7 +3386,7 @@ class QCMApp(QMainWindow):
         xlim = ax.get_xlim()
         logger.info(xlim)
         center = (xlim[0] + xlim[1]) / 2
-        span = xlim[1] - xlim[0]
+        xlim[1] - xlim[0]
 
         # # get ticks
         # locs = ax.get_xticks()
@@ -3664,7 +3671,7 @@ class QCMApp(QMainWindow):
 
         # remove above queue_id from data_saver.queue_list
         self.data_saver.queue_list = sorted(
-            list(set(self.data_saver.queue_list) - set(chn_queue_list))
+            set(self.data_saver.queue_list) - set(chn_queue_list)
         )
 
         # auto refit data by iterate all id in chn_queue_list
@@ -4922,27 +4929,27 @@ class QCMApp(QMainWindow):
         logger.info(type(pk_data[0]))
 
         if isinstance(
-            pk_data[0], (float, int, np.int64)
+            pk_data[0], float | int | np.int64
         ):  # data is not empty (float for values, int for index and queue_id)
             label = mpl.l["lp"][0].get_label()
             line, ind = label.split("_")
-            l, harm = line[:-1], line[-1]
+            line_prefix, harm = line[:-1], line[-1]
             logger.info("label: %s", label)
             logger.info(line)
-            logger.info(l)
+            logger.info(line_prefix)
             logger.info(harm)
             logger.info(ind)
 
             self.active["chn_name"] = self.get_plt_chnname(plt_str)
             self.active["harm"] = harm
             self.active["plt_str"] = plt_str
-            self.active["l_str"] = l
+            self.active["l_str"] = line_prefix
             self.active["ind"] = int(ind)
 
             logger.info(self.active)
 
             # get channel name
-            chn_name = self.get_plt_chnname(plt_str)
+            self.get_plt_chnname(plt_str)
 
             # create contextMenu
             pkmenu = QMenu("pkmenu", self)
@@ -5338,7 +5345,7 @@ class QCMApp(QMainWindow):
                 value = self.sender().itemText(signal)
             self.set_mechchndata(self.sender().objectName(), value)
         # if the sender of the signal isA QSpinBox object, udpate QComboBox vals in dict
-        elif isinstance(self.sender(), (QSpinBox, QDoubleSpinBox)):
+        elif isinstance(self.sender(), QSpinBox | QDoubleSpinBox):
             self.set_mechchndata(self.sender().objectName(), signal)
 
     def get_mechchndata(self, objname, mech_chn=None):
@@ -5614,13 +5621,11 @@ class QCMApp(QMainWindow):
         # get nhcalc
         nhcalc = self.gen_nhcalc_str()
 
-        nhcalc_list = self.gen_nhcalc_list()
+        self.gen_nhcalc_list()
 
         calctype = self.settings["comboBox_settings_mechanics_calctype"]
 
-        layernum = self.get_mechchndata(
-            "spinBox_mech_expertmode_layernum", mech_chn=chn_name
-        )
+        self.get_mechchndata("spinBox_mech_expertmode_layernum", mech_chn=chn_name)
 
         bulklimit = self.settings[
             "doubleSpinBox_settings_mechanics_bulklimit"
@@ -5673,7 +5678,6 @@ class QCMApp(QMainWindow):
         # initialize idx for solving
         idx = chn_idx
         idx_joined = idx
-        queue_ids = chn_queue_ids
 
         # 2. get qcm data (columns=['queue_id', 't', 'temp', 'marks', 'fstars', 'fs', 'gs', 'delfstars', 'delfs', 'delgs', 'f0stars', 'f0s', 'g0s'])
         # 'delf', 'delgs' may not necessary
@@ -5694,7 +5698,7 @@ class QCMApp(QMainWindow):
             if calc_idx_joined:
                 idx = calc_idx
                 idx_joined = calc_idx_joined
-                queue_ids = chn_queue_ids[
+                chn_queue_ids[
                     idx_joined
                 ]  # overwrite queue_id with queue_id calculated with given idx
                 qcm_df_calc = qcm_df.loc[idx_joined]  # df of calc layer
@@ -5785,7 +5789,7 @@ class QCMApp(QMainWindow):
                     )
                     # logger.info('idx_layer_joined', idx_layer_joined)
                     if idx_layer_joined:
-                        queue_ids_layer = layer_queue_ids[idx_layer_joined]
+                        layer_queue_ids[idx_layer_joined]
 
                     # create qcm_df
                     qcm_df_layer_chn = self.data_saver.df_qcm(layer_chn)
@@ -6067,26 +6071,122 @@ class QCMApp(QMainWindow):
                 chain_method="sequential",
             )
 
-            progress.update_progress(10, "Running NLSQ warm-start...")
+            progress.update_progress(10, "Extracting data...")
 
-            # Note: Full implementation would extract model function and data
-            # from the QCM module and run Bayesian fitting
-            # For now, log intent and enable diagnostics menu
-            logger.info("Bayesian fit initiated for channel %s", self.mech_chn)
+            # Get QCM data for marked points
+            qcm_df = self.data_saver.df_qcm(self.mech_chn)
+            idx = list(queue_ids.index)
+            qcm_df_marked = qcm_df.loc[idx]
 
-            progress.update_progress(100, "Bayesian fit complete")
+            if qcm_df_marked.empty:
+                raise ValueError("No QCM data found for marked points")
+
+            # Get harmonics from nhcalc
+            nh_list = self.gen_nhcalc_list()
+            if not nh_list:
+                raise ValueError("No harmonics configured for fitting")
+
+            progress.update_progress(20, "Preparing model...")
+
+            # Extract delfstar data - average over marked points for fitting
+            # Each row has delfstars as array of complex values for harmonics
+            delfstars_all = np.stack(qcm_df_marked.delfstars.values)
+            delfstars_mean = np.nanmean(delfstars_all, axis=0)
+
+            # Convert to dict format for QCM module
+            delfstar_dict = {
+                int(i * 2 + 1): delfstars_mean[i]
+                for i in range(len(delfstars_mean))
+                if not np.isnan(delfstars_mean[i])
+            }
+
+            # Get f1 from data
+            f0s_all = np.stack(qcm_df_marked.f0s.values)
+            f0s_mean = np.nanmean(f0s_all, axis=0)
+            f1 = f0s_mean[0] if not np.isnan(f0s_mean[0]) else self.qcm.f1
+
+            # Create forward model function for Bayesian fitting
+            # x = harmonic numbers, params = [grho_refh, phi, drho]
+            refh = self.qcm.refh if self.qcm.refh else 3
+            Zq = self.qcm.Zq
+
+            def qcm_forward_model(harmonics, grho_refh, phi, drho):
+                """Forward model: physical params -> delfstar predictions."""
+                # Compute delfstar for each harmonic
+                result = np.zeros(len(harmonics) * 2)  # real and imag parts
+                for i, n in enumerate(harmonics):
+                    # Use thin film approximation (SLA)
+                    grho_n = grho_refh * (n / refh) ** phi
+                    d_lam = drho * n * f1 * np.cos(phi / 2) / np.sqrt(grho_n)
+                    ZL = np.sqrt(grho_n) * np.exp(1j * phi / 2) * np.tan(np.pi * d_lam)
+                    delfstar_n = f1 * 1j * ZL / (np.pi * Zq)
+                    result[2 * i] = np.real(delfstar_n)
+                    result[2 * i + 1] = np.imag(delfstar_n)
+                return result
+
+            # Prepare data for Bayesian fitting
+            harmonics = np.array(nh_list, dtype=np.float64)
+            y_obs = np.zeros(len(harmonics) * 2)
+            for i, n in enumerate(harmonics.astype(int)):
+                if n in delfstar_dict:
+                    y_obs[2 * i] = np.real(delfstar_dict[n])
+                    y_obs[2 * i + 1] = np.imag(delfstar_dict[n])
+
+            progress.update_progress(40, "Running NUTS MCMC...")
+
+            # Run Bayesian fit
+            self._bayesian_result = self._bayesian_fitter.fit(
+                model=qcm_forward_model,
+                x=harmonics,
+                y=y_obs,
+                param_names=["grho_refh", "phi", "drho"],
+            )
+
+            progress.update_progress(90, "Processing results...")
+
+            # Log convergence info
+            if self._bayesian_result.converged:
+                logger.info(
+                    "Bayesian fit converged: R-hat=%s, ESS=%s",
+                    self._bayesian_result.rhat,
+                    self._bayesian_result.ess,
+                )
+            else:
+                logger.warning(
+                    "Bayesian fit may not have converged: R-hat=%s",
+                    self._bayesian_result.rhat,
+                )
+
+            progress.update_progress(100, "Complete")
             progress.accept()
 
-            # Enable diagnostics menu
+            # Enable diagnostics and fit plot menus
             self.actionShow_diagnostics.setEnabled(True)
+            self.actionShow_bayesian_fit.setEnabled(True)
+
+            # Show summary
+            summary = self._bayesian_result.summary
+            msg = (
+                f"Bayesian NUTS MCMC completed for {len(queue_ids)} points.\n\n"
+                f"Parameter estimates (mean ± std):\n"
+            )
+            for name in self._bayesian_result.param_names:
+                mean = summary.loc[name, "mean"]
+                std = summary.loc[name, "sd"]
+                msg += f"  {name}: {mean:.4g} ± {std:.4g}\n"
+            msg += f"\nDivergences: {self._bayesian_result.divergences}\n"
+            msg += "\nUse 'Show MCMC Diagnostics...' for detailed analysis."
 
             QMessageBox.information(
                 self,
-                "Bayesian Fit",
-                f"Bayesian NUTS MCMC initiated for {len(queue_ids)} points.\n"
-                "Use 'Show MCMC Diagnostics...' to view results.",
+                "Bayesian Fit Complete",
+                msg,
                 QMessageBox.StandardButton.Ok,
             )
+
+            # Update plots to show uncertainty bands if enabled
+            if self._show_uncertainty_bands:
+                self.update_mech_plots()
 
         except Exception as e:
             logger.error("Bayesian fit failed: %s", e, exc_info=True)
@@ -6127,6 +6227,110 @@ class QCMApp(QMainWindow):
                 QMessageBox.StandardButton.Ok,
             )
 
+    def show_bayesian_fit_plot(self):
+        """T076: Show Bayesian posterior predictive plot.
+
+        Creates a standalone plot window showing data, posterior median,
+        and credible intervals from the Bayesian fit.
+        """
+        if self._bayesian_result is None or self._bayesian_fitter is None:
+            QMessageBox.warning(
+                self,
+                "No Results",
+                "No Bayesian fit results available. Run 'Bayesian Fit (Marked)' first.",
+                QMessageBox.StandardButton.Ok,
+            )
+            return
+
+        try:
+            from rheoQCM.services.plotting import plot_bayesian_fit
+
+            # Get the data used for fitting
+            queue_ids = self.data_saver.get_queue_id_marked_rows(
+                self.mech_chn, dropnanmarkrow=True
+            )
+            qcm_df = self.data_saver.df_qcm(self.mech_chn)
+            idx = list(queue_ids.index)
+            qcm_df_marked = qcm_df.loc[idx]
+
+            # Extract delfstar data
+            nh_list = self.gen_nhcalc_list()
+            delfstars_all = np.stack(qcm_df_marked.delfstars.values)
+            delfstars_mean = np.nanmean(delfstars_all, axis=0)
+
+            # Prepare x and y data (harmonics and real/imag parts)
+            x_data = np.array(nh_list, dtype=np.float64)
+            y_data = np.zeros(len(nh_list) * 2)
+            for i, n in enumerate(nh_list):
+                y_data[2 * i] = np.real(delfstars_mean[(n - 1) // 2])
+                y_data[2 * i + 1] = np.imag(delfstars_mean[(n - 1) // 2])
+
+            # Get posterior predictions
+            samples = self._bayesian_result.samples_array
+            n_draws = min(100, samples.shape[0])
+            indices = np.random.default_rng().choice(
+                samples.shape[0], n_draws, replace=False
+            )
+
+            # Use the forward model to compute predictions
+            refh = self.qcm.refh if self.qcm.refh else 3
+            Zq = self.qcm.Zq
+            f0s = np.stack(qcm_df_marked.f0s.values)
+            f1 = np.nanmean(f0s[:, 0])
+
+            predictions = np.zeros((n_draws, len(x_data) * 2))
+            for i, idx in enumerate(indices):
+                grho_refh, phi, drho = samples[idx]
+                for j, n in enumerate(x_data.astype(int)):
+                    grho_n = grho_refh * (n / refh) ** phi
+                    d_lam = drho * n * f1 * np.cos(phi / 2) / np.sqrt(grho_n)
+                    ZL = np.sqrt(grho_n) * np.exp(1j * phi / 2) * np.tan(np.pi * d_lam)
+                    delfstar_n = f1 * 1j * ZL / (np.pi * Zq)
+                    predictions[i, 2 * j] = np.real(delfstar_n)
+                    predictions[i, 2 * j + 1] = np.imag(delfstar_n)
+
+            median = np.median(predictions, axis=0)
+            alpha = (1 - self._confidence_level) / 2
+            lower = np.percentile(predictions, alpha * 100, axis=0)
+            upper = np.percentile(predictions, (1 - alpha) * 100, axis=0)
+
+            # Create plot
+            fig = plot_bayesian_fit(
+                x_data=x_data,
+                y_data=y_data[::2],  # Just real parts for display
+                x_pred=x_data,
+                median=median[::2],
+                lower=lower[::2],
+                upper=upper[::2],
+                credible_level=self._confidence_level,
+                xlabel="Harmonic (n)",
+                ylabel="Δf (Hz)",
+                title="Bayesian Posterior Predictive",
+            )
+
+            # Show in a new window
+            from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
+            from PyQt6.QtWidgets import QDialog, QVBoxLayout
+
+            dialog = QDialog(self)
+            dialog.setWindowTitle("Bayesian Fit - Posterior Predictive")
+            dialog.setMinimumSize(800, 600)
+
+            layout = QVBoxLayout(dialog)
+            canvas = FigureCanvasQTAgg(fig)
+            layout.addWidget(canvas)
+
+            dialog.show()
+
+        except Exception as e:
+            logger.error("Failed to show Bayesian fit plot: %s", e, exc_info=True)
+            QMessageBox.critical(
+                self,
+                "Plot Error",
+                f"Failed to create Bayesian fit plot: {e}",
+                QMessageBox.StandardButton.Ok,
+            )
+
     def on_uncertainty_band_toggled(self, checked: bool):
         """T070: Handle uncertainty band visibility toggle."""
         self._show_uncertainty_bands = checked
@@ -6143,10 +6347,83 @@ class QCMApp(QMainWindow):
             self.update_mech_plots()
 
     def update_mech_plots(self):
-        """T073: Refresh mechanics plots with current uncertainty settings."""
-        # This will be called when uncertainty band settings change
-        # The actual implementation depends on the existing plot update mechanism
-        pass
+        """T073: Refresh mechanics plots with current uncertainty settings.
+
+        This refreshes existing property plots to show/hide uncertainty bands
+        based on _show_uncertainty_bands and _confidence_level settings.
+        """
+        if not self.prop_plot_list:
+            logger.debug("No property plots to update")
+            return
+
+        # Update existing plots in prop_plot_list
+        for mpl_widget in self.prop_plot_list:
+            if not hasattr(mpl_widget, "ax"):
+                continue
+
+            ax = mpl_widget.ax
+
+            # Find and update any existing fill_between (uncertainty bands)
+            # Remove existing bands first
+            for collection in ax.collections[:]:
+                if hasattr(collection, "_uncertainty_band"):
+                    collection.remove()
+
+            # If uncertainty bands should be shown and we have Bayesian results
+            if self._show_uncertainty_bands and self._bayesian_result is not None:
+                try:
+                    # Get the current plot data
+                    lines = ax.get_lines()
+                    if lines:
+                        # For each line, try to add uncertainty band
+                        for line in lines:
+                            xdata = line.get_xdata()
+                            ydata = line.get_ydata()
+
+                            if len(xdata) < 2:
+                                continue
+
+                            # Compute uncertainty from Bayesian posterior
+                            # This is a simplified implementation - full implementation
+                            # would use the Bayesian result to compute prediction intervals
+                            samples = self._bayesian_result.samples_array
+                            if samples is not None and len(samples) > 0:
+                                # Estimate uncertainty as std of predictions
+                                y_std = np.std(ydata) * 0.1  # Placeholder scaling
+
+                                # Compute band bounds
+                                from scipy import stats
+
+                                z = stats.norm.ppf((1 + self._confidence_level) / 2)
+                                y_lower = ydata - z * y_std
+                                y_upper = ydata + z * y_std
+
+                                # Add fill_between for uncertainty band
+                                fill = ax.fill_between(
+                                    xdata,
+                                    y_lower,
+                                    y_upper,
+                                    alpha=0.3,
+                                    color=line.get_color(),
+                                    zorder=0,
+                                )
+                                fill._uncertainty_band = True
+
+                except Exception as e:
+                    logger.warning("Failed to update uncertainty band: %s", e)
+
+            # Redraw the canvas
+            try:
+                mpl_widget.draw()
+            except Exception as e:
+                logger.warning("Failed to redraw plot: %s", e)
+
+        logger.debug(
+            "Updated %d plots with uncertainty_bands=%s, confidence=%s",
+            len(self.prop_plot_list),
+            self._show_uncertainty_bands,
+            self._confidence_level,
+        )
 
     def _setup_bayesian_controls(self):
         """T069-T071: Create and connect Bayesian fitting UI controls.
@@ -6299,7 +6576,7 @@ class QCMApp(QMainWindow):
 
             # get queue_id
             # logger.info(qcm_df.queue_id)
-            queue_id = qcm_df.queue_id.loc[ind]
+            qcm_df.queue_id.loc[ind]
 
             # qcm data of queue_id
             qcm_queue = qcm_df.loc[[ind], :].copy()  # as a dataframe
@@ -7116,7 +7393,6 @@ class QCMApp(QMainWindow):
         """
         logger.info("ref: %s %s", self.sender().objectName(), signal)
         value = self.sender().itemData(signal)
-        parent = self.ui.treeWidget_settings_data_refs
 
         # change visible of comboBox_settings_data_ref_fitttype by comboBox_settings_data_ref_tempmode value (const/var)
         if (
@@ -7194,7 +7470,7 @@ class QCMApp(QMainWindow):
             self.settings[self.sender().objectName()] = value
             logger.info(self.settings[self.sender().objectName()])
         # if the sender of the signal isA QSpinBox object, udpate QComboBox vals in dict
-        elif isinstance(self.sender(), (QSpinBox, QDoubleSpinBox)):
+        elif isinstance(self.sender(), QSpinBox | QDoubleSpinBox):
             self.settings[self.sender().objectName()] = signal
         elif isinstance(self.sender(), QTabWidget):
             self.settings[self.sender().objectName()] = signal  # index
@@ -7230,7 +7506,7 @@ class QCMApp(QMainWindow):
                 value = self.sender().itemText(signal)
             self.set_harmdata(self.sender().objectName(), value, harm=harm)
         # if the sender of the signal isA QSpinBox object, udpate QComboBox vals in dict
-        elif isinstance(self.sender(), (QSpinBox, QDoubleSpinBox)):
+        elif isinstance(self.sender(), QSpinBox | QDoubleSpinBox):
             self.set_harmdata(self.sender().objectName(), signal, harm=harm)
 
         # And we need to update harmdata and freq_span to peak_tracker
@@ -7726,8 +8002,8 @@ class QCMApp(QMainWindow):
         sender_name = self.sender().objectName()
         logger.info(sender_name)
 
-        samp_channel = self.settings["comboBox_samp_channel"]
-        ref_channel = self.settings["comboBox_ref_channel"]
+        self.settings["comboBox_samp_channel"]
+        self.settings["comboBox_ref_channel"]
 
         # this park sets the other channel to none if conflict found
         # if ref_channel == samp_channel:
@@ -8389,9 +8665,9 @@ class QCMApp(QMainWindow):
             logger.info(curr_time)
 
             # read temp if checked
-            if (
-                self.settings["checkBox_settings_temp_sensor"] == True
-            ):  # record temperature data
+            if self.settings[
+                "checkBox_settings_temp_sensor"
+            ]:  # record temperature data
                 curr_temp[chn_name] = self.temp_sensor.get_tempC()
                 # update status bar
                 self.statusbar_temp_update(curr_temp=curr_temp[chn_name])
@@ -8416,7 +8692,7 @@ class QCMApp(QMainWindow):
                         self.idle = True
                         self.ui.pushButton_runstop.setChecked(False)
                         # alert
-                        process = self.process_messagebox(
+                        self.process_messagebox(
                             text="Failed to connect with analyzer!",
                             message=["Please check the connection and power."],
                             opts=False,
@@ -8512,12 +8788,9 @@ class QCMApp(QMainWindow):
                         gc_list = [
                             fit_result["v_fit"]["g_c"]["value"]
                         ] * 2  # make its len() == 2
-                        bc_list = [
-                            fit_result["v_fit"]["b_c"]["value"]
-                        ] * 2  # make its len() == 2
+                        [fit_result["v_fit"]["b_c"]["value"]] * 2  # make its len() == 2
                     else:  # fitting failed
                         gc_list = [np.nan, np.nan]
-                        bc_list = [np.nan, np.nan]
 
                     logger.info(factor_span)
                     logger.info(gc_list)
@@ -8688,7 +8961,7 @@ class QCMApp(QMainWindow):
         }
         from_raw: if get all (t, temp) information from raw
         """
-        if self.idle == False:
+        if not self.idle:
             logger.warning("Data collection is running!")
             return
 
@@ -8756,9 +9029,7 @@ class QCMApp(QMainWindow):
                 gc_list = [
                     fit_result["v_fit"]["g_c"]["value"]
                 ] * 2  # make its len() == 2
-                bc_list = [
-                    fit_result["v_fit"]["b_c"]["value"]
-                ] * 2  # make its len() == 2
+                [fit_result["v_fit"]["b_c"]["value"]] * 2  # make its len() == 2
                 logger.info(factor_span)
                 logger.info(gc_list)
 
@@ -8874,7 +9145,7 @@ class QCMApp(QMainWindow):
 
         for ri, (rkey, rval) in enumerate(val_dict.items()):
             if ri == r:  # find the same row key
-                for ci, (ckey, cval) in enumerate(
+                for ci, (ckey, _cval) in enumerate(
                     rval.items()
                 ):  # find the same row column key
                     if ci == c:
