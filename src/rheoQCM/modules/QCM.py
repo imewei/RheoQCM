@@ -959,13 +959,13 @@ class QCM:
         df = mech_df.copy()
         cols = mech_df.columns
         for col in cols:
-            if any([st in col for st in ["drho", "lamrho", "delrho", "sauerbreyms"]]):
+            if any(st in col for st in ["drho", "lamrho", "delrho", "sauerbreyms"]):
                 df[col] = df[col].apply(
                     lambda x: list(np.array(x) * 1000)
                     if isinstance(x, list)
                     else x * 1000
                 )
-            elif any([st in col for st in ["grho", "etarho"]]):
+            elif any(st in col for st in ["grho", "etarho"]):
                 df[col] = df[col].apply(
                     lambda x: list(np.array(x) / 1000)
                     if isinstance(x, list)

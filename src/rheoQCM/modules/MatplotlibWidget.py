@@ -2,11 +2,9 @@
 matplotlibwidget.py
 """
 
-"""
-fig.delaxes(ax)
-ax.set_visible(False)
-ax.change_geometry(2,2,i+1)
-"""
+# fig.delaxes(ax)
+# ax.set_visible(False)
+# ax.change_geometry(2,2,i+1)
 
 # import matplotlib
 # matplotlib.use('QTAgg')
@@ -23,6 +21,7 @@ import matplotlib.colors as mcolors
 import matplotlib.ticker as ticker
 import numpy as np
 import pandas as pd
+import UISettings
 from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.backend_tools import ToolToggleBase
@@ -34,15 +33,13 @@ from matplotlib.container import (
 from matplotlib.figure import Figure
 from matplotlib.projections import register_projection
 from matplotlib.widgets import RectangleSelector, SpanSelector
+from modules import UIModules
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QIcon, QPixmap
 from PyQt6.QtWidgets import QPushButton, QSizePolicy, QVBoxLayout, QWidget
 
 logger = logging.getLogger(__name__)
-
-import UISettings
-from modules import UIModules
 
 config_default = UISettings.get_config()  # load default configuration
 
@@ -75,7 +72,7 @@ class AxesLockY(Axes):
     """
 
     def __init__(self, partent=None):
-        super(AxesLockY, self).__init__(partent)
+        super().__init__(partent)
 
     name = "AxeslockY"
 
@@ -121,7 +118,7 @@ class MatplotlibWidget(QWidget):
         *args,
         **kwargs,
     ):
-        super(MatplotlibWidget, self).__init__(parent)
+        super().__init__(parent)
 
         # initialize axes (ax) and plots (l)
         self.axtype = axtype
@@ -449,7 +446,7 @@ class MatplotlibWidget(QWidget):
             useblit=True,
             button=[1],  # left click
             minspan=5,
-            props=dict(facecolor="red", alpha=0.2),
+            props={"facecolor": "red", "alpha": 0.2},
         )
 
         self.span_selector_zoomout = SpanSelector(
@@ -459,7 +456,7 @@ class MatplotlibWidget(QWidget):
             useblit=True,
             button=[3],  # right
             minspan=5,
-            props=dict(facecolor="blue", alpha=0.2),
+            props={"facecolor": "blue", "alpha": 0.2},
         )
 
     def sp_spanselect_zoomin_callback(self, xclick, xrelease):
@@ -624,7 +621,12 @@ class MatplotlibWidget(QWidget):
             minspanx=5,
             minspany=5,
             # lineprops=None,
-            props=dict(edgecolor="black", facecolor="none", alpha=0.2, fill=False),
+            props={
+                "edgecolor": "black",
+                "facecolor": "none",
+                "alpha": 0.2,
+                "fill": False,
+            },
             spancoords="pixels",  # default 'data'
             interactive=False,  # change rect after drawn
         )
@@ -932,7 +934,7 @@ class MatplotlibWidget(QWidget):
         self.initax_xy()
 
         for i in range(1, config_default["max_harmonic"] + 2, 2):
-            l = self.ax[0].plot([], [], label=i)  # l[i]
+            self.ax[0].plot([], [], label=i)  # l[i]
         self.leg = self.fig.legend(
             # handles=l,
             # labels=range(1, config_default['max_harmonic']+2, 2),
@@ -951,6 +953,7 @@ class MatplotlibWidget(QWidget):
         # set label of ax[1]
         self.set_ax(
             self.ax[0],
+            *args,
             title="",
             xlabel="",
             ylabel="",
@@ -958,7 +961,6 @@ class MatplotlibWidget(QWidget):
             ylim=None,
             xscale="linear",
             yscale="linear",
-            *args,
             **kwargs,
         )
 
@@ -1138,7 +1140,6 @@ class MatplotlibWidget(QWidget):
             self.l["colorbar"].ax.yaxis.offsetText.set_size(fontsize)
 
         if self.axtype == "legend":
-            self.leg
             plt.setp(self.leg.get_texts(), fontsize=legfontsize)
 
         ax.title.set_fontsize(fontsize + 1)
@@ -1243,6 +1244,7 @@ class MatplotlibWidget(QWidget):
             )
         elif self.axtype == "contour":
             self.init_contour(
+                *args,
                 title=title,
                 xlabel=xlabel,
                 ylabel=ylabel,
@@ -1250,7 +1252,6 @@ class MatplotlibWidget(QWidget):
                 ylim=ylim,
                 xscale=xscale,
                 yscale=yscale,
-                *args,
                 **kwargs,
             )
         elif self.axtype == "legend":
@@ -1362,10 +1363,10 @@ class MatplotlibWidget(QWidget):
         if ls is None:
             ls = []
         data = []
-        for l in ls:
+        for line_key in ls:
             # xdata = self.l[l][0].get_xdata()
             # ydata = self.l[l][0].get_ydata()
-            xdata, ydata = self.l[l][0].get_data()
+            xdata, ydata = self.l[line_key][0].get_data()
             data.append((xdata, ydata))
         return data
 
@@ -1454,8 +1455,8 @@ class MatplotlibWidget(QWidget):
         logger.info(self.l)
         logger.info(self.l.keys())
         for key, val in kwargs.items():
-            for l in line_list:
-                eval(f"self.l['{l}'][0].set_{key}('{val}')")
+            for line_key in line_list:
+                eval(f"self.l['{line_key}'][0].set_{key}('{val}')")
 
     def new_plt(
         self,
@@ -1484,6 +1485,7 @@ class MatplotlibWidget(QWidget):
         # set label of ax[1]
         self.set_ax(
             self.ax[0],
+            *args,
             title="",
             xlabel="",
             ylabel="",
@@ -1491,7 +1493,6 @@ class MatplotlibWidget(QWidget):
             ylim=None,
             xscale="linear",
             yscale="linear",
-            *args,
             **kwargs,
         )
 

@@ -199,12 +199,11 @@ def get_wait_time(
     usb_frame_time = 125  # USB version 0.22
 
     # align ADC conversions with USB frames grid
-    minimum_conversion_time = 500  # microseconds
     conversion_time = (
         conversion_delay + fqud_pulse + clock_delay + step_delay + mbuffer
     )  # microseconds
     if conversion_time % usb_frame_time != 0:
-        minimum_conversion_time = (
+        (
             conversion_time % usb_frame_time
         ) * conversion_time + usb_frame_time  # microseconds
 
@@ -1869,7 +1868,7 @@ GETSETSWITCHATTENUATORSETTINGS      13
 
 
 def MyVNAGetString():
-    MyVNAGetString = vna[12]
+    vna[12]
     # // get miscellaneous double array based data
     # __declspec(dllexport) CString _stdcall MyVNAGetString(int nWhat, int nIndex )
 
@@ -1890,13 +1889,13 @@ def MyVNASetString():
     # // case 0 - equation
     # // nIndex is which one to set/get 0..3
     # #define GETSET_EQUATION 0
-    MyVNASetString = vna[28]
+    vna[28]
     # // set miscellaneous double array based data
     # __declspec(dllexport) int _stdcall MyVNASetString(int nWhat, int nIndex, _TCHAR * sValue )
 
 
 def MyVNASaveTraceData():
-    MyVNASaveTraceData = vna[19]
+    vna[19]
     # __declspec(dllexport) int _stdcall MyVNASaveTraceData( _TCHAR * fileName )
 
 
@@ -1905,7 +1904,7 @@ def MyVNAClipboardCopy():
     # // OLE equivalent:
     # // int ClipboardCopyAutomation(void);
     # __declspec(dllexport) int _stdcall MyVNAClipboardCopy()
-    MyVNAClipboardCopy = vna[2]
+    vna[2]
 
 
 # // when in eq cct view mode (and only then) use these functions to establish a log file and log
@@ -1916,10 +1915,10 @@ def MyVNAClipboardCopy():
 
 
 def MyVNASetEqCctLogFile():
-    MyVNASetEqCctLogFile = vna[22]
+    vna[22]
     # __declspec(dllexport) int _stdcall MyVNASetEqCctLogFile(_TCHAR * fileName)
 
 
 def MyVNALogEqCctResults():
-    MyVNALogEqCctResults = vna[16]
+    vna[16]
     # __declspec(dllexport) int _stdcall MyVNALogEqCctResults(_TCHAR * description)

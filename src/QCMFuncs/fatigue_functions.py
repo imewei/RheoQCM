@@ -7,7 +7,7 @@ import matplotlib.ticker as mticker
 import numpy as np
 import pandas as pd
 from scipy.integrate import cumulative_trapezoid
-from scipy.optimize import curve_fit
+from scipy.optimize import curve_fit, root_scalar
 from sympy import diff, lambdify, log, sqrt, symbols
 
 from rheoQCM.core.physics import savgol_filter
@@ -156,9 +156,6 @@ def calc_C(alpha, beta, B, E):
     return func(alpha, beta, B, E)
 
 
-from scipy.optimize import root_scalar
-
-
 def calc_alpha_single(C, beta, B, E):
     """
     Find the value of alpha (0 < alpha < 1) that yields the target compliance C.
@@ -182,7 +179,7 @@ def calc_alpha_single(C, beta, B, E):
 
     try:
         result = root_scalar(objective, bracket=(0.01, 0.99), method="brentq")
-    except:
+    except Exception:
         print(f"problem with beta={beta}, B={B}, E={E}, C={C}")
         sys.exit()
 
@@ -469,8 +466,7 @@ def solve_KIC(data_dict, win_size):
 
     try:
         a_filter = savgol_filter(a, 7, 5)
-
-    except:
+    except Exception:
         a_filter = a
 
     C = C[1:]
@@ -580,7 +576,7 @@ def make_intermediate_plots_KIC(data_dict, win_size):
 
 
 def make_intermediate_plots_pureshear(data_dict, win_size):
-    a = 6  # placehlder
+    pass  # placehlder
 
 
 def powlaw(x, a, b):

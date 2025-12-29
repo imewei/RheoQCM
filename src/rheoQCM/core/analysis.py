@@ -57,19 +57,6 @@ import jax.numpy as jnp
 import numpy as np
 
 from rheoQCM.core.jax_config import configure_jax, get_jax_backend, is_gpu_available
-
-# Ensure JAX is configured
-configure_jax()
-
-logger = logging.getLogger(__name__)
-
-# =============================================================================
-# Import all physics functions from Layer 1
-# =============================================================================
-
-# =============================================================================
-# Import model class from Layer 2
-# =============================================================================
 from rheoQCM.core.model import (
     BatchResult,
     QCMModel,
@@ -123,6 +110,11 @@ from rheoQCM.core.physics import (
     water_default,
     zstar_bulk,
 )
+
+# Ensure JAX is configured
+configure_jax()
+
+logger = logging.getLogger(__name__)
 
 # =============================================================================
 # QCMAnalyzer - High-level analysis interface
@@ -748,9 +740,6 @@ def _solve_single_measurement(
 
     # Thin film solution
     def thin_film_solution(inputs):
-        delfstar_n1_local = inputs[1]
-        delfstar_n2_local = inputs[2]
-        delfstar_n3_local = inputs[3]
         rd_exp_local = inputs[4]
         rh_exp_local = inputs[5]
 
@@ -805,7 +794,7 @@ def _solve_single_measurement(
 
         # Calculate drho from Sauerbrey
         nds = _vmap_normdelfstar(n1, dlam_refh_final, phi_final, refh)
-        delf_saub = jnp.real(delfstar_n1_local) / jnp.real(nds)
+        delf_saub = jnp.real(delfstar_n1) / jnp.real(nds)
         drho = delf_saub * Zq / (2 * n1 * f1**2)
 
         # Calculate grho from dlam

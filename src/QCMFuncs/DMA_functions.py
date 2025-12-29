@@ -344,9 +344,9 @@ def plot_tTS(df, ax, prop, **kwargs):
 
     # Default shift factors if not provided
     if aT is None:
-        aT = {t: 1 for t in temps}
+        aT = dict.fromkeys(temps, 1)
     if bT is None:
-        bT = {t: 1 for t in temps}
+        bT = dict.fromkeys(temps, 1)
 
     # Plot property for each temperature
     for t in temps:
@@ -713,9 +713,7 @@ def fitPowerLaw(df, **kwargs):
         "--",
         linewidth=2,
         color=palette[1],
-        label=(
-            f"$G_0$={np.exp(lnG0):.1e} ± {G0_err:.1e} Pa;\n" f"m={m:.2f} ± {m_err:.2f}"
-        ),
+        label=(f"$G_0$={np.exp(lnG0):.1e} ± {G0_err:.1e} Pa;\nm={m:.2f} ± {m_err:.2f}"),
     )
 
     ax.legend()
@@ -768,7 +766,7 @@ def fitHybrid(df, B, Tinf, **kwargs):
         bounds=((1e-16, 1e-16, 1.0e5), (1e-9, 1e-9, 2.2e5)),
         p0=[tau0_vftguess, tau0_arrguess, Eaguess],
         maxfev=5000,
-        sigma=[t for t in df["tau"]],
+        sigma=list(df["tau"]),
         absolute_sigma=True,
     )
 
@@ -964,12 +962,15 @@ def MLf(z, a):
     # a helper for tricky case, from Gorenflo, Loutchko & Luchko
     def _MLf(z, a):
         if z < 0:
-            f = lambda x: (
-                np.exp(-x * (-z) ** (1 / a))
-                * x ** (a - 1)
-                * np.sin(np.pi * a)
-                / (x ** (2 * a) + 2 * x**a * np.cos(np.pi * a) + 1)
-            )
+
+            def f(x):
+                return (
+                    np.exp(-x * (-z) ** (1 / a))
+                    * x ** (a - 1)
+                    * np.sin(np.pi * a)
+                    / (x ** (2 * a) + 2 * x**a * np.cos(np.pi * a) + 1)
+                )
+
             return 1 / np.pi * quad(f, 0, np.inf)[0]
         elif z == 0:
             return 1
@@ -1221,9 +1222,9 @@ def fitFracMaxwell(df, **kwargs):
 
     # Prepare fit label
     if model == "gel":
-        fitlabel = f"τ={tau:.1f} ± {tauerr:.1f} s\n" f"α={a:.2f} ± {aerr:.2f}\nβ=0"
+        fitlabel = f"τ={tau:.1f} ± {tauerr:.1f} s\nα={a:.2f} ± {aerr:.2f}\nβ=0"
     elif model == "liquid":
-        fitlabel = f"τ={tau:.1f} ± {tauerr:.1f} s\nα=0\n" f"β={b:.2f} ± {berr:.2f}"
+        fitlabel = f"τ={tau:.1f} ± {tauerr:.1f} s\nα=0\nβ={b:.2f} ± {berr:.2f}"
     else:
         fitlabel = (
             f"τ={tau:.1f} ± {tauerr:.1f} s\n"
@@ -1493,7 +1494,7 @@ def compLoss(path_base, *f, **kwargs):
             ms=10,
             lw=3,
             color=palette[i],
-            label=str(f[i]).rstrip(".txt"),
+            label=str(f[i]).removesuffix(".txt"),
         )
 
     ax.set_ylim(mod_min, mod_max)
@@ -1533,7 +1534,7 @@ def compTand(path, *f):
             ms=10,
             lw=3,
             color=palette[i],
-            label=str(f[i]).rstrip("-1.txt"),
+            label=str(f[i]).removesuffix("-1.txt"),
         )
 
     ax.set_ylim(0.01, 2)
@@ -1599,7 +1600,7 @@ def fitTwoGaussian(path, **kwargs):
     elif var == "loss":
         A = readDMA(path)
         i_max = np.argmin(A[3][75:108]) + 75
-        temp = [T for T in A[0]][0:i_max]
+        temp = list(A[0])[0:i_max]
         loss = np.array(A[2][0:i_max])
 
         baseline = [

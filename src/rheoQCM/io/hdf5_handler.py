@@ -192,7 +192,9 @@ class HDF5Handler(FormatHandler):
                 try:
                     self._save_string(parent, safe_key, json.dumps(value))
                 except (TypeError, ValueError):
-                    logger.warning("Could not serialize %s of type %s", key, type(value))
+                    logger.warning(
+                        "Could not serialize %s of type %s", key, type(value)
+                    )
 
     def _save_string(self, parent: h5py.Group, key: str, value: str | bytes) -> None:
         """Save string value to HDF5."""
@@ -263,5 +265,5 @@ def check_hdf5_format(path: Path) -> bool:
         with h5py.File(path, "r") as fh:
             # Check for expected structure
             return "raw" in fh or "data" in fh or "settings" in fh
-    except (OSError, IOError):
+    except OSError:
         return False

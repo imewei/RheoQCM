@@ -51,6 +51,7 @@ from rheoQCM.core.jax_config import configure_jax
 from rheoQCM.core.physics import (
     Zq,
     calc_delfstar_sla,
+    clamp_phi,
     electrode_default,
     f1_default,
     g0_default,
@@ -60,6 +61,8 @@ from rheoQCM.core.physics import (
 configure_jax()
 
 logger = logging.getLogger(__name__)
+
+_PHI_MAX = jnp.pi / 2 - 1e-10
 
 
 # =============================================================================
@@ -212,7 +215,7 @@ def _zstar_bulk_from_layer(
         Complex acoustic impedance [Pa s/m].
     """
     grho_refh = layer["grho"]
-    phi = layer["phi"]
+    phi = clamp_phi(layer["phi"], phi_min=0.0, phi_max=_PHI_MAX)
     layer_refh = layer.get("n", refh)
 
     if calctype != "Voigt":
@@ -313,7 +316,7 @@ def _layers_to_arrays(
     for i, layer_num in enumerate(layer_nums):
         layer = layers[layer_num]
         grho_np[i] = layer["grho"]
-        phi_np[i] = layer["phi"]
+        phi_np[i] = np.clip(layer["phi"], 0.0, np.pi / 2 - 1e-10)
         drho_np[i] = layer["drho"]
         n_ref_np[i] = layer.get("n", refh)
 
@@ -362,6 +365,7 @@ def _zstar_bulk_jit(
         Complex acoustic impedance [Pa s/m].
     """
     n = jnp.asarray(n, dtype=jnp.float64)
+    phi = clamp_phi(phi, phi_min=0.0, phi_max=_PHI_MAX)
 
     def power_law_path(_):
         grho_n = grho_refh * (n / n_ref) ** (phi / (jnp.pi / 2))
@@ -900,11 +904,13 @@ def _solve_ll_delfstar(
 
     # T045 (012-jax-perf): Use JAX autodiff for Jacobian instead of finite differences
     # Create a wrapper that splits complex delfstar into real/imag for autodiff
-    def _zmot_real_imag(df_real: float, df_imag: float) -> tuple[float, float]:
+    def _zmot_real_imag(
+        df_real: jnp.ndarray, df_imag: jnp.ndarray
+    ) -> tuple[jnp.ndarray, jnp.ndarray]:
         """Wrapper for autodiff: takes real/imag of delfstar, returns real/imag of Zmot."""
         df_complex = df_real + 1j * df_imag
         zmot = calc_Zmot(n, layers, df_complex, f1, calctype, refh, g0)
-        return float(jnp.real(zmot)), float(jnp.imag(zmot))
+        return jnp.real(zmot), jnp.imag(zmot)
 
     for _ in range(max_iter):
         Zmot = calc_Zmot(n, layers, delfstar, f1, calctype, refh, g0)
@@ -914,8 +920,8 @@ def _solve_ll_delfstar(
             break
 
         # T045: Compute Jacobian using JAX autodiff
-        df_real = float(jnp.real(delfstar))
-        df_imag = float(jnp.imag(delfstar))
+        df_real = jnp.real(delfstar)
+        df_imag = jnp.imag(delfstar)
 
         # Partial derivatives with respect to real part of delfstar
         jac_fn_real = jax.jacfwd(_zmot_real_imag, argnums=0)

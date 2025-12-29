@@ -82,10 +82,7 @@ class Ui_MainWindow:
         font.setWeight(75)
         self.pushButton_settings_control_stop_refit.setFont(font)
         self.pushButton_settings_control_stop_refit.setStyleSheet(
-            "#pushButton_settings_control_stop_refit\n"
-            "{\n"
-            "background-color: red;\n"
-            "}"
+            "#pushButton_settings_control_stop_refit\n{\nbackground-color: red;\n}"
         )
         self.pushButton_settings_control_stop_refit.setCheckable(True)
         self.pushButton_settings_control_stop_refit.setObjectName(
@@ -4990,15 +4987,15 @@ class Ui_MainWindow:
         item = self.tableWidgetsettings_mechanics_simulatorout.verticalHeaderItem(4)
         item.setText(_translate("MainWindow", "n9"))
         item = self.tableWidgetsettings_mechanics_simulatorout.horizontalHeaderItem(0)
-        item.setText(_translate("MainWindow", "Δf\n" "(Hz)"))
+        item.setText(_translate("MainWindow", "Δf\n(Hz)"))
         item = self.tableWidgetsettings_mechanics_simulatorout.horizontalHeaderItem(1)
-        item.setText(_translate("MainWindow", "ΔΓ\n" "(Hz)"))
+        item.setText(_translate("MainWindow", "ΔΓ\n(Hz)"))
         item = self.tableWidgetsettings_mechanics_simulatorout.horizontalHeaderItem(2)
         item.setText(_translate("MainWindow", "d/λ"))
         item = self.tableWidgetsettings_mechanics_simulatorout.horizontalHeaderItem(3)
         item.setText(_translate("MainWindow", "dev"))
         item = self.tableWidgetsettings_mechanics_simulatorout.horizontalHeaderItem(4)
-        item.setText(_translate("MainWindow", "δρ\n" "(g/cm²)"))
+        item.setText(_translate("MainWindow", "δρ\n(g/cm²)"))
         __sortingEnabled = (
             self.tableWidgetsettings_mechanics_simulatorout.isSortingEnabled()
         )

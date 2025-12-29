@@ -14,7 +14,7 @@ rcParams["font.size"] = 9
 
 class MatplotlibPlugin(QPyDesignerCustomWidgetPlugin):
     def __init__(self, parent=None):
-        super(MatplotlibPlugin, self).__init__(parent)
+        super().__init__(parent)
         self._initialized = False
 
     def initialize(self, editor):
@@ -45,7 +45,7 @@ class MatplotlibPlugin(QPyDesignerCustomWidgetPlugin):
         return False
 
     def domXml(self):
-        return '<widget class="MatplotlibWidget" name="mplwidget">\n' "</widget>\n"
+        return '<widget class="MatplotlibWidget" name="mplwidget">\n</widget>\n'
 
     def includeFile(self):
         return "matplotlibwidget"

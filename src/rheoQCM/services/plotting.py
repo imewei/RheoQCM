@@ -824,9 +824,9 @@ class MockPlotManager:
         """Assert a method was called."""
         calls = self.get_calls(method)
         if times is not None:
-            assert (
-                len(calls) == times
-            ), f"Expected {times} calls to {method}, got {len(calls)}"
+            assert len(calls) == times, (
+                f"Expected {times} calls to {method}, got {len(calls)}"
+            )
         else:
             assert len(calls) > 0, f"Expected at least one call to {method}"
 

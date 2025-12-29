@@ -24,7 +24,7 @@ script_dir = Path(__file__).parent
 src_dir = script_dir.parent  # src/
 sys.path.insert(0, str(src_dir / "QCMFuncs"))
 
-import QCM_functions as qcm
+import QCM_functions as qcm  # noqa: E402
 
 plt.close("all")
 

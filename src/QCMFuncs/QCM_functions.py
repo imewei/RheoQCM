@@ -35,8 +35,6 @@ import warnings
 from copy import copy, deepcopy
 from glob import glob
 
-logger = logging.getLogger(__name__)
-
 import matplotlib.gridspec as gridspec
 
 # scipy.optimize removed for NLSQ (T030)
@@ -47,6 +45,11 @@ import pandas as pd
 from matplotlib.ticker import FormatStrFormatter
 from pylab import meshgrid
 from scipy.io import loadmat
+
+from rheoQCM.core import multilayer as _core_multilayer
+from rheoQCM.core import physics as _core_physics
+
+logger = logging.getLogger(__name__)
 
 # =============================================================================
 # Deprecation Warning
@@ -69,12 +72,6 @@ if not _SUPPRESS_DEPRECATION:
         DeprecationWarning,
         stacklevel=2,
     )
-
-# =============================================================================
-# Import from rheoQCM.core for JAX-accelerated physics (T023: core is now required)
-# =============================================================================
-from rheoQCM.core import multilayer as _core_multilayer
-from rheoQCM.core import physics as _core_physics
 
 # Constants from core
 Zq = _core_physics.Zq
@@ -1836,7 +1833,16 @@ def solve_for_props(delfstar, calc, props_calc_in, layers_in, **kwargs):
 
     for row in delfstar_mod.itertuples():
 
-        def ftosolve(x):
+        def ftosolve(
+            x,
+            props_calc=props_calc,
+            layers=layers,
+            row=row,
+            calc=calc,
+            calctype=calctype,
+            reftype=reftype,
+            kwargs=kwargs,
+        ):
             layers_solve = update_layers(props_calc, x, layers, **kwargs)
             return compare_calc_expt(
                 layers_solve, row, calc, calctype=calctype, reftype=reftype
@@ -1863,8 +1869,8 @@ def solve_for_props(delfstar, calc, props_calc_in, layers_in, **kwargs):
 
         # display the calculated values as the program is running
         if showvals:
-            valstring = ""
-            for i, prop in enumerate(props_calc):
+            valstring = []
+            for _i, prop in enumerate(props_calc):
                 valstring.append(f"{prop}: {soln['x']:.2g}")
             logger.debug("Values: %s", valstring)
 
@@ -2044,7 +2050,7 @@ def err_fn_correlated_df(df_soln_in, fn_err):
         for n in nf:
             row[f"delfstar_expt_{n}"] = row[f"delfstar_expt_{n}"] + n * fn_err
 
-        def ftosolve(x):
+        def ftosolve(x, row=row):
             layers_solve = update_layers(row.props_calc, x, row.layers)
             return compare_calc_expt(
                 layers_solve, row, row.calc, calctype=row.calctype, reftype=row.reftype
@@ -2097,7 +2103,7 @@ def err_fn_correlated_row(row_in, fn_err):
 
     # handle trivial case where fn_err = 0
     if fn_err == 0:
-        for i, prop in enumerate(row.props_calc):
+        for _i, prop in enumerate(row.props_calc):
             row[f"{prop}_err_fn"] = 0
         return row
 
@@ -2106,7 +2112,7 @@ def err_fn_correlated_row(row_in, fn_err):
     for n in nf:
         row_in[f"delfstar_expt_{n}"] = row_in[f"delfstar_expt_{n}"] + n * fn_err
 
-    def ftosolve(x):
+    def ftosolve(x, row=row, row_in=row_in):
         layers_solve = update_layers(row_in.props_calc, x, row.layers)
         return compare_calc_expt(
             layers_solve, row_in, row.calc, calctype=row.calctype, reftype=row.reftype
@@ -2477,7 +2483,7 @@ def make_prop_axes(propnames, **kwargs):
     # all plots have same xunit if only one value is given
     xunit = {}
     xlabel = {}
-    if type(xunit_input) == str:
+    if isinstance(xunit_input, str):
         if nprops == 0:
             xunit[0] = xunit_input
         for p in np.arange(0, nprops):
@@ -2494,7 +2500,7 @@ def make_prop_axes(propnames, **kwargs):
         else:
             # read the xlabel
             xlabel_input = kwargs.get("xlabel", "xlabel")
-            if type(xlabel_input) == str:
+            if isinstance(xlabel_input, str):
                 xlabel[p] = xlabel_input
             else:
                 xlabel[p] = xlabel_input[p]
@@ -2584,7 +2590,7 @@ def make_prop_axes(propnames, **kwargs):
         ax[iax + 1] = ax["checks"][0]
         ax[iax + 2] = ax["checks"][1]
         for k in [0, 1]:
-            title = f"{title_strings[0]}{titles[iax +1+k]}{title_strings[1]}"
+            title = f"{title_strings[0]}{titles[iax + 1 + k]}{title_strings[1]}"
             ax["checks"][k].set_title(title, fontweight=title_fontweight, loc=title_loc)
             # used xlabel for first prop plot as the xlabel for checks
             ax["checks"][k].set_xlabel(xlabel[0])
@@ -2937,7 +2943,7 @@ def plot_props(soln, figdic, **kwargs):
     xunit = figdic["info"]["xunit"]
     xoffset = {}
     # set the offset for the x values
-    if type(xoffset_input) != list:
+    if not isinstance(xoffset_input, list):
         for p in props.keys():
             xoffset[p] = xoffset_input
     else:
@@ -2954,10 +2960,10 @@ def plot_props(soln, figdic, **kwargs):
         # establish property color
         if "C" in fmt:
             idx = fmt.find("C")
-            prop_color = f"C{fmt[idx+1]}"
-            fmt = fmt.replace(f"C{fmt[idx+1]}", "")
+            prop_color = f"C{fmt[idx + 1]}"
+            fmt = fmt.replace(f"C{fmt[idx + 1]}", "")
 
-        elif extract_color_from_format(fmt) != None:
+        elif extract_color_from_format(fmt) is not None:
             # handle case where we already have the color in the fmt string
             prop_color = extract_color_from_format(fmt)
             fmt = fmt.replace(prop_color, "")
@@ -3389,18 +3395,18 @@ def read_xlsx(infile, **kwargs):
     # to different sample holders
     f_ref_shift = kwargs.get("fref_shift", {1: 0, 3: 0, 5: 0, 7: 0, 9: 0})
 
-    if type(ref_idx) == str and ref_idx == "max":
+    if isinstance(ref_idx, str) and ref_idx == "max":
         df_ref = pd.read_excel(infile, sheet_name=ref_channel, header=0)
         ref_idx = [df_ref["f3"].idxmax()]
-    elif type(ref_idx) == str and ref_idx == "first":
+    elif isinstance(ref_idx, str) and ref_idx == "first":
         df_ref = pd.read_excel(infile, sheet_name=ref_channel, header=0)
         ref_idx = [df_ref.index[0]]
-    elif type(ref_idx) == str and ref_idx == "last":
+    elif isinstance(ref_idx, str) and ref_idx == "last":
         df_ref = pd.read_excel(infile, sheet_name=ref_channel, header=0)
         ref_idx = [df_ref.index[-1]]
 
     df = pd.read_excel(infile, sheet_name=film_channel, header=0, index_col=index_col)
-    if type(film_idx) != str:
+    if not isinstance(film_idx, str):
         df = df[df.index.isin(film_idx)]
 
     # keep track of columns for output dataframe
@@ -3454,7 +3460,7 @@ def read_xlsx(infile, **kwargs):
     else:
         # read the reference data
         df_ref = pd.read_excel(infile, sheet_name=ref_channel, header=0)
-        if type(ref_idx) != str:
+        if not isinstance(ref_idx, str):
             df_ref = df_ref[df_ref.index.isin(ref_idx)]
 
         if ("temp" not in df_ref.keys()) or (df_ref.temp.isnull().values.all()):
@@ -4153,8 +4159,8 @@ def make_response_maps(fig, ax, **kwargs):
         z1, z2, grho3, fnorm, gnorm = Zfunction(x, y)
 
         return (
-            f"d/lambda={x:.3f},  phi={y:.1f}, delfstar/n={z1+1j*z2:.0f}, "
-            f"grho3={grho3/1000:.2e}, "
+            f"d/lambda={x:.3f},  phi={y:.1f}, delfstar/n={z1 + 1j * z2:.0f}, "
+            f"grho3={grho3 / 1000:.2e}, "
             f"fnorm={fnorm:.4f}, gnorm={gnorm:.4f}"
         )
 
@@ -4171,16 +4177,16 @@ def make_response_maps(fig, ax, **kwargs):
     else:
         title_units = [
             r"$\Delta f_n/n$ (Hz): $d\rho$="
-            + f"{1000*drho:.3g}"
+            + f"{1000 * drho:.3g}"
             + r" $\mu$m$\cdot$g/cm$^3$",
             r"$\Delta \Gamma _n/n$ (Hz): $d\rho$="
-            + f"{1000*drho:.3g}"
+            + f"{1000 * drho:.3g}"
             + r" $\mu$m$\cdot$g/cm$^3$",
         ]
 
     for k in [0, 1]:
         title = (
-            f"{title_strings[0]}{titles_default[k+first_plot]}"
+            f"{title_strings[0]}{titles_default[k + first_plot]}"
             + f"{title_strings[1]} {title_units[k]}"
         )
         ax[k].set_title(title, fontweight=title_fontweight)

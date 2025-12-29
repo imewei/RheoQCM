@@ -31,11 +31,11 @@ def system_check():
     return sys.platform
 
 
-def closest_spanctr_step(l, n):
+def closest_spanctr_step(values, n):
     if n >= 1:
-        return min(l, key=lambda x: abs(x - n))
+        return min(values, key=lambda x: abs(x - n))
     elif n < 1:
-        return min(l, key=lambda x: abs(x - 1 / n))
+        return min(values, key=lambda x: abs(x - 1 / n))
 
 
 def list_modules(module):
@@ -125,11 +125,11 @@ def index_from_str(idx_str, chn_idx, join_segs=True):
 
         # check the index with chn_idx
         if join_segs:  # combine all
-            logger.info("joined %s", sorted(list(set(idx) & set(chn_idx))))
-            return sorted(list(set(idx) & set(chn_idx)))
+            logger.info("joined %s", sorted(set(idx) & set(chn_idx)))
+            return sorted(set(idx) & set(chn_idx))
         else:  # keep separate
             # return thel list
-            return [sorted(list(set(ind) & set(chn_idx))) for ind in idx]
+            return [sorted(set(ind) & set(chn_idx)) for ind in idx]
     except Exception:
         logger.warning("exception in index_from_str")
         return idx
@@ -209,7 +209,7 @@ def idx_dict_to_harm_dict(sel_idx_dict):
 
 def isfloat(x):
     try:
-        a = float(x)
+        float(x)
     except ValueError:
         return False
     else:
