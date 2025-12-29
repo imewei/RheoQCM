@@ -20,10 +20,21 @@ import os
 import signal
 import struct
 import time
-from ctypes import *
+from ctypes import (
+    POINTER,
+    WINFUNCTYPE,
+    WinDLL,
+    WinError,
+    c_char_p,
+    c_double,
+    c_int,
+    c_wchar_p,
+    get_last_error,
+)
 from ctypes.wintypes import HWND
 
 import numpy as np
+import pywintypes
 import win32process
 import win32ui
 
@@ -36,7 +47,8 @@ try:
 
     config_default = UISettings.get_config()
     settings_default = UISettings.get_settings()
-except:
+except ImportError:
+    logger.debug("UISettings not available, using empty defaults")
     config_default = {}
     settings_default = {}
 
@@ -106,7 +118,8 @@ def get_hWnd(win_name=win_names[0]):
     try:
         hWnd = win32ui.FindWindow(None, win_name).GetSafeHwnd()
         # pid = win32process.GetWindowThreadProcessId(hWnd)[1]
-    except:
+    except pywintypes.error as e:
+        logger.debug("Window '%s' not found: %s", win_name, e)
         hWnd = None
     logger.info('hWnd %s "%s"', hWnd, win_name)
     return hWnd

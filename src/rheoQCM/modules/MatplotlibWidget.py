@@ -19,6 +19,7 @@ ax.change_geometry(2,2,i+1)
 import logging
 import types
 
+import matplotlib.colors as mcolors
 import matplotlib.ticker as ticker
 import numpy as np
 import pandas as pd
@@ -47,6 +48,20 @@ config_default = UISettings.get_config()  # load default configuration
 
 # color map for plot
 color = ["tab:blue", "tab:red", "tab:orange", "tab:gray"]
+
+# Default marker alpha (cross-platform compatible)
+MARKER_ALPHA = 0.75
+
+
+def _get_color_with_alpha(color, alpha=MARKER_ALPHA):
+    """Get RGBA color with alpha for cross-platform marker rendering.
+
+    On Linux, matplotlib's alpha parameter can cause inconsistent marker
+    face color rendering. Using explicit RGBA colors works consistently
+    across platforms.
+    """
+    return mcolors.to_rgba(color, alpha=alpha)
+
 
 # class NavigationToolbar(NavigationToolbar2QT):
 # set buttons to show in toolbar
@@ -538,20 +553,25 @@ class MatplotlibWidget(QWidget):
                 picker=True,  # 5 points tolerance
                 pickradius=5,  # 5 points tolerance
                 label="l" + str(i),
-                alpha=0.75,  # TODO markerfacecolor becomes dark on Linux when alpha used
             )  # l
+            # Apply alpha via RGBA for cross-platform consistency (Linux fix)
+            base_color = self.l["l" + str(i)][0].get_color()
+            rgba_color = _get_color_with_alpha(base_color)
+            self.l["l" + str(i)][0].set_color(rgba_color)
+            self.l["l" + str(i)][0].set_markeredgecolor(rgba_color)
 
         for i in range(1, int(config_default["max_harmonic"] + 2), 2):
+            # Use RGBA color with alpha for cross-platform consistency
+            base_color = self.l["l" + str(i)][0].get_color()
             self.l["lm" + str(i)] = self.ax[0].plot(
                 [],
                 [],
                 marker="o",
-                color=self.l["l" + str(i)][0].get_color(),  # set the same color as .l
+                color=base_color,  # Already has alpha from above
                 linestyle="none",
                 picker=True,  # 5 points tolerance
                 pickradius=5,  # 5 points tolerance
                 label="lm" + str(i),
-                alpha=0.75,
             )  # marked points of line
 
             self.l["lt" + str(i)] = self.ax[0].plot(
@@ -857,10 +877,16 @@ class MatplotlibWidget(QWidget):
                 picker=True,  # 5 points tolerance
                 pickradius=5,  # 5 points tolerance
                 label="l" + str(i),
-                alpha=0.75,  # TODO markerfacecolor becomes dark on Linux when alpha used
             )  # l
+            # Apply alpha via RGBA for cross-platform consistency (Linux fix)
+            base_color = self.l["l" + str(i)][0].get_color()
+            rgba_color = _get_color_with_alpha(base_color)
+            self.l["l" + str(i)][0].set_color(rgba_color)
+            self.l["l" + str(i)][0].set_markeredgecolor(rgba_color)
 
         for i in range(1, int(config_default["max_harmonic"] + 2), 2):
+            # Use RGBA color with alpha for cross-platform consistency
+            base_color = self.l["l" + str(i)][0].get_color()
             self.l["p" + str(i)] = self.ax[0].errorbar(
                 np.nan,
                 np.nan,
@@ -869,14 +895,15 @@ class MatplotlibWidget(QWidget):
                 marker="o",
                 markerfacecolor="none",
                 linestyle="none",
-                color=self.l["l" + str(i)][0].get_color(),  # set the same color as .l
+                color=base_color,  # Already has alpha
                 # picker=5, # 5 points tolerance
                 label=str(i),
-                alpha=0.75,  # TODO markerfacecolor becomes dark on Linux when alpha used
                 capsize=config_default["mpl_capsize"],
             )  # prop
 
         for i in range(1, int(config_default["max_harmonic"] + 2), 2):
+            # Use RGBA color with alpha for cross-platform consistency
+            base_color = self.l["l" + str(i)][0].get_color()
             self.l["pm" + str(i)] = self.ax[0].errorbar(
                 np.nan,
                 np.nan,
@@ -884,10 +911,9 @@ class MatplotlibWidget(QWidget):
                 xerr=np.nan,
                 marker="o",
                 linestyle="none",
-                color=self.l["l" + str(i)][0].get_color(),  # set the same color as .l
+                color=base_color,  # Already has alpha
                 # picker=5, # 5 points tolerance
                 label=str(i),
-                alpha=0.75,  # TODO markerfacecolor becomes dark on Linux when alpha used
                 capsize=config_default["mpl_capsize"],
             )  # prop marked
 
@@ -974,8 +1000,12 @@ class MatplotlibWidget(QWidget):
                 picker=True,  # 5 points tolerance
                 pickradius=5,  # 5 points tolerance
                 label="l" + str(i),
-                alpha=0.75,  # TODO markerfacecolor becomes dark on Linux when alpha used
             )  # l
+            # Apply alpha via RGBA for cross-platform consistency (Linux fix)
+            base_color = self.l["l" + str(i)][0].get_color()
+            rgba_color = _get_color_with_alpha(base_color)
+            self.l["l" + str(i)][0].set_color(rgba_color)
+            self.l["l" + str(i)][0].set_markeredgecolor(rgba_color)
 
         # for i in range(1, int(config_default['max_harmonic']+2), 2):
         #     self.l['lm' + str(i)] = self.ax[0].plot(
@@ -988,6 +1018,8 @@ class MatplotlibWidget(QWidget):
         #     ) # maked points of line
 
         for i in range(1, int(config_default["max_harmonic"] + 2), 2):
+            # Use RGBA color with alpha for cross-platform consistency
+            base_color = self.l["l" + str(i)][0].get_color()
             self.l["p" + str(i)] = self.ax[0].errorbar(
                 np.nan,
                 np.nan,
@@ -996,14 +1028,15 @@ class MatplotlibWidget(QWidget):
                 marker="o",
                 markerfacecolor="none",
                 linestyle="none",
-                color=self.l["l" + str(i)][0].get_color(),  # set the same color as .l
+                color=base_color,  # Already has alpha
                 # picker=5, # 5 points tolerance
                 label=str(i),
-                alpha=0.75,  # TODO markerfacecolor becomes dark on Linux when alpha used
                 capsize=config_default["mpl_capsize"],
             )  # prop
 
         for i in range(1, int(config_default["max_harmonic"] + 2), 2):
+            # Use RGBA color with alpha for cross-platform consistency
+            base_color = self.l["l" + str(i)][0].get_color()
             self.l["pm" + str(i)] = self.ax[0].errorbar(
                 np.nan,
                 np.nan,
@@ -1011,10 +1044,9 @@ class MatplotlibWidget(QWidget):
                 xerr=np.nan,
                 marker="o",
                 linestyle="none",
-                color=self.l["l" + str(i)][0].get_color(),  # set the same color as .l
+                color=base_color,  # Already has alpha
                 # picker=5, # 5 points tolerance
                 label=str(i),
-                alpha=0.75,  # TODO markerfacecolor becomes dark on Linux when alpha used
                 capsize=config_default["mpl_capsize"],
             )  # prop marked
 
