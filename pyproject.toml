@@ -178,6 +178,12 @@ markers = [
 filterwarnings = [
     "ignore:FigureCanvasAgg is non-interactive:UserWarning",
     "ignore:More than 20 figures have been opened:RuntimeWarning",
+    "ignore:.*xla_pmap_p is deprecated.*:DeprecationWarning",
+    "ignore:Some R-hat values .*:UserWarning",
+    "ignore:Some ESS values .*:UserWarning",
+    "ignore:Failed to generate energy plot.*:UserWarning",
+    "ignore:Low sample size .*:UserWarning",
+    "ignore:some peaks have a prominence of 0:Warning:scipy\\.signal\\._peak_finding",
 ]
 
 [tool.black]

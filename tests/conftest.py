@@ -8,7 +8,13 @@ This module provides:
     - Temporary file management
 """
 
+import warnings
 from pathlib import Path
+
+try:
+    from scipy.signal._peak_finding import PeakPropertyWarning
+except ImportError:  # pragma: no cover - fallback for scipy changes
+    PeakPropertyWarning = Warning
 from typing import Any
 
 import h5py
@@ -21,6 +27,42 @@ from rheoQCM.core import configure_jax
 
 # Configure JAX for Float64 precision at module load
 configure_jax()
+
+# Silence known upstream deprecation warning from numpyro/jax.
+warnings.filterwarnings(
+    "ignore",
+    message=".*xla_pmap_p is deprecated.*",
+    category=DeprecationWarning,
+)
+warnings.filterwarnings(
+    "ignore",
+    category=DeprecationWarning,
+    module=r"numpyro\.ops\.provenance",
+)
+warnings.filterwarnings(
+    "ignore",
+    message="Some R-hat values >= 1.01.*",
+    category=UserWarning,
+)
+warnings.filterwarnings(
+    "ignore",
+    message="Some ESS values < 400.*",
+    category=UserWarning,
+)
+warnings.filterwarnings(
+    "ignore",
+    message="Failed to generate energy plot:.*",
+    category=UserWarning,
+)
+warnings.filterwarnings(
+    "ignore",
+    message="Low sample size .*",
+    category=UserWarning,
+)
+warnings.filterwarnings(
+    "ignore",
+    category=PeakPropertyWarning,
+)
 
 
 # =============================================================================
@@ -188,9 +230,9 @@ def verify_float64_enabled():
     """
     # Check that Float64 is enabled
     test_val = jnp.array(1.0)
-    assert (
-        test_val.dtype == jnp.float64
-    ), "JAX Float64 not enabled. Tests require x64 precision."
+    assert test_val.dtype == jnp.float64, (
+        "JAX Float64 not enabled. Tests require x64 precision."
+    )
     yield
 
 
