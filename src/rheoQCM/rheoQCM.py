@@ -2664,7 +2664,7 @@ class QCMApp(QMainWindow):
             logger.info("Data is exported.")
 
     def process_messagebox(
-        self, text="Your selection was paused!", message=[], opts=True, forcepop=False
+        self, text="Your selection was paused!", message=None, opts=True, forcepop=False
     ):
         """
         check is the experiment is ongoing (self.timer.isActive()) and if data is saved (self.data_saver.saveflg)
@@ -2674,6 +2674,8 @@ class QCMApp(QMainWindow):
 
         return process: True/False for checking
         """
+        if message is None:
+            message = []
 
         process = True
 
@@ -4286,7 +4288,7 @@ class QCMApp(QMainWindow):
         return data
 
     def get_data_by_typestr(
-        self, typestr, chn_name, mark=False, idx=[], unit_t=None, unit_temp=None
+        self, typestr, chn_name, mark=False, idx=None, unit_t=None, unit_temp=None
     ):
         """
         get data of all harmonics from data_saver by given type (str)
@@ -4658,10 +4660,14 @@ class QCMApp(QMainWindow):
         self.ui.mpl_plt1.clr_lines()
         self.ui.mpl_plt2.clr_lines()
 
-    def clr_mpl_l(self, plt_str, line_group_list=["l"], harm_list=[]):
+    def clr_mpl_l(self, plt_str, line_group_list=None, harm_list=None):
         """
         clear .l['l<n>'] in mpl_<plt_str>
         """
+        if line_group_list is None:
+            line_group_list = ["l"]
+        if harm_list is None:
+            harm_list = []
         if not harm_list:
             harm_list = self.all_harm_list(as_str=True)
         for line_group in line_group_list:
@@ -6764,10 +6770,12 @@ class QCMApp(QMainWindow):
             label = self.temp_str_unit_replace(label)
         return label
 
-    def get_data_from_data_or_prop(self, chn_name, mech_key, var, mark=False, idx=[]):
+    def get_data_from_data_or_prop(self, chn_name, mech_key, var, mark=False, idx=None):
         """
         get data from data_saver.<chn_name> or data_saver.<chn_name + _prop>[mech_key]
         """
+        if idx is None:
+            idx = []
         data, err = None, None  # inintiate value
 
         # get keys
@@ -7129,13 +7137,17 @@ class QCMApp(QMainWindow):
         elif "fit" in sender_name:
             self.data_saver.exp_ref["mode"]["fit"] = value
 
-    def set_stackedwidget_index(self, stwgt, idx=[], diret=[]):
+    def set_stackedwidget_index(self, stwgt, idx=None, diret=None):
         """
         chenge the index of stwgt to given idx (if not [])
         or to the given direction (if diret not [])
           diret=1: index += 1;
           diret=-1: index +=-1
         """
+        if idx is None:
+            idx = []
+        if diret is None:
+            diret = []
         # logger.info(self)
         if idx:  # if index is not []
             stwgt.setCurrentIndex(idx)  # set index to idx

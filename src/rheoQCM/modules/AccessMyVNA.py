@@ -1426,9 +1426,11 @@ class AccessMyVNA:
         ret, nSteps = self.SetScanSteps(nSteps)
         self.SetFequencies(f1, f2, nFlags=1)
 
-    def setADCChannel(self, reflectchn=1, paths={}):
+    def setADCChannel(self, reflectchn=1, paths=None):
         # switch ADV channel for test
         # nData = [transChn, reflectchn] (float)
+        if paths is None:
+            paths = {}
         if reflectchn == 1:
             nData = np.array([2.0, 1.0])
         elif reflectchn == 2:

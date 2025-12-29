@@ -62,10 +62,12 @@ logger = logging.getLogger(__name__)
 
 
 class DataSaver:
-    def __init__(self, ver="", settings={}):
+    def __init__(self, ver="", settings=None):
         """
         initial values are for initialize the module outside of UI
         """
+        if settings is None:
+            settings = {}
 
         self._chn_keys = ["samp", "ref"]  # raw data groups
         self._ref_keys = {
@@ -514,9 +516,9 @@ class DataSaver:
         harm_list,
         t=None,
         temp=None,
-        fs=[np.nan],
-        gs=[np.nan],
-        ps=[np.nan],
+        fs=None,
+        gs=None,
+        ps=None,
     ):
         """
         update refitted data of queue_id
@@ -525,6 +527,12 @@ class DataSaver:
         fs: list of delta freq with the same lenght to harm_list
         gs: list of delta gamma with the same lenght to harm_list
         """
+        if fs is None:
+            fs = [np.nan]
+        if gs is None:
+            gs = [np.nan]
+        if ps is None:
+            ps = [np.nan]
 
         logger.info("queue_list \n%s", self.get_queue_id(chn_name).values)
         if queue_id in self.get_queue_id(chn_name).values:  # is going to overwrite data
@@ -573,7 +581,7 @@ class DataSaver:
         fs=None,
         gs=None,
         ps=None,
-        marks=[0],
+        marks=None,
     ):
         """
         save raw data of ONE QUEUE to self.raw and save to h5 file
@@ -587,6 +595,8 @@ class DataSaver:
         gs: dicts of delta gamma gs[chn_name]
         marks: [0]. by default all will be marked as 0
         """
+        if marks is None:
+            marks = [0]
 
         # add an empty row to data
         queue_id = self._append_new_queue(chn_names, queue_id=None)
@@ -667,7 +677,7 @@ class DataSaver:
         fs=None,
         gs=None,
         ps=None,
-        marks=[0],
+        marks=None,
     ):
         """
         NOTE: only update one test a time
@@ -680,6 +690,8 @@ class DataSaver:
         gs: dicts of delta gamma gs[chn_name]
         marks: [0]. by default all will be marked as 0
         """
+        if marks is None:
+            marks = [0]
 
         # for i in range(1, self.settings['max_harmonic']+2, 2):
         #     if str(i) not in harm_list: # tested harmonic
@@ -823,10 +835,12 @@ class DataSaver:
                 data_ref = getattr(self, key + '_ref').to_json()
                 fh.create_dataset('data/' + key + '_ref', data=data_ref, dtype=h5py.special_dtype(vlen=str)) """
 
-    def save_settings(self, settings={}):
+    def save_settings(self, settings=None):
         """
         save settings (dict) to file
         """
+        if settings is None:
+            settings = {}
         if not settings:
             settings = self.settings
 
@@ -844,10 +858,12 @@ class DataSaver:
                 # it is not necessary, since version >= 0.17.0 saves a copy of information in settings.
                 del fh["settings_default"]
 
-    def save_data_settings(self, settings={}):
+    def save_data_settings(self, settings=None):
         """
         wrap up of save_data and save_settings and save_exp_ref
         """
+        if settings is None:
+            settings = {}
         self.save_data()
         if not settings:
             settings = self.settings
@@ -1834,12 +1850,14 @@ class DataSaver:
             return cols_df
 
     def get_list_column_to_columns_by_idx(
-        self, chn_name, col, idx=[], deltaval=False, norm=False
+        self, chn_name, col, idx=None, deltaval=False, norm=False
     ):
         """
         return rows with idx of df from self.get_list_column_to_columns
         idx: list of int
         """
+        if idx is None:
+            idx = []
         cols_df = self.get_list_column_to_columns(
             chn_name, col, mark=False, deltaval=deltaval, norm=norm
         )
@@ -1917,10 +1935,12 @@ class DataSaver:
         else:
             return cols_df
 
-    def get_mech_column_to_columns_by_idx(self, chn_name, mech_key, col, idx=[]):
+    def get_mech_column_to_columns_by_idx(self, chn_name, mech_key, col, idx=None):
         """
         return rows with idx of mech_df from self.get_mech_column_to_columns
         """
+        if idx is None:
+            idx = []
         cols_df = self.get_mech_column_to_columns(chn_name, mech_key, col, mark=False)
         if idx:
             return cols_df.loc[idx, :]
@@ -2118,11 +2138,13 @@ class DataSaver:
         setattr(self, chn_name + "_ref", df)
         # logger.info(getattr(self, chn_name+'_ref'))
 
-    def set_ref_set(self, chn_name, source, idx_list=[], df=None):
+    def set_ref_set(self, chn_name, source, idx_list=None, df=None):
         """
         set self.exp_ref.<chn_name>_ref value
         source: str in ['samp', 'ref', 'ext', 'none']
         """
+        if idx_list is None:
+            idx_list = []
         # logger.info('idx_list', idx_list)
         if getattr(self, chn_name).shape[0] == 0:  # data is empty
             logger.warning("no data")
@@ -2631,7 +2653,7 @@ class DataSaver:
                 )  # convert to string
             self.exp_ref["t0_shifted"] = t0_shifted
 
-    def get_fg_ref(self, chn_name, harms=[]):
+    def get_fg_ref(self, chn_name, harms=None):
         """
         get reference of f or g from self.exp_ref
         chn_name: 'samp' or 'ref'
@@ -2639,6 +2661,8 @@ class DataSaver:
         {'f0': [f0_1, f0_3, ...],
          'g0': [g0_1, g0_3, ...]}
         """
+        if harms is None:
+            harms = []
         if not harms:  # no harmonic is given
             return self.exp_ref[chn_name]
         else:
@@ -2762,7 +2786,7 @@ class DataSaver:
         )
         return df_new
 
-    def mark_data(self, df, idx=[], harm=None, mark_val=1):
+    def mark_data(self, df, idx=None, harm=None, mark_val=1):
         """
         mark data by given information
         df: data as dataframe
@@ -2771,6 +2795,8 @@ class DataSaver:
         mark_val: int
         return: new df
         """
+        if idx is None:
+            idx = []
         df_new = df.copy()
 
         def mark_func(row_marks):

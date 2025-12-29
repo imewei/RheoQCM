@@ -1354,11 +1354,13 @@ class MatplotlibWidget(QWidget):
 
         self.canvas_draw()
 
-    def get_data(self, ls=[]):
+    def get_data(self, ls=None):
         """
         get data of given ls (lis of string)
         return a list of data with (x, y)
         """
+        if ls is None:
+            ls = []
         data = []
         for l in ls:
             # xdata = self.l[l][0].get_xdata()
@@ -1457,8 +1459,8 @@ class MatplotlibWidget(QWidget):
 
     def new_plt(
         self,
-        xdata=[],
-        ydata=[],
+        xdata=None,
+        ydata=None,
         title="",
         xlabel="",
         ylabel="",
@@ -1474,6 +1476,10 @@ class MatplotlibWidget(QWidget):
         #TODO need to define xdata, ydata structure
         [[x1], [x2], ...] ?
         """
+        if xdata is None:
+            xdata = []
+        if ydata is None:
+            ydata = []
         self.initax_xy()
         # set label of ax[1]
         self.set_ax(
@@ -1500,11 +1506,17 @@ class MatplotlibWidget(QWidget):
 
         self.ax[0].autoscale()
 
-    def add_temp_lines(self, ax=None, xlist=[], ylist=[], label_list=[]):
+    def add_temp_lines(self, ax=None, xlist=None, ylist=None, label_list=None):
         """
         add line in self.l['temp'][i]
         all the lines share the same xdata
         """
+        if xlist is None:
+            xlist = []
+        if ylist is None:
+            ylist = []
+        if label_list is None:
+            label_list = []
         logger.info("add_temp_lines")
         if len(label_list) == 0:
             label_list = [""] * len(xlist)  # make up a label_list with all ''
