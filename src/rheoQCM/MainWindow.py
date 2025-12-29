@@ -155,7 +155,7 @@ class Ui_MainWindow:
             self.pushButton_gotofolder.sizePolicy().hasHeightForWidth()
         )
         self.pushButton_gotofolder.setSizePolicy(sizePolicy)
-        self.pushButton_gotofolder.setMaximumSize(QtCore.QSize(40, 16777215))
+        self.pushButton_gotofolder.setMaximumSize(QtCore.QSize(50, 16777215))
         self.pushButton_gotofolder.setObjectName("pushButton_gotofolder")
         self.horizontalLayout_5.addWidget(self.pushButton_gotofolder)
         self.verticalLayout_12.addLayout(self.horizontalLayout_5)

@@ -348,10 +348,15 @@ class QCMApp(QMainWindow):
         self.ui.tabWidget_settings.currentChanged.connect(self.link_tab_page)
 
         # Set proportional stretch factors for main splitter
-        # Index 0 = settings panel (left), Index 1 = content area (right)
-        # Give more space to content/plot area when window resizes
-        self.ui.splitter.setStretchFactor(0, 1)  # Settings: weight 1
-        self.ui.splitter.setStretchFactor(1, 3)  # Content: weight 3
+        # Index 0 = settings, Index 1 = spectra, Index 2 = data
+        # Proportions: 1/4 : 1/3 : 5/12 = 3:4:5 (using common denominator 12)
+        self.ui.splitter.setStretchFactor(0, 3)  # Settings: 1/4 (3/12)
+        self.ui.splitter.setStretchFactor(1, 4)  # Spectra: 1/3 (4/12)
+        self.ui.splitter.setStretchFactor(2, 5)  # Data: rest (5/12)
+
+        # Set initial sizes based on default window width (800px min)
+        # Settings: 200px, Spectra: 267px, Data: 333px (approx 1/4:1/3:5/12)
+        self.ui.splitter.setSizes([200, 267, 333])
 
         # Ensure plot/data containers expand to fill available space
         self.ui.stackedWidget_spectra.setSizePolicy(
@@ -1947,6 +1952,9 @@ class QCMApp(QMainWindow):
 
         # endregion
 
+        # Optimize TreeWidget column sizing so labels are not truncated
+        self.optimize_treewidget_columns()
+
     # region #########  functions ##############
 
     def link_tab_page(self, tab_idx):
@@ -1963,9 +1971,9 @@ class QCMApp(QMainWindow):
             self.ui.stackedWidget_spectra.setCurrentIndex(2)
             self.ui.stackedWidget_data.setCurrentIndex(1)
 
-    def move_to_col(self, obj, parent, row_text, width=[], col=1):
-        if width:  # set width of obj
-            obj.setMaximumWidth(width)
+    def move_to_col(self, obj, parent, row_text, width=None, col=1):
+        if width:  # set minimum width of obj (allows growth with window resize)
+            obj.setMinimumWidth(width)
         # find item with row_text
         item = self.find_text_item(parent, row_text)
         # insert the combobox in to the 2nd column of row_text
@@ -1995,6 +2003,28 @@ class QCMApp(QMainWindow):
         )  # set layout margins (left, top, right, bottom)
         vbox.addWidget(widget)
         return vbox
+
+    def optimize_treewidget_columns(self):
+        """Configure TreeWidget columns to prevent label truncation.
+
+        Column 0 (labels): ResizeToContents ensures labels are never cut off
+        Column 1 (widgets): Stretch fills remaining space for controls
+        """
+        from PyQt6.QtWidgets import QHeaderView
+
+        treewidgets = [
+            self.ui.treeWidget_settings_settings_harmtree,
+            self.ui.treeWidget_settings_data_refs,
+            self.ui.treeWidget_settings_settings_hardware,
+            self.ui.treeWidget_settings_settings_plots,
+        ]
+
+        for tree in treewidgets:
+            header = tree.header()
+            # Column 0 (labels): resize to fit content so text is never truncated
+            header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
+            # Column 1 (widgets): stretch to fill remaining space
+            header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
 
     ########## action functions ##############
     # @pyqtSlot['bool']
