@@ -898,6 +898,14 @@ def _solve_ll_delfstar(
     """
     delfstar = jnp.asarray(delfstar_init, dtype=jnp.complex128)
 
+    # T045 (012-jax-perf): Use JAX autodiff for Jacobian instead of finite differences
+    # Create a wrapper that splits complex delfstar into real/imag for autodiff
+    def _zmot_real_imag(df_real: float, df_imag: float) -> tuple[float, float]:
+        """Wrapper for autodiff: takes real/imag of delfstar, returns real/imag of Zmot."""
+        df_complex = df_real + 1j * df_imag
+        zmot = calc_Zmot(n, layers, df_complex, f1, calctype, refh, g0)
+        return float(jnp.real(zmot)), float(jnp.imag(zmot))
+
     for _ in range(max_iter):
         Zmot = calc_Zmot(n, layers, delfstar, f1, calctype, refh, g0)
         Zmot_mag = jnp.abs(Zmot)
@@ -905,21 +913,23 @@ def _solve_ll_delfstar(
         if Zmot_mag < tol:
             break
 
-        # Newton step using finite differences
-        eps = 1e-8 * jnp.maximum(1.0, jnp.abs(delfstar))
-        Zmot_plus_real = calc_Zmot(n, layers, delfstar + eps, f1, calctype, refh, g0)
-        Zmot_plus_imag = calc_Zmot(
-            n, layers, delfstar + eps * 1j, f1, calctype, refh, g0
-        )
+        # T045: Compute Jacobian using JAX autodiff
+        df_real = float(jnp.real(delfstar))
+        df_imag = float(jnp.imag(delfstar))
 
-        dZmot_dreal = (Zmot_plus_real - Zmot) / eps
-        dZmot_dimag = (Zmot_plus_imag - Zmot) / eps
+        # Partial derivatives with respect to real part of delfstar
+        jac_fn_real = jax.jacfwd(_zmot_real_imag, argnums=0)
+        dZr_dr, dZi_dr = jac_fn_real(df_real, df_imag)
 
-        # Jacobian matrix
+        # Partial derivatives with respect to imaginary part of delfstar
+        jac_fn_imag = jax.jacfwd(_zmot_real_imag, argnums=1)
+        dZr_di, dZi_di = jac_fn_imag(df_real, df_imag)
+
+        # Jacobian matrix [[dZr/dr, dZr/di], [dZi/dr, dZi/di]]
         J = jnp.array(
             [
-                [jnp.real(dZmot_dreal), jnp.real(dZmot_dimag)],
-                [jnp.imag(dZmot_dreal), jnp.imag(dZmot_dimag)],
+                [dZr_dr, dZr_di],
+                [dZi_dr, dZi_di],
             ],
             dtype=jnp.float64,
         )
