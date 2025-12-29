@@ -3,27 +3,31 @@ Physics Core Module for RheoQCM (Layer 1)
 
 This module contains pure-JAX implementations of all QCM physics equations.
 All functions are designed to be:
-    - Stateless (no side effects)
-    - JIT-compilable with @jax.jit
-    - Vectorizable with jax.vmap for batch processing
-    - GPU-acceleratable when hardware is available
+
+- Stateless (no side effects)
+- JIT-compilable with @jax.jit
+- Vectorizable with jax.vmap for batch processing
+- GPU-acceleratable when hardware is available
 
 Physics models included:
-    - Sauerbrey equations for mass loading
-    - Small Load Approximation (SLA) equations
-    - Kotula model for viscoelastic films
-    - Complex modulus calculations (G*, G', G'')
-    - Utility functions replacing scipy (find_peaks, interpolation, filtering)
+
+- Sauerbrey equations for mass loading
+- Small Load Approximation (SLA) equations
+- Kotula model for viscoelastic films
+- Complex modulus calculations (G*, G', G'')
+- Utility functions replacing scipy (find_peaks, interpolation, filtering)
 
 Constants:
-    - Zq: Acoustic impedance of quartz (8.84e6 Pa.s/m)
-    - f1_default: Default fundamental frequency (5e6 Hz)
-    - Electrode, water, and air default properties
+
+- Zq: Acoustic impedance of quartz (8.84e6 Pa.s/m)
+- f1_default: Default fundamental frequency (5e6 Hz)
+- Electrode, water, and air default properties
 
 NaN/Inf Handling (T018):
-    - check_finite: Check if array contains finite values
-    - propagate_nan: Propagate NaN through calculation conditionally
-    - safe_divide: Division with protection against inf/nan
+
+- check_finite: Check if array contains finite values
+- propagate_nan: Propagate NaN through calculation conditionally
+- safe_divide: Division with protection against inf/nan
 
 Note: All functions use jax.numpy exclusively. No scipy or numpy imports.
 

@@ -26,7 +26,7 @@ All functions are designed to be:
 
 Notes:
     - All phi values are in RADIANS (not degrees)
-    - Layer dict uses 'grho' (not 'grho3') for |G*|*rho at reference harmonic
+    - Layer dict uses 'grho' (not 'grho3') for abs(G*)*rho at reference harmonic
     - Reference harmonic is stored in layer['n'] if provided
     - drho = np.inf indicates a semi-infinite (bulk) layer
 

@@ -1,47 +1,35 @@
 """
-module for saving data:
-initiating file
-appending scans
-searching path
-deleting dataset
-reading dataset
+DataSaver manages persistent QCM data storage in HDF5 files.
 
-Data format: HDF5
-This module use a h5py library to store the data in group and dataset
-You can browse the data with hdf5 UI software e.g. HDFCompass if you
-don't want to extract the data with code.
-dictionaries and dataframes are converted to json and are saved as text in the file
+Responsibilities include:
 
-.h5 -|- raw -|- samp -|-0-|-1(harmonic)-|-column 1: frequency   (f)
-     |       |        |   |             |-column 2: conductance (G)
-     |       |        |   |             --column 3: susceptance (B)
-     |       |        |   |-3
-     |       |        |   |-5
-     |       |        |   --...
-     |       |        |-1
-     |       |        |-2
-     |       |        --...
-     |       |
-     |       -- ref  ---0
-     |                |-1
-     |                |-2
-     |                --...
-     |
-     |- data-|-samp (json)
-     |       |-ref  (json)
-     |       --...
-     |
-     |- prop-|-samp--<e.g. 353_3 (named by solving combination and reference harmonic)> (json)
-     |       |     |
-     |       |     --...
-     |       |
-     |       --ref--...
-     |
-     |-exp_ref       (json) # reference setting information
-     |
-     |-settings      (json) # UI settings (it can be loaded to set the UI)
-     |
-     --config_default (json) # maximum harmonic and time string format for the collected data
+- Creating new data files
+- Appending scans and reference data
+- Reading/deleting datasets
+
+Data format notes:
+
+- Uses the `h5py` library for HDF5 groups and datasets
+- Dictionaries/dataframes are serialized to JSON and stored as text
+
+HDF5 layout (simplified):
+
+::
+
+    .h5/
+    |-- raw/
+    |   |-- samp/0/1/  (freq, conductance, susceptance columns)
+    |   |-- samp/0/3/
+    |   `-- ref/0/...
+    |-- data/
+    |   |-- samp.json
+    |   `-- ref.json
+    |-- prop/
+    |   |-- samp/<e.g. 353_3>.json
+    |   `-- ref/...
+    |-- exp_ref.json
+    |-- settings.json
+    `-- config_default.json
 """
 
 import csv
@@ -86,9 +74,9 @@ class DataSaver:
         self.mode = ""  # mode of datasaver 'init': new file; 'load': append/load file
         self.path = ""
         self.saveflg = True  # flag to show if modified data has been saved to file
-        self.refflg = {
-            chn_name: False for chn_name in self._chn_keys
-        }  # flag if the reference has been set
+        self.refflg = dict.fromkeys(
+            self._chn_keys, False
+        )  # flag if the reference has been set
         self.queue_list = []
         # following attributes will be save in file
         # self.settings = {}
