@@ -26,7 +26,7 @@ if not _SUPPRESS_DEPRECATION:
         "  from rheoQCM.core.model import QCMModel\n"
         "  from rheoQCM.core.analysis import batch_analyze_vmap\n"
         "  from rheoQCM.core import sauerbreyf, sauerbreym, grho\n"
-        "See docs/migration.md for the full migration guide.\n"
+        "See docs/source/migration.md for the full migration guide.\n"
         "To suppress: set QCMFUNCS_SUPPRESS_DEPRECATION=1",
         FutureWarning,
         stacklevel=2,
