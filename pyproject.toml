@@ -116,6 +116,7 @@ dev = [
     "ipython>=8.26.0",
     "jupyter>=1.0.0",
     "build>=1.2.0",
+    "twine>=6.0.0",
 ]
 gui = [
     "PyQt6>=6.6.0",
@@ -152,10 +153,9 @@ rheoqcm-gui = "rheoQCM.main:main"
 [tool.uv]
 # UV-specific configuration
 package = true
-
-[tool.uv.sources]
-# Local path for NLSQ development
-nlsq = { path = "/home/wei/Documents/GitHub/NLSQ", editable = true }
+# NOTE: For local NLSQ development, create .uv/uv.toml with:
+#   [sources]
+#   nlsq = { path = "/path/to/NLSQ", editable = true }
 
 [tool.setuptools.packages.find]
 where = ["src"]

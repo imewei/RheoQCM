@@ -131,6 +131,7 @@ Pipfile.lock
 
 # UV
 uv.lock
+.uv/
 
 # Poetry
 poetry.lock
