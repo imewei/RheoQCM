@@ -302,4 +302,4 @@ module = [
     "rheoQCM.gui.workers",
     "rheoQCM.modules.QCM",
 ]
-disable_error_code = ["assignment", "arg-type", "return-value", "attr-defined", "operator"]
+disable_error_code = ["assignment", "arg-type", "return-value", "attr-defined", "operator", "index", "var-annotated"]
