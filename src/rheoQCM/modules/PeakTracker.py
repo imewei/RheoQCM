@@ -521,6 +521,36 @@ def guess_peak_factors(freq, resonance):
 
 
 class PeakTracker:
+    """
+    Tracks QCM resonance peaks across multiple harmonics.
+
+    PeakTracker manages the peak fitting workflow for QCM resonance data,
+    including peak detection, Lorentzian fitting, and parameter extraction.
+
+    Parameters
+    ----------
+    max_harm : int
+        Maximum harmonic number to track (odd harmonics only).
+
+    Attributes
+    ----------
+    harminput : dict
+        Input data organized by channel ('samp', 'ref') and harmonic.
+    harmoutput : dict
+        Fitting results organized by channel and harmonic.
+    active_harm : str or None
+        Currently selected harmonic for fitting.
+    active_chn : str or None
+        Currently selected channel ('samp' or 'ref').
+
+    Examples
+    --------
+    >>> tracker = PeakTracker(max_harm=13)
+    >>> tracker.update_input('samp', '3', harmdata=data, freq_span=span, fGB=fGB)
+    >>> tracker.process_data('samp', '3', t=0.0)
+    >>> result = tracker.harmoutput['samp']['3']
+    """
+
     def __init__(self, max_harm):
         self.max_harm = max_harm
         self.harminput = self.init_harmdict()
@@ -599,16 +629,16 @@ class PeakTracker:
         )
         self.harminput[chn_name][harm]["n"] = harm_dict.get("spinBox_peaks_num", None)
 
-        if harm_dict.get("radioButton_peaks_num_max", None) == True:
+        if harm_dict.get("radioButton_peaks_num_max", None):
             self.harminput[chn_name][harm]["n_policy"] = "max"
-        elif harm_dict.get("radioButton_peaks_num_fixed", None) == True:
+        elif harm_dict.get("radioButton_peaks_num_fixed", None):
             self.harminput[chn_name][harm]["n_policy"] = "fixed"
         else:
             self.harminput[chn_name][harm]["n_policy"] = None
 
-        if harm_dict.get("radioButton_peaks_policy_minf", None) == True:
+        if harm_dict.get("radioButton_peaks_policy_minf", None):
             self.harminput[chn_name][harm]["p_policy"] = "minf"
-        elif harm_dict.get("radioButton_peaks_policy_maxamp", None) == True:
+        elif harm_dict.get("radioButton_peaks_policy_maxamp", None):
             self.harminput[chn_name][harm]["p_policy"] = "maxamp"
         else:
             self.harminput[chn_name][harm]["p_policy"] = None
@@ -1111,7 +1141,7 @@ class PeakTracker:
                 factor_set_list.append(set(np.arange(ind_min, ind_max)))
 
             idx_list = list(set().union(*factor_set_list))
-            factor_mask = [True if i in idx_list else False for i in np.arange(len(f))]
+            [True if i in idx_list else False for i in np.arange(len(f))]
 
             self.update_output(
                 chn_name=chn_name,
@@ -1531,8 +1561,8 @@ class PeakTracker:
         popt = result.popt
         pcov = result.pcov
 
-        x_stacked = np.concatenate([f, f])
-        y_data = np.concatenate([G, B])
+        np.concatenate([f, f])
+        np.concatenate([G, B])
 
         f_pred = np.linspace(f.min(), f.max(), 200)
         x_pred = np.concatenate([f_pred, f_pred])

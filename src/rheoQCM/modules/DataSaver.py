@@ -50,9 +50,66 @@ logger = logging.getLogger(__name__)
 
 
 class DataSaver:
+    """
+    Manages persistent QCM data storage in HDF5 format.
+
+    DataSaver provides a comprehensive interface for:
+
+    - Creating and loading HDF5 data files
+    - Storing raw frequency scan data (conductance, susceptance)
+    - Managing sample and reference channel data
+    - Persisting calculated mechanical properties
+    - Exporting data to Excel format
+
+    Parameters
+    ----------
+    ver : str, optional
+        Version string stored in the data file metadata.
+    settings : dict, optional
+        Configuration dictionary with hardware and experiment settings.
+
+    Attributes
+    ----------
+    samp : pd.DataFrame
+        Sample channel data (queue_id, time, frequency shifts).
+    ref : pd.DataFrame
+        Reference channel data.
+    samp_prop : dict
+        Calculated mechanical properties for sample channel.
+        Keys are harmonic combinations like '353', values are DataFrames.
+    raw : dict
+        Most recent raw scan data before processing.
+    path : str
+        Path to the current HDF5 file.
+    saveflg : bool
+        True if all changes have been saved to disk.
+
+    Examples
+    --------
+    Create a new data file:
+
+    >>> ds = DataSaver(ver="1.0")
+    >>> ds.init_file("/path/to/data.h5")
+    >>> ds.append_data(queue_id=0, data_dict=scan_data)
+    >>> ds.save_to_file()
+
+    Load existing data:
+
+    >>> ds = DataSaver()
+    >>> ds.load_file("/path/to/existing.h5")
+    >>> df = ds.samp  # Access sample channel data
+    """
+
     def __init__(self, ver="", settings=None):
         """
-        initial values are for initialize the module outside of UI
+        Initialize DataSaver with optional version and settings.
+
+        Parameters
+        ----------
+        ver : str, optional
+            Version string for file metadata.
+        settings : dict, optional
+            Configuration dictionary. Defaults to empty dict.
         """
         if settings is None:
             settings = {}
@@ -159,7 +216,10 @@ class DataSaver:
         func_list = []  # list of funcs
         func_f_list = []  # func for all freq
         func_g_list = []  # func for all gamma
-        nan_func = lambda temp: np.array([np.nan] * len(temp))
+
+        def nan_func(temp):
+            return np.array([np.nan] * len(temp))
+
         for _ in range(1, self.settings["max_harmonic"] + 2, 2):  # calculate each harm
             func_f_list.append(nan_func)  # add a func return nan
             func_g_list.append(nan_func)  # add a func return nan
@@ -437,12 +497,10 @@ class DataSaver:
             )  # TODO add checking marker != -1
             queue_ref_data = self.ref.queue_id.values
             self.queue_list = sorted(
-                list(
-                    set(queue_samp_data)
-                    | set(queue_ref_data)
-                    | set(queue_samp_raw)
-                    | set(queue_ref_raw)
-                )
+                set(queue_samp_data)
+                | set(queue_ref_data)
+                | set(queue_samp_raw)
+                | set(queue_ref_raw)
             )
 
             # calculate func which cannot be saved in file
@@ -464,9 +522,9 @@ class DataSaver:
             key_list = list(fh.keys())
             attr_list = list(fh.attrs)
 
-        if set(["data", "exp_ref", "raw", "settings"]).issubset(key_list) and set(
-            ["ver"]
-        ).issubset(attr_list):
+        if {"data", "exp_ref", "raw", "settings"}.issubset(key_list) and {
+            "ver"
+        }.issubset(attr_list):
             return True
         else:
             return False
@@ -491,7 +549,7 @@ class DataSaver:
                         settings[key] = val
 
                 settings["max_harmonic"] = 9
-                ver = fh.attrs["ver"]
+                fh.attrs["ver"]
             return settings
         except (OSError, KeyError, ValueError, json.JSONDecodeError) as e:
             logger.warning("Failed to load settings: %s\nPlease check data file.", e)
@@ -1441,13 +1499,13 @@ class DataSaver:
         logger.info(df.head())
 
         # drop columns with all
-        if dropnancolumn == True:
+        if dropnancolumn:
             df = df.dropna(axis="columns", how="all")
             if "temp" not in df.columns:  # no temperature data
                 df["temp"] = np.nan  # add temp column back
         logger.info(df.head())
 
-        if dropnanmarkrow == True:  # keep rows with marks only
+        if dropnanmarkrow:  # keep rows with marks only
             # select rows with marks
             logger.info("reshape_data_df: dropnanmarkrow = True")
             df = df[self.rows_with_marks(chn_name)][:]
@@ -1553,11 +1611,11 @@ class DataSaver:
         logger.info(df.head())
 
         # drop columns with all
-        if dropnancolumn == True:
+        if dropnancolumn:
             df = df.dropna(axis="columns", how="all")
         logger.info(df.head())
 
-        if dropnanmarkrow == True:  # rows with marks only
+        if dropnanmarkrow:  # rows with marks only
             # select rows with marks
             df = df[self.rows_with_marks(chn_name)][:]
             # logger.info(df)
@@ -1646,7 +1704,7 @@ class DataSaver:
         """
         return rows with marks of df from self.get_t_s
         """
-        if dropnanmarkrow == True:
+        if dropnanmarkrow:
             return self.get_t_by_unit(chn_name, unit=unit)[
                 [self.rows_with_marks(chn_name)]
             ]
@@ -1707,7 +1765,7 @@ class DataSaver:
         """
         return rows with marks of df from self.get_queue_id
         """
-        if dropnanmarkrow == True:
+        if dropnanmarkrow:
             return self.get_queue_id(chn_name)[self.rows_with_marks(chn_name)]
         else:
             return self.get_queue_id(chn_name)
@@ -1738,7 +1796,7 @@ class DataSaver:
         """
         return rows with marks of df from self.get_queue_id
         """
-        if dropnanmarkrow == True:
+        if dropnanmarkrow:
             return self.get_idx(chn_name)[self.rows_with_marks(chn_name)]
         else:
             return self.get_idx(chn_name)
@@ -1754,7 +1812,7 @@ class DataSaver:
         """
         return rows with marks of df from self.get_temp_C
         """
-        if dropnanmarkrow == True:
+        if dropnanmarkrow:
             return self.get_temp_by_unit(chn_name, unit=unit)[
                 self.rows_with_marks(chn_name)
             ]
@@ -1832,7 +1890,7 @@ class DataSaver:
         cols_df = self.get_list_column_to_columns(
             chn_name, col, mark=mark, deltaval=deltaval, norm=norm
         )
-        if dropnanmarkrow == True:
+        if dropnanmarkrow:
             return cols_df[[self.rows_with_marks(chn_name)]][:]
         else:
             return cols_df
@@ -1867,7 +1925,7 @@ class DataSaver:
         return: df with columns = ['x1', 'x3', 'x5', 'x7', 'x9]
         """
 
-        if deltaval == True:
+        if deltaval:
             s = self.convert_col_to_delta_val(chn_name, col, norm=norm)
             # logger.info(s)
             col = "del" + col  # change column names to 'delfs' or 'delgs'
@@ -1878,7 +1936,7 @@ class DataSaver:
         else:
             s = getattr(self, chn_name)[col].copy()
 
-        if mark == False:
+        if not mark:
             return pd.DataFrame(s.values.tolist(), s.index).rename(
                 columns=lambda x: col[:-1] + str(x * 2 + 1)
             )
@@ -1918,7 +1976,7 @@ class DataSaver:
         return rows with marks of mech_df from self.get_mech_column_to_columns
         """
         cols_df = self.get_mech_column_to_columns(chn_name, mech_key, col, mark=mark)
-        if dropnanmarkrow == True:
+        if dropnanmarkrow:
             return cols_df[[self.rows_with_marks(chn_name)]][:]
         else:
             return cols_df
@@ -1954,7 +2012,7 @@ class DataSaver:
         logger.info("mech_s %s", s.values.tolist()[0])
         logger.info("mech_s %s", type(s.values.tolist()[0]))
 
-        if mark == False:
+        if not mark:
             return pd.DataFrame(s.values.tolist(), s.index).rename(
                 columns=lambda x: col + str(x * 2 + 1)
             )
@@ -2141,10 +2199,12 @@ class DataSaver:
 
         # check idx_list structure
         logger.info("idx_list %s", idx_list)
-        if any([isinstance(l, list) for l in idx_list]):  # idx_list is list of lists
+        if any(
+            isinstance(idx_item, list) for idx_item in idx_list
+        ):  # idx_list is list of lists
             idx_list_opened = []
-            for l in idx_list:
-                idx_list_opened.extend(l)
+            for idx_item in idx_list:
+                idx_list_opened.extend(idx_item)
         else:
             idx_list_opened = idx_list
         logger.info("idx_list_opened %s", idx_list_opened)
@@ -2234,11 +2294,13 @@ class DataSaver:
 
                 # check if all elements in self.exp_ref.<chn_name>_ref[1] is list
                 if all(
-                    [isinstance(l, list) for l in self.exp_ref[chn_name + "_ref"][1]]
+                    isinstance(idx_item, list)
+                    for idx_item in self.exp_ref[chn_name + "_ref"][1]
                 ):  # all list
                     reference_idx = self.exp_ref[chn_name + "_ref"][1]
                 elif all(
-                    [isinstance(l, int) for l in self.exp_ref[chn_name + "_ref"][1]]
+                    isinstance(idx_item, int)
+                    for idx_item in self.exp_ref[chn_name + "_ref"][1]
                 ):  # all int
                     reference_idx = [
                         self.exp_ref[chn_name + "_ref"][1]
@@ -2288,7 +2350,8 @@ class DataSaver:
                     # for version <= 0.18
                     # Save to self.exp_ref[chn_name]
                     if all(
-                        [isinstance(l, int) for l in self.exp_ref[chn_name + "_ref"][1]]
+                        isinstance(idx_item, int)
+                        for idx_item in self.exp_ref[chn_name + "_ref"][1]
                     ):  # all int.
                         self.exp_ref[chn_name]["f0"] = func_f_list
                         self.exp_ref[chn_name]["g0"] = func_g_list
@@ -2357,11 +2420,13 @@ class DataSaver:
 
                 # check if all elements in self.exp_ref.<chn_name>_ref[1] is list
                 if all(
-                    [isinstance(l, list) for l in self.exp_ref[chn_name + "_ref"][1]]
+                    isinstance(idx_item, list)
+                    for idx_item in self.exp_ref[chn_name + "_ref"][1]
                 ):  # all list
                     reference_idx = self.exp_ref[chn_name + "_ref"][1]
                 elif all(
-                    [isinstance(l, int) for l in self.exp_ref[chn_name + "_ref"][1]]
+                    isinstance(idx_item, int)
+                    for idx_item in self.exp_ref[chn_name + "_ref"][1]
                 ):  # all int
                     reference_idx = [
                         self.exp_ref[chn_name + "_ref"][1]
@@ -2522,9 +2587,9 @@ class DataSaver:
 
                 # check if all elements in self.exp_ref.samp_ref[1] is list
                 chn_idx = self.get_chn_idx_in_exp_ref(chn_name)
-                if all([isinstance(l, list) for l in chn_idx]):  # all list
+                if all(isinstance(idx_item, list) for idx_item in chn_idx):  # all list
                     film_idx = chn_idx
-                elif all([isinstance(l, int) for l in chn_idx]):  # all int
+                elif all(isinstance(idx_item, int) for idx_item in chn_idx):  # all int
                     film_idx = [chn_idx]  # put into a list
                 else:
                     logger.warning("Check sample reference index!")
@@ -2573,9 +2638,9 @@ class DataSaver:
 
                 # check if all elements in self.exp_ref.samp_ref[1] is list
                 chn_idx = self.get_chn_idx_in_exp_ref(chn_name)
-                if all([isinstance(l, list) for l in chn_idx]):  # all list
+                if all(isinstance(idx_item, list) for idx_item in chn_idx):  # all list
                     film_idx = chn_idx
-                elif all([isinstance(l, int) for l in chn_idx]):  # all int
+                elif all(isinstance(idx_item, int) for idx_item in chn_idx):  # all int
                     film_idx = [chn_idx]  # put into a list
                 else:
                     logger.warning("Check sample reference index!")
@@ -2881,12 +2946,12 @@ class DataSaver:
             )  # set the marks to nan
             # set fs, gs to nan
             df_chn.fs[idx] = df_chn.fs[idx].apply(
-                lambda x: [
+                lambda x, harm=harm: [
                     np.nan if str(i * 2 + 1) in harm else val for i, val in enumerate(x)
                 ]
             )  # set all to nan. May not necessary
             df_chn.gs[idx] = df_chn.gs[idx].apply(
-                lambda x: [
+                lambda x, harm=harm: [
                     np.nan if str(i * 2 + 1) in harm else val for i, val in enumerate(x)
                 ]
             )  # set all to nan. May not necessary
@@ -3107,16 +3172,20 @@ class DataSaver:
                         logger.info("col_arr %s", col_arr)
                         logger.info("col_mean %s", col_mean)
                         df[col] = df[col].apply(
-                            lambda x: list(col_mean)
+                            lambda x, col_mean=col_mean: list(col_mean)
                         )  # save back to all rows
                     elif (
                         mode["temp"] == "var"
                     ):  # single crystal and variable temperature
                         ## calc interp fun
                         # check if all elements in self.exp_ref.ref_ref[1] is list
-                        if all([isinstance(l, list) for l in idx_b]):  # all list
+                        if all(
+                            isinstance(idx_item, list) for idx_item in idx_b
+                        ):  # all list
                             pass
-                        elif all([isinstance(l, int) for l in idx_b]):  # all int
+                        elif all(
+                            isinstance(idx_item, int) for idx_item in idx_b
+                        ):  # all int
                             idx_b = [idx_b]  # put into a list
                         else:
                             logger.warning("Check index format!")
@@ -3172,15 +3241,19 @@ class DataSaver:
                                         )
                                     )
                             func_list.append(
-                                lambda temp: [
+                                lambda temp, func_seg_list=func_seg_list: [
                                     func_seg(temp) for func_seg in func_seg_list
                                 ]
                             )
 
                         # check if all elements in self.exp_ref.samp_ref[1] is list
-                        if all([isinstance(l, list) for l in idx_a]):  # all list
+                        if all(
+                            isinstance(idx_item, list) for idx_item in idx_a
+                        ):  # all list
                             pass
-                        elif all([isinstance(l, int) for l in idx_a]):  # all int
+                        elif all(
+                            isinstance(idx_item, int) for idx_item in idx_a
+                        ):  # all int
                             idx_a = [idx_a]  # put into a list
                         else:
                             logger.warning("Check index format!")
@@ -3374,7 +3447,7 @@ class DataSaver:
             logger.warning("Number of harmonic columns are incorrect!")
             return
         else:  # even length
-            num_list = sorted(list(set(num_list)))  # remove the duplicated numbers
+            num_list = sorted(set(num_list))  # remove the duplicated numbers
 
         base_num = num_list[0]  # the smallest number is considered as the base number
         logger.info("base_num %s", base_num)
