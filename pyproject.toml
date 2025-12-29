@@ -6,24 +6,35 @@
 # ============================================================================
 # Default: CPU-only JAX (works on ALL platforms: Linux, macOS, Windows)
 #
-# For GPU acceleration (Linux + CUDA 12.1-12.9 ONLY):
+# For GPU acceleration (Linux + NVIDIA GPU + System CUDA):
+#
+#   Prerequisites:
+#     - System CUDA 12.x or 13.x installed (nvcc in PATH)
+#     - NVIDIA GPU with SM >= 5.2 (Maxwell or newer)
 #
 #   Quick install (from repository):
-#     make install-jax-gpu
+#     make install-jax-gpu          # Auto-detect system CUDA version
+#     make install-jax-gpu-cuda13   # Force CUDA 13 (requires system CUDA 13.x)
+#     make install-jax-gpu-cuda12   # Force CUDA 12 (requires system CUDA 12.x)
 #
-#   Manual install:
+#   Manual install (uses system CUDA):
 #     pip uninstall -y jax jaxlib
-#     pip install jax[cuda12-local]==0.8.0 jaxlib==0.8.0
+#     pip install "jax[cuda13-local]"  # If system has CUDA 13.x
+#     pip install "jax[cuda12-local]"  # If system has CUDA 12.x
+#
+#   GPU Compatibility:
+#     CUDA 13 (SM 7.5+): RTX 20xx/30xx/40xx, T4, A100, H100, L40
+#     CUDA 12 (SM 5.2+): GTX 9xx/10xx, P100, V100, plus all CUDA 13 GPUs
 #
 #   Platform support:
-#     - Linux + NVIDIA GPU + CUDA 12.1-12.9: Full GPU acceleration
-#     - macOS: CPU-only (Apple Silicon/Intel, no NVIDIA GPU support)
-#     - Windows: CPU-only (CUDA support experimental/unstable)
+#     - Linux + NVIDIA GPU + System CUDA: Full GPU acceleration
+#     - Windows WSL2: Experimental support (Linux wheels)
+#     - macOS: CPU-only (no NVIDIA support)
+#     - Windows native: CPU-only (no pre-built wheels)
 #
-#   Requirements:
-#     - System CUDA 12.1-12.9 pre-installed (not bundled)
-#     - NVIDIA driver >= 525
-#     - Linux x86_64 or aarch64
+#   Verify your CUDA installation:
+#     nvcc --version        # Should show CUDA 12.x or 13.x
+#     nvidia-smi            # Should show your GPU
 #
 # See README.md for detailed GPU installation guide
 # ============================================================================
@@ -58,15 +69,15 @@ requires-python = ">=3.12"
 
 dependencies = [
     # Core scientific computing
-    "numpy>=2.0.0,<3.0.0",
-    "scipy>=1.14.0,<2.0.0",
-    "pandas>=2.2.0,<3.0.0",
-    "matplotlib>=3.9.0,<4.0.0",
+    "numpy>=2.2.0",
+    "scipy>=1.14.0",
+    "pandas>=2.2.0",
+    "matplotlib>=3.9.0",
 
     # JAX ecosystem (CPU-only by default - works on all platforms)
     # GPU users: see installation instructions above
-    "jax==0.8.0",     # JAX 0.8.0 CPU-only - exact version required
-    "jaxlib==0.8.0",  # jaxlib 0.8.0 CPU-only - must match JAX version exactly
+    "jax>=0.8.0",     # JAX 0.8.0+ - minimum version for CUDA 13 support
+    "jaxlib>=0.8.0",  # jaxlib 0.8.0+ - must be compatible with JAX version
     "optimistix>=0.0.6",  # JAX-native optimization (replaces deprecated jaxopt)
 
     # Curve fitting (replaces lmfit)

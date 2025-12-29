@@ -24,43 +24,182 @@ The analysis portions of the software should work on Windows/Mac/Linux platforms
 
 * Python 3.12+ is required. For data analysis only, it can run with both 32-bit and 64-bit Python. If you want to use the data collection portion with myVNA, 32-bit Python and Windows are required.
 
-### GPU Acceleration (Optional)
+### GPU Acceleration (Linux + System CUDA)
 
-RheoQCM uses JAX for high-performance numerical computations. GPU acceleration is optional but provides 100-200x speedup for large datasets.
+**Performance Impact:** 20-100x speedup for large datasets (>1M points)
 
-**Requirements:**
-- Linux system with NVIDIA GPU
-- CUDA 12.1-12.9 installed
-- cuDNN installed
+**Prerequisites:**
+- NVIDIA GPU with SM >= 5.2 (Maxwell or newer)
+- System CUDA 12.x or 13.x installed
+- `nvcc` in PATH
 
-**Installation:**
+#### Verify Prerequisites
+
 ```bash
-# Quick install using Makefile
-make install-jax-gpu
+# Check CUDA installation
+nvcc --version
+# Should show: Cuda compilation tools, release 12.x or 13.x
 
-# Or manually:
-pip uninstall -y jax jaxlib
-pip install "jax[cuda12-local]>=0.6.0"
-
-# Verify GPU detection
-make gpu-check
+# Check GPU
+nvidia-smi --query-gpu=name,compute_cap --format=csv,noheader
+# Should show: GPU name and SM version (e.g., "8.9" for RTX 4090)
 ```
 
-**Troubleshooting GPU Issues:**
+#### Option 1: Quick Install via Makefile (Recommended)
 
-1. **"No GPU detected"** - Ensure CUDA is properly installed:
-   ```bash
-   nvidia-smi  # Should show your GPU
-   ```
+```bash
+git clone https://github.com/imewei/RheoQCM.git
+cd RheoQCM
 
-2. **"CUDA version mismatch"** - JAX requires CUDA 12.1-12.9. Check your version:
-   ```bash
-   nvcc --version
-   ```
+# Auto-detect system CUDA version and install matching JAX
+make install-jax-gpu
 
-3. **"cuDNN not found"** - Install cuDNN matching your CUDA version from NVIDIA Developer.
+# Or explicitly choose CUDA version:
+make install-jax-gpu-cuda13  # Requires system CUDA 13.x + SM >= 7.5
+make install-jax-gpu-cuda12  # Requires system CUDA 12.x + SM >= 5.2
+```
 
-4. **Fallback to CPU** - If GPU installation fails, JAX will automatically use CPU. The software will still work, but computations will be slower.
+This:
+- Detects your system CUDA version (via nvcc)
+- Validates GPU compatibility
+- Installs the matching `jax[cudaXX-local]` package
+- Verifies GPU detection
+
+#### Option 2: Manual Installation
+
+**For System CUDA 13.x (Turing and newer GPUs):**
+
+```bash
+# Verify you have CUDA 13.x
+nvcc --version  # Should show release 13.x
+
+# Verify GPU supports CUDA 13 (SM >= 7.5)
+nvidia-smi --query-gpu=compute_cap --format=csv,noheader  # Should be >= 7.5
+
+# Install
+pip uninstall -y jax jaxlib
+pip install "jax[cuda13-local]"
+
+# Verify
+python -c "import jax; print('Backend:', jax.default_backend())"
+# Should show: Backend: gpu
+```
+
+**For System CUDA 12.x (Maxwell and newer GPUs):**
+
+```bash
+# Verify you have CUDA 12.x
+nvcc --version  # Should show release 12.x
+
+# Install
+pip uninstall -y jax jaxlib
+pip install "jax[cuda12-local]"
+
+# Verify
+python -c "import jax; print('Backend:', jax.default_backend())"
+```
+
+#### GPU Compatibility Guide
+
+| GPU Generation | Example GPUs | SM Version | CUDA 13 | CUDA 12 |
+|----------------|--------------|------------|---------|---------|
+| Blackwell | B100, B200 | 10.0 | Yes | Yes |
+| Hopper | H100, H200 | 9.0 | Yes | Yes |
+| Ada Lovelace | RTX 40xx, L40 | 8.9 | Yes | Yes |
+| Ampere | RTX 30xx, A100 | 8.x | Yes | Yes |
+| Turing | RTX 20xx, T4 | 7.5 | Yes | Yes |
+| Volta | V100, Titan V | 7.0 | No | Yes |
+| Pascal | GTX 10xx, P100 | 6.x | No | Yes |
+| Maxwell | GTX 9xx, Titan X | 5.x | No | Yes |
+| Kepler | GTX 7xx, K80 | 3.x | No | No |
+
+**Recommendation based on your GPU:**
+- SM >= 7.5 (RTX 20xx or newer): Install CUDA 13 for best performance
+- SM 5.2-7.4 (GTX 9xx/10xx, V100): Install CUDA 12
+
+#### GPU Troubleshooting
+
+**Issue:** "nvcc not found"
+
+**Solution:** CUDA toolkit not installed or not in PATH
+
+```bash
+# Option 1: Install CUDA toolkit
+# Ubuntu/Debian:
+sudo apt install nvidia-cuda-toolkit
+
+# Option 2: Add existing CUDA to PATH
+export PATH=/usr/local/cuda/bin:$PATH
+export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+
+# Add to ~/.bashrc for permanent fix
+```
+
+**Issue:** "CUDA version mismatch"
+
+**Solution:** JAX package must match your system CUDA version
+
+```bash
+# Check your system CUDA version
+nvcc --version
+# Shows: release 12.6 -> use cuda12-local
+# Shows: release 13.x -> use cuda13-local
+
+# Reinstall with correct package
+pip uninstall -y jax jaxlib
+pip install "jax[cuda12-local]"  # or cuda13-local
+```
+
+**Issue:** "GPU SM version doesn't support CUDA 13"
+
+**Solution:** Your GPU is older than Turing architecture
+
+```bash
+# Check SM version
+nvidia-smi --query-gpu=compute_cap --format=csv,noheader
+# If < 7.5, you need CUDA 12
+
+# Install CUDA 12.x toolkit, then:
+pip install "jax[cuda12-local]"
+```
+
+**Issue:** "libcuda.so not found" or similar library errors
+
+**Solution:** CUDA libraries not in LD_LIBRARY_PATH
+
+```bash
+# Add to ~/.bashrc
+export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+
+# Then restart terminal or:
+source ~/.bashrc
+```
+
+#### Platform Support Summary
+
+| Platform | GPU Support | Notes |
+|----------|-------------|-------|
+| Linux x86_64/aarch64 | Full | Requires system CUDA 12.x or 13.x |
+| Windows WSL2 | Experimental | Use Linux wheels |
+| macOS (any) | CPU-only | No NVIDIA support |
+| Windows native | CPU-only | No pre-built wheels |
+
+#### Conda/Mamba Users
+
+RheoQCM works seamlessly in conda environments using pip:
+
+```bash
+conda create -n rheoqcm python=3.12
+conda activate rheoqcm
+pip install rheoQCM
+
+# For GPU acceleration (Linux only)
+git clone https://github.com/imewei/RheoQCM.git
+cd RheoQCM
+make install-jax-gpu  # Auto-detects optimal CUDA version
+```
+
+**Note:** Conda extras syntax is not supported. Use the Makefile or manual pip installation method above.
 
 ### Fallback Behavior
 
