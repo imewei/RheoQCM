@@ -219,6 +219,7 @@ palette = [
 
 try:
     from kww import kwwc, kwws
+
     # kwwc returns: integral from 0 to +infinity dt cos(omega*t) exp(-t^beta)
     # kwws returns: integral from 0 to +infinity dt sin(omega*t) exp(-t^beta)
 except ImportError:

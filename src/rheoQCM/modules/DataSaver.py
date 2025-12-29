@@ -1153,9 +1153,11 @@ class DataSaver:
 
                 for col in col_endswith_s:
                     df[col] = df[col].apply(
-                        lambda row: self.nan_harm_list()
-                        if row is None
-                        else [np.nan if x is None else x for x in row]
+                        lambda row: (
+                            self.nan_harm_list()
+                            if row is None
+                            else [np.nan if x is None else x for x in row]
+                        )
                     )
                     # df[col] = df[col].apply(lambda row: [np.nan if x is None else x for x in row])
                     df[col] = df[col].apply(
@@ -1181,9 +1183,11 @@ class DataSaver:
                     for col in cols:
                         # logger.info('%s \n %s', col, df[col])
                         df[col] = df[col].apply(
-                            lambda row: self.nan_harm_list()
-                            if row is None
-                            else [np.nan if x is None else x for x in row]
+                            lambda row: (
+                                self.nan_harm_list()
+                                if row is None
+                                else [np.nan if x is None else x for x in row]
+                            )
                         )
                         df[col] = df[col].apply(
                             lambda row: [
@@ -2866,9 +2870,13 @@ class DataSaver:
         # df_new.marks.loc[idx].apply(mark_func)
         df_new.marks.loc[idx] = df_new.marks.loc[idx].apply(
             lambda x: [
-                mark_val
-                if (str(i * 2 + 1) == harm) and (mark != np.nan) and (mark is not None)
-                else mark
+                (
+                    mark_val
+                    if (str(i * 2 + 1) == harm)
+                    and (mark != np.nan)
+                    and (mark is not None)
+                    else mark
+                )
                 for i, mark in enumerate(x)
             ]
         )

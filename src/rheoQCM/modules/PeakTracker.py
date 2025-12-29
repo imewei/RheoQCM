@@ -984,26 +984,32 @@ class PeakTracker:
                 }
             else:
                 self.peak_guess[i] = {
-                    "amp": self.peak_guess[
-                        self.harmoutput[chn_name][harm]["found_n"] - 1
-                    ]["amp"]
-                    if self.harmoutput[chn_name][harm]["found_n"] > 0
-                    else np.max(self.resonance) - np.min(self.resonance),
+                    "amp": (
+                        self.peak_guess[self.harmoutput[chn_name][harm]["found_n"] - 1][
+                            "amp"
+                        ]
+                        if self.harmoutput[chn_name][harm]["found_n"] > 0
+                        else np.max(self.resonance) - np.min(self.resonance)
+                    ),
                     "cen": self.x[
                         randrange(
                             int(len(self.x) * 0.3), int(len(self.x) * 0.6), self.found_n
                         )
                     ],
-                    "wid": self.peak_guess[
-                        self.harmoutput[chn_name][harm]["found_n"] - 1
-                    ]["wid"]
-                    if self.harmoutput[chn_name][harm]["found_n"] > 0
-                    else (np.max(self.x) - np.min(self.x)) / 10,
-                    "phi": self.peak_guess[
-                        self.harmoutput[chn_name][harm]["found_n"] - 1
-                    ]["phi"]
-                    if self.harmoutput[chn_name][harm]["found_n"] > 0
-                    else 0,
+                    "wid": (
+                        self.peak_guess[self.harmoutput[chn_name][harm]["found_n"] - 1][
+                            "wid"
+                        ]
+                        if self.harmoutput[chn_name][harm]["found_n"] > 0
+                        else (np.max(self.x) - np.min(self.x)) / 10
+                    ),
+                    "phi": (
+                        self.peak_guess[self.harmoutput[chn_name][harm]["found_n"] - 1][
+                            "phi"
+                        ]
+                        if self.harmoutput[chn_name][harm]["found_n"] > 0
+                        else 0
+                    ),
                 }
         self.update_output(chn_name, harm, found_n=self.found_n)
 
@@ -1412,9 +1418,10 @@ class PeakTracker:
 
         self.peak_tracker()
 
-        return self.harmoutput[chn_name][harm]["span"], self.harmoutput[chn_name][harm][
-            "cen_trk"
-        ]
+        return (
+            self.harmoutput[chn_name][harm]["span"],
+            self.harmoutput[chn_name][harm]["cen_trk"],
+        )
 
     def peak_fit(self, chn_name=None, harm=None, components=False):
         """
@@ -1484,16 +1491,20 @@ class PeakTracker:
             if v_fit[key].get("value") is not None:
                 txt = "{}{:.7g}".format(
                     txt,
-                    v_fit[key].get("value") * 180 / np.pi
-                    if key == "phi_rec"
-                    else v_fit[key].get("value"),
+                    (
+                        v_fit[key].get("value") * 180 / np.pi
+                        if key == "phi_rec"
+                        else v_fit[key].get("value")
+                    ),
                 )
             if v_fit[key].get("stderr") is not None:
                 txt = "{} +/- {:.7g}".format(
                     txt,
-                    v_fit[key].get("stderr") * 180 / np.pi
-                    if key == "phi_rec"
-                    else v_fit[key].get("stderr"),
+                    (
+                        v_fit[key].get("stderr") * 180 / np.pi
+                        if key == "phi_rec"
+                        else v_fit[key].get("stderr")
+                    ),
                 )
             buff.append(txt)
         return "\n".join(buff)

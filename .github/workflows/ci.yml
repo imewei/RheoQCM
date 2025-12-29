@@ -30,11 +30,11 @@ jobs:
         uv venv --python ${{ matrix.python-version }}
         uv pip install -e ".[dev]"
 
-    - name: Run Black
-      run: uv run black --check src tests
-
-    - name: Run Ruff
+    - name: Run Ruff lint
       run: uv run ruff check src tests
+
+    - name: Run Ruff format
+      run: uv run ruff format --check src tests
 
     - name: Run MyPy
       run: uv run mypy src/rheoQCM --ignore-missing-imports --no-strict-optional
@@ -64,8 +64,10 @@ jobs:
         uv pip install -e ".[dev]"
 
     - name: Run tests (excluding GUI and hardware)
+      shell: bash
       run: |
         uv run pytest tests -v \
+          -p no:pytest-qt \
           -m "not gui and not hardware" \
           --cov=src/rheoQCM \
           --cov-report=xml \

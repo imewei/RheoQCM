@@ -961,27 +961,27 @@ class QCM:
         for col in cols:
             if any(st in col for st in ["drho", "lamrho", "delrho", "sauerbreyms"]):
                 df[col] = df[col].apply(
-                    lambda x: list(np.array(x) * 1000)
-                    if isinstance(x, list)
-                    else x * 1000
+                    lambda x: (
+                        list(np.array(x) * 1000) if isinstance(x, list) else x * 1000
+                    )
                 )
             elif any(st in col for st in ["grho", "etarho"]):
                 df[col] = df[col].apply(
-                    lambda x: list(np.array(x) / 1000)
-                    if isinstance(x, list)
-                    else x / 1000
+                    lambda x: (
+                        list(np.array(x) / 1000) if isinstance(x, list) else x / 1000
+                    )
                 )
             elif "phi" in col:
                 df[col] = df[col].apply(
-                    lambda x: list(np.rad2deg(x))
-                    if isinstance(x, list)
-                    else np.rad2deg(x)
+                    lambda x: (
+                        list(np.rad2deg(x)) if isinstance(x, list) else np.rad2deg(x)
+                    )
                 )
             elif "D_" in col:
                 df[col] = df[col].apply(
-                    lambda x: list(np.array(x) * 1e6)
-                    if isinstance(x, list)
-                    else x * 1e6
+                    lambda x: (
+                        list(np.array(x) * 1e6) if isinstance(x, list) else x * 1e6
+                    )
                 )
         return df
 

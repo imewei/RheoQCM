@@ -16,5 +16,5 @@ linkify-it-py>=2.0
 # Optional: live-reload development server
 sphinx-autobuild>=2024.0
 
-# Install RheoQCM package (for autodoc)
--e ..
+# Note: RheoQCM package should be installed before these docs deps
+# For local development: pip install -e ".[docs]" or uv pip install -e ".[docs]"

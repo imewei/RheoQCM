@@ -164,6 +164,7 @@ class MatplotlibWidget(QWidget):
                 toolitems = [
                     t for t in NavigationToolbar2QT.toolitems if t[0] in showtoolbar
                 ]
+
         else:
 
             class NavigationToolbar(NavigationToolbar2QT):
