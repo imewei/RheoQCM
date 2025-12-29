@@ -22,9 +22,7 @@ class MockExportService:
         self._supported_formats: list[str] = [".h5", ".hdf5", ".xlsx", ".json"]
         self._exports: list[tuple[Any, Path, str | None]] = []
 
-    def export(
-        self, data: Any, path: Path, format: str | None = None
-    ) -> None:
+    def export(self, data: Any, path: Path, format: str | None = None) -> None:
         """Mock export operation."""
         self._exports.append((data, path, format))
 

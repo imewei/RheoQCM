@@ -79,10 +79,7 @@ class TestPhiEdgeCases:
         }
         ZL = multilayer.calc_ZL(3, layers, 0.0 + 0.0j, 5e6)
 
-        # May produce NaN due to tan(π/2) - this tests current behavior
-        # After US3 fix, should handle gracefully
-        if not np.isfinite(ZL):
-            pytest.xfail("phi=π/2 currently produces NaN - to be fixed in US3")
+        assert np.isfinite(ZL), f"phi=π/2 produced non-finite: {ZL}"
 
     def test_phi_near_pi_over_2(self):
         """Test calculations with phi close to π/2."""
@@ -101,11 +98,7 @@ class TestPhiEdgeCases:
         }
         ZL = multilayer.calc_ZL(3, layers, 0.0 + 0.0j, 5e6)
 
-        # Current behavior: may produce NaN or unexpected results
-        # After US3: should clamp and return finite result with warning
-        # For now, just document current behavior
-        if not np.isfinite(ZL):
-            pytest.xfail("phi>π/2 currently not clamped - to be fixed in US3")
+        assert np.isfinite(ZL), f"phi>π/2 produced non-finite: {ZL}"
 
 
 class TestArctan2EdgeCases:
@@ -135,17 +128,17 @@ class TestArctan2EdgeCases:
         """Test arctan2(positive, 0)."""
         result = jnp.arctan2(1.0, 0.0)
         # Should be π/2
-        assert np.isclose(
-            result, np.pi / 2
-        ), f"arctan2(1, 0) should be π/2, got {result}"
+        assert np.isclose(result, np.pi / 2), (
+            f"arctan2(1, 0) should be π/2, got {result}"
+        )
 
     def test_arctan2_negative_zero(self):
         """Test arctan2(negative, 0)."""
         result = jnp.arctan2(-1.0, 0.0)
         # Should be -π/2
-        assert np.isclose(
-            result, -np.pi / 2
-        ), f"arctan2(-1, 0) should be -π/2, got {result}"
+        assert np.isclose(result, -np.pi / 2), (
+            f"arctan2(-1, 0) should be -π/2, got {result}"
+        )
 
 
 class TestSafeDivideEdgeCases:
@@ -153,14 +146,10 @@ class TestSafeDivideEdgeCases:
 
     def test_divide_by_zero(self):
         """Test that division by zero is handled safely."""
-        # Direct JAX division
-        result = jnp.array(1.0) / jnp.array(0.0)
+        from rheoQCM.core.physics import safe_divide
 
-        # JAX produces inf for 1/0, not NaN
-        # After safe_divide fix, should produce large but finite value
-        # For now, document current behavior
-        if np.isinf(result):
-            pytest.xfail("Direct division by zero produces inf - safe_divide needed")
+        result = safe_divide(jnp.array(1.0), jnp.array(0.0), fill_value=0.0)
+        assert np.isfinite(result), "safe_divide should return finite value"
 
     def test_divide_by_near_zero(self):
         """Test division by very small numbers."""

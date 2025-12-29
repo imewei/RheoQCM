@@ -20,13 +20,16 @@ class TestCustomCalctypeExecution:
         """Create a model with experimental data for testing."""
         self.model = QCMModel(f1=5e6, refh=3)
         # Load typical thin film data
-        self.model.load_delfstars({
-            3: -1000 + 100j,
-            5: -1700 + 180j,
-        })
+        self.model.load_delfstars(
+            {
+                3: -1000 + 100j,
+                5: -1700 + 180j,
+            }
+        )
 
     def test_register_calctype_adds_to_supported(self):
         """Custom calctype appears in supported list after registration."""
+
         def dummy_residual(params, delfstar_exp, harmonics, f1, refh, Zq):
             return jnp.zeros(3)
 
@@ -71,8 +74,7 @@ class TestCustomCalctypeExecution:
 
         # Should NOT see the fallback warning
         fallback_warnings = [
-            r for r in caplog.records
-            if "falling back to SLA" in r.message
+            r for r in caplog.records if "falling back to SLA" in r.message
         ]
         assert len(fallback_warnings) == 0, (
             f"Custom calctype should not fall back to SLA. "
@@ -81,6 +83,7 @@ class TestCustomCalctypeExecution:
 
     def test_custom_calctype_returns_solve_result(self):
         """Custom calctype returns proper SolveResult."""
+
         def valid_residual(params, delfstar_exp, harmonics, f1, refh, Zq):
             return jnp.array([0.0, 0.0, 0.0])
 
@@ -96,6 +99,7 @@ class TestCustomCalctypeExecution:
 
     def test_custom_calctype_with_physics_residual(self):
         """Custom calctype with realistic physics residual produces results."""
+
         def physics_residual(params, delfstar_exp, harmonics, f1, refh, Zq):
             """A simple SLA-like residual for testing."""
             grho_refh = params[0]
@@ -139,6 +143,7 @@ class TestCustomCalctypeErrorHandling:
 
     def test_invalid_residual_returns_failure(self):
         """Custom residual that raises returns failed SolveResult."""
+
         def bad_residual(params, delfstar_exp, harmonics, f1, refh, Zq):
             raise ValueError("Intentional test error")
 
@@ -152,6 +157,7 @@ class TestCustomCalctypeErrorHandling:
 
     def test_nan_residual_handled_gracefully(self):
         """Custom residual returning NaN is handled."""
+
         def nan_residual(params, delfstar_exp, harmonics, f1, refh, Zq):
             return jnp.array([jnp.nan, jnp.nan, jnp.nan])
 

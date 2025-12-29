@@ -282,8 +282,8 @@ class TestFittingEngine:
         rel_err_cen = abs(popt[1] - cen_true) / cen_true
         rel_err_wid = abs(popt[2] - wid_true) / wid_true
 
-        assert rel_err_cen < 0.001, f"cen error {rel_err_cen*100:.4f}% exceeds 0.1%"
-        assert rel_err_wid < 0.001, f"wid error {rel_err_wid*100:.4f}% exceeds 0.1%"
+        assert rel_err_cen < 0.001, f"cen error {rel_err_cen * 100:.4f}% exceeds 0.1%"
+        assert rel_err_wid < 0.001, f"wid error {rel_err_wid * 100:.4f}% exceeds 0.1%"
 
     def test_fitting_with_fixed_phi(self):
         """Test fitting with phi fixed to 0 (zerophase mode)."""
@@ -539,8 +539,8 @@ class TestNumericalValidation:
         rel_err_cen = abs(popt[1] - cen_true) / cen_true
         rel_err_wid = abs(popt[2] - wid_true) / wid_true
 
-        assert rel_err_cen < 0.05, f"cen error {rel_err_cen*100:.2f}% with noisy data"
-        assert rel_err_wid < 0.1, f"wid error {rel_err_wid*100:.2f}% with noisy data"
+        assert rel_err_cen < 0.05, f"cen error {rel_err_cen * 100:.2f}% with noisy data"
+        assert rel_err_wid < 0.1, f"wid error {rel_err_wid * 100:.2f}% with noisy data"
 
 
 # =============================================================================
@@ -723,7 +723,7 @@ class TestEdgeCases:
 
         for fc, tc in zip(fitted_centers, true_centers):
             rel_err = abs(fc - tc) / tc
-            assert rel_err < 0.01, f"Multi-peak center error {rel_err*100:.2f}%"
+            assert rel_err < 0.01, f"Multi-peak center error {rel_err * 100:.2f}%"
 
 
 if __name__ == "__main__":

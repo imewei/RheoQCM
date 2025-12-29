@@ -195,7 +195,9 @@ class TestExcelHandlerEdgeCases:
 
         assert np.isnan(loaded["WithNaN"]["a"].iloc[1])
 
-    def test_dataframe_with_strings(self, handler: ExcelHandler, tmp_path: Path) -> None:
+    def test_dataframe_with_strings(
+        self, handler: ExcelHandler, tmp_path: Path
+    ) -> None:
         """Test handling DataFrame with string values."""
         temp_xlsx = tmp_path / "strings.xlsx"
         df = pd.DataFrame({"name": ["Alice", "Bob"], "value": [1, 2]})

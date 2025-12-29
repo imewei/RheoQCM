@@ -525,9 +525,6 @@ class TestMultilayerCalcDelfstarUS1:
 
             assert np.isfinite(delfstar), f"Non-finite result at n={n}"
 
-    @pytest.mark.xfail(
-        reason="LL calctype Newton-Raphson solver needs tuning for edge cases"
-    )
     def test_multilayer_ll_calctype(self, three_layer_system):
         """Lu-Lewis calctype should work for multi-layer systems."""
         delfstar_sla = calc_delfstar_multilayer(3, three_layer_system, calctype="SLA")
@@ -621,9 +618,9 @@ class TestMultilayerCalcDelfstarUS1:
         delfstar_direct = complex(calc_delfstar_multilayer(n, single_thin_layer))
 
         # Should match for SLA calctype
-        assert np.isclose(
-            delfstar_from_ZL, delfstar_direct, rtol=1e-10
-        ), f"ZL method: {delfstar_from_ZL}, Direct: {delfstar_direct}"
+        assert np.isclose(delfstar_from_ZL, delfstar_direct, rtol=1e-10), (
+            f"ZL method: {delfstar_from_ZL}, Direct: {delfstar_direct}"
+        )
 
     def test_multilayer_voigt_calctype(self, two_layer_system):
         """Voigt calctype should produce different results than SLA."""

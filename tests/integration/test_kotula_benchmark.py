@@ -106,10 +106,10 @@ class TestKotulaBenchmark:
 
         print(f"\nBenchmark results:")
         print(f"  mpmath: {mpmath_time:.3f}s for {n_mpmath} points")
-        print(f"          ({mpmath_time_per_point*1000:.2f}ms/point)")
+        print(f"          ({mpmath_time_per_point * 1000:.2f}ms/point)")
         print(f"          Extrapolated {n_jax} points: {mpmath_extrapolated_time:.1f}s")
         print(f"  JAX:    {jax_time:.4f}s for {n_jax} points")
-        print(f"          ({jax_time/n_jax*1000:.4f}ms/point)")
+        print(f"          ({jax_time / n_jax * 1000:.4f}ms/point)")
         print(f"  Speedup: {speedup:.1f}x")
 
         # Verify numerical consistency on subset
@@ -155,9 +155,9 @@ class TestKotulaBenchmark:
         print(f"  Time/point ratio (10000 vs 100): {ratio:.2f}x")
 
         # Linear scaling means ratio should be close to 1
-        assert (
-            ratio < 5
-        ), f"Scaling is super-linear: {ratio:.2f}x increase in time/point"
+        assert ratio < 5, (
+            f"Scaling is super-linear: {ratio:.2f}x increase in time/point"
+        )
 
     def test_memory_efficiency(self):
         """Memory usage scales linearly with input size (SC-003)."""
@@ -243,7 +243,7 @@ class TestBatchProcessingBenchmark:
         print(f"  GPU available: {gpu_available}")
         print(f"  Measurements: {n_measurements}")
         print(f"  Time: {elapsed:.3f}s")
-        print(f"  Rate: {n_measurements/elapsed:.1f} measurements/s")
+        print(f"  Rate: {n_measurements / elapsed:.1f} measurements/s")
 
         # Verify results
         assert len(result) == n_measurements
@@ -254,15 +254,15 @@ class TestBatchProcessingBenchmark:
         # Performance assertions based on backend
         if backend == "gpu":
             # GPU should be very fast
-            assert (
-                elapsed < 5.0
-            ), f"GPU should process 1000 measurements in <5s, took {elapsed:.2f}s"
+            assert elapsed < 5.0, (
+                f"GPU should process 1000 measurements in <5s, took {elapsed:.2f}s"
+            )
         else:
             # CPU is slower but should still be reasonable
             # Allow 30s for CPU (vmap still provides parallelization benefits)
-            assert (
-                elapsed < 30.0
-            ), f"CPU should process 1000 measurements in <30s, took {elapsed:.2f}s"
+            assert elapsed < 30.0, (
+                f"CPU should process 1000 measurements in <30s, took {elapsed:.2f}s"
+            )
 
     def test_batch_analyze_scaling(self):
         """Test that batch_analyze_vmap scales linearly with batch size."""
@@ -305,7 +305,7 @@ class TestBatchProcessingBenchmark:
 
         print(f"\nBatch scaling ({get_jax_backend()}):")
         for n, t in zip(sizes, times):
-            print(f"  {n:5d} measurements: {t:.4f}s ({n/t:.1f}/s)")
+            print(f"  {n:5d} measurements: {t:.4f}s ({n / t:.1f}/s)")
 
         # Check roughly linear scaling
         time_per_measurement = [t / n for t, n in zip(times, sizes)]
@@ -313,9 +313,9 @@ class TestBatchProcessingBenchmark:
         print(f"  Time/measurement ratio (1000 vs 100): {ratio:.2f}x")
 
         # Allow some overhead for larger batches, but should be roughly linear
-        assert (
-            ratio < 3.0
-        ), f"Scaling is super-linear: {ratio:.2f}x increase in time/measurement"
+        assert ratio < 3.0, (
+            f"Scaling is super-linear: {ratio:.2f}x increase in time/measurement"
+        )
 
     def test_batch_vs_sequential_speedup(self):
         """Test that batch processing is faster than sequential processing."""
@@ -417,9 +417,9 @@ class TestBatchProcessingBenchmark:
 
         # Check that backend info is in messages
         if result.messages:
-            assert any(
-                backend in msg for msg in result.messages
-            ), f"Backend '{backend}' should be mentioned in result messages"
+            assert any(backend in msg for msg in result.messages), (
+                f"Backend '{backend}' should be mentioned in result messages"
+            )
 
         # Report device placement
         devices = jax.devices()

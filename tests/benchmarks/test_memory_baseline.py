@@ -104,9 +104,9 @@ class TestMemoryBaseline:
         )
 
         # Basic sanity check - should not use excessive memory for simple calculation
-        assert (
-            mem["delta_mb"] < 100
-        ), f"calc_ZL used too much memory: {mem['delta_mb']:.1f}MB"
+        assert mem["delta_mb"] < 100, (
+            f"calc_ZL used too much memory: {mem['delta_mb']:.1f}MB"
+        )
 
     def test_solve_properties_memory(self, qcm_model):
         """Measure memory usage of solve_properties."""
@@ -127,9 +127,9 @@ class TestMemoryBaseline:
         )
 
         # Should not use excessive memory
-        assert (
-            mem["delta_mb"] < 100
-        ), f"solve_properties used too much memory: {mem['delta_mb']:.1f}MB"
+        assert mem["delta_mb"] < 100, (
+            f"solve_properties used too much memory: {mem['delta_mb']:.1f}MB"
+        )
 
 
 class TestMemoryThreshold:
@@ -156,8 +156,8 @@ class TestMemoryThreshold:
         # Note: This test is a placeholder - actual implementation would
         # load baselines from file and compare actual measurements
         assert increase_pct <= MEMORY_THRESHOLD or True, (  # Always pass for now
-            f"Memory increased by {increase_pct*100:.1f}% "
-            f"(threshold: {MEMORY_THRESHOLD*100:.0f}%)"
+            f"Memory increased by {increase_pct * 100:.1f}% "
+            f"(threshold: {MEMORY_THRESHOLD * 100:.0f}%)"
         )
 
 

@@ -107,9 +107,9 @@ class TestMultilayerJITSpeedup:
 
     def test_calc_ZL_jit_exists(self):
         """Verify JIT-compiled calc_ZL function exists."""
-        assert hasattr(
-            multilayer, "_calc_ZL_jit"
-        ), "JIT-compiled _calc_ZL_jit should exist"
+        assert hasattr(multilayer, "_calc_ZL_jit"), (
+            "JIT-compiled _calc_ZL_jit should exist"
+        )
 
     def test_calc_ZL_standard_benchmark(self, standard_layers):
         """Benchmark calc_ZL with standard 2-layer case."""
@@ -184,7 +184,7 @@ class TestMultilayerJITSpeedup:
 
         print(f"\ncalc_ZL (harmonic sweep, 5 harmonics):")
         print(f"  mean: {result['mean_ms']:.3f} ms")
-        print(f"  per harmonic: {result['mean_ms']/5:.3f} ms")
+        print(f"  per harmonic: {result['mean_ms'] / 5:.3f} ms")
 
 
 class TestThinFilmGuessJITSpeedup:
@@ -272,9 +272,9 @@ class TestThinFilmGuessJITSpeedup:
         for i, r in enumerate(results[1:], 1):
             for j, (v1, v2) in enumerate(zip(results[0], r)):
                 if np.isfinite(v1) and np.isfinite(v2):
-                    assert np.isclose(
-                        v1, v2, rtol=1e-10
-                    ), f"Result {i} differs at index {j}: {v1} vs {v2}"
+                    assert np.isclose(v1, v2, rtol=1e-10), (
+                        f"Result {i} differs at index {j}: {v1} vs {v2}"
+                    )
 
 
 class TestResidualHoistingSpeedup:

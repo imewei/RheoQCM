@@ -182,9 +182,7 @@ class TestSweepDataGeneration:
 
     def test_frequency_spacing(self, connected_service: MockHardwareService) -> None:
         """Test frequency points are evenly spaced."""
-        result = connected_service.acquire_sweep(
-            f_start=1e6, f_stop=2e6, n_points=11
-        )
+        result = connected_service.acquire_sweep(f_start=1e6, f_stop=2e6, n_points=11)
 
         expected_spacing = (2e6 - 1e6) / 10
         actual_spacing = np.diff(result.frequency)
@@ -207,9 +205,7 @@ class TestSweepDataGeneration:
 
     def test_single_point(self, connected_service: MockHardwareService) -> None:
         """Test single point acquisition."""
-        result = connected_service.acquire_sweep(
-            f_start=5e6, f_stop=5e6, n_points=1
-        )
+        result = connected_service.acquire_sweep(f_start=5e6, f_stop=5e6, n_points=1)
 
         assert len(result.frequency) == 1
         assert result.frequency[0] == 5e6

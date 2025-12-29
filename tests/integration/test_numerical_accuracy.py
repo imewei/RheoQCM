@@ -98,9 +98,9 @@ class TestPhysicsAccuracy:
                 error = abs(r - results[0]) / abs(results[0])
             else:
                 error = abs(r - results[0])
-            assert (
-                error < TOLERANCE
-            ), f"Sauerbrey calculation inconsistent: error={error:.2e}"
+            assert error < TOLERANCE, (
+                f"Sauerbrey calculation inconsistent: error={error:.2e}"
+            )
 
     def test_grho_phi_conversion_roundtrip(self):
         """Test grho/phi conversion roundtrip accuracy."""
@@ -124,9 +124,9 @@ class TestPhysicsAccuracy:
 
         # Check roundtrip accuracy
         error = relative_error(float(grho_back), grho_refh)
-        assert (
-            error < TOLERANCE
-        ), f"grho roundtrip error: {error:.2e} (tolerance: {TOLERANCE:.0e})"
+        assert error < TOLERANCE, (
+            f"grho roundtrip error: {error:.2e} (tolerance: {TOLERANCE:.0e})"
+        )
 
 
 class TestModelAccuracy:
@@ -166,9 +166,9 @@ class TestModelAccuracy:
             for key in ["grho_refh", "phi", "drho"]:
                 if not np.isnan(results[0][key]) and abs(results[0][key]) > 1e-30:
                     error = abs(r[key] - results[0][key]) / abs(results[0][key])
-                    assert (
-                        error < TOLERANCE
-                    ), f"{key} differs between runs: error={error:.2e}"
+                    assert error < TOLERANCE, (
+                        f"{key} differs between runs: error={error:.2e}"
+                    )
 
 
 class TestNumericalStability:

@@ -175,9 +175,9 @@ class TestNoScipyOptimize:
 
         # Check that scipy.optimize is not imported at module level
         # Note: we check for the actual import statement patterns
-        assert (
-            "from scipy import optimize" not in source
-        ), "scipy.optimize should not be imported in QCM.py"
+        assert "from scipy import optimize" not in source, (
+            "scipy.optimize should not be imported in QCM.py"
+        )
 
     def test_no_optimize_root_usage(self) -> None:
         """Test that optimize.root is not used in QCM.py."""
@@ -189,9 +189,9 @@ class TestNoScipyOptimize:
             source = f.read()
 
         # After refactoring, optimize.root should not be present
-        assert (
-            "optimize.root" not in source
-        ), "optimize.root should be replaced with core functions"
+        assert "optimize.root" not in source, (
+            "optimize.root should be replaced with core functions"
+        )
 
     def test_no_optimize_least_squares_usage(self) -> None:
         """Test that optimize.least_squares is not used in QCM.py."""
@@ -202,9 +202,9 @@ class TestNoScipyOptimize:
         with open(qcm_path) as f:
             source = f.read()
 
-        assert (
-            "optimize.least_squares" not in source
-        ), "optimize.least_squares should be replaced with NLSQ/jaxopt"
+        assert "optimize.least_squares" not in source, (
+            "optimize.least_squares should be replaced with NLSQ/jaxopt"
+        )
 
     def test_uses_core_multilayer_for_ll(self) -> None:
         """Test that LL calculation uses core multilayer functions."""
@@ -516,9 +516,9 @@ class TestUIWrapperCodeSize:
             source = f.read()
 
         # Check that core imports are present
-        assert (
-            "from rheoQCM.core" in source or "import rheoQCM.core" in source
-        ), "QCM.py should import from rheoQCM.core"
+        assert "from rheoQCM.core" in source or "import rheoQCM.core" in source, (
+            "QCM.py should import from rheoQCM.core"
+        )
 
         # Count lines of code (excluding comments and blank lines)
         lines = [

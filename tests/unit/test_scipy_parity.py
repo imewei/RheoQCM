@@ -7,6 +7,8 @@ match scipy behavior within specified tolerances.
 Feature: 003-scipy-to-jax
 """
 
+import warnings
+
 import jax
 import jax.numpy as jnp
 import numpy as np
@@ -35,6 +37,11 @@ from rheoQCM.core.signal import (
     find_peaks,
     peak_prominences,
     peak_widths,
+)
+
+warnings.filterwarnings(
+    "ignore",
+    message="some peaks have a prominence of 0",
 )
 
 # =============================================================================
@@ -98,8 +105,7 @@ class TestPeakProminencesParity:
         # Find peaks with scipy
         scipy_peaks, _ = scipy_find_peaks(signal, distance=10)
 
-        if len(scipy_peaks) == 0:
-            pytest.skip("No peaks found in generated signal")
+        assert len(scipy_peaks) > 0, "No peaks found in generated signal"
 
         # Compare prominence calculations
         scipy_proms, scipy_left, scipy_right = scipy_peak_prominences(
@@ -130,7 +136,9 @@ class TestPeakProminencesParity:
         signal = generate_sinusoidal_signal()
         peaks = np.array([12, 37, 62, 87])  # Approximate peak locations
 
-        scipy_result = scipy_peak_prominences(signal, peaks, wlen=wlen)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            scipy_result = scipy_peak_prominences(signal, peaks, wlen=wlen)
         jax_result = peak_prominences(signal, peaks, wlen=wlen)
 
         np.testing.assert_allclose(
@@ -150,8 +158,7 @@ class TestPeakWidthsParity:
         signal = generate_sinusoidal_signal()
         scipy_peaks, _ = scipy_find_peaks(signal)
 
-        if len(scipy_peaks) == 0:
-            pytest.skip("No peaks found")
+        assert len(scipy_peaks) > 0, "No peaks found"
 
         scipy_result = scipy_peak_widths(signal, scipy_peaks, rel_height=rel_height)
         jax_result = peak_widths(signal, scipy_peaks, rel_height=rel_height)

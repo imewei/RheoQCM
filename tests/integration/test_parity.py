@@ -298,9 +298,9 @@ class TestDegreeRadianConversion:
         )
 
         # Should be identical within numerical precision
-        assert np.isclose(
-            legacy_result, core_result, rtol=1e-10
-        ), f"Legacy: {legacy_result}, Core: {core_result}"
+        assert np.isclose(legacy_result, core_result, rtol=1e-10), (
+            f"Legacy: {legacy_result}, Core: {core_result}"
+        )
 
     def test_normdelfstar_degree_input(self):
         """normdelfstar should accept phi in degrees."""
@@ -324,9 +324,9 @@ class TestDegreeRadianConversion:
         legacy_result = legacy_normdelfstar(3, dlam3, phi_deg)
         core_result = complex(core_normdelfstar(3, dlam3, phi_rad))
 
-        assert np.isclose(
-            legacy_result, core_result, rtol=1e-10
-        ), f"Legacy: {legacy_result}, Core: {core_result}"
+        assert np.isclose(legacy_result, core_result, rtol=1e-10), (
+            f"Legacy: {legacy_result}, Core: {core_result}"
+        )
 
     def test_bulk_props_returns_degrees(self):
         """bulk_props should return phi in degrees."""
@@ -414,9 +414,9 @@ class TestParityVerification:
             # This is opposite of the negative delf convention in some literature
             expected = 2 * n * f1_default**2 * drho / Zq
 
-            assert np.isclose(
-                result, expected, rtol=1e-10
-            ), f"sauerbreyf mismatch at n={n}: {result} vs {expected}"
+            assert np.isclose(result, expected, rtol=1e-10), (
+                f"sauerbreyf mismatch at n={n}: {result} vs {expected}"
+            )
 
     def test_sauerbreym_parity(self):
         """sauerbreym should match reference within 1e-10."""
@@ -429,9 +429,9 @@ class TestParityVerification:
             # Analytical formula (inverse of sauerbreyf)
             expected = -delf * Zq / (2 * n * f1_default**2)
 
-            assert np.isclose(
-                result, expected, rtol=1e-10
-            ), f"sauerbreym mismatch at n={n}: {result} vs {expected}"
+            assert np.isclose(result, expected, rtol=1e-10), (
+                f"sauerbreym mismatch at n={n}: {result} vs {expected}"
+            )
 
     def test_grho_parity(self, single_layer_props_degrees):
         """grho should match power law formula within 1e-10."""
@@ -445,9 +445,9 @@ class TestParityVerification:
             # Power law formula
             expected = grho3 * (n / 3) ** (phi_deg / 90)
 
-            assert np.isclose(
-                result, expected, rtol=1e-10
-            ), f"grho mismatch at n={n}: {result} vs {expected}"
+            assert np.isclose(result, expected, rtol=1e-10), (
+                f"grho mismatch at n={n}: {result} vs {expected}"
+            )
 
     def test_calc_delfstar_sauerbrey_limit(self):
         """For thin elastic film, delfstar should match Sauerbrey within tolerance."""
@@ -473,9 +473,9 @@ class TestParityVerification:
             # but delfstar.real is actually negative for mass loading
             # So compare absolute values
             rel_error = abs(abs(delfstar.real) - abs(sauerbrey)) / abs(sauerbrey)
-            assert (
-                rel_error < 0.05
-            ), f"Sauerbrey limit not approached at n={n}: rel_error={rel_error}, delfstar={delfstar}, sauerbrey={sauerbrey}"
+            assert rel_error < 0.05, (
+                f"Sauerbrey limit not approached at n={n}: rel_error={rel_error}, delfstar={delfstar}, sauerbrey={sauerbrey}"
+            )
 
     def test_core_multilayer_parity(self, layers_radians):
         """Core multilayer should match legacy within tolerance."""
@@ -498,9 +498,9 @@ class TestParityVerification:
             # Should match within 1e-10 relative tolerance
             if abs(legacy_result) > 1e-10:
                 rel_error = abs(legacy_result - core_result) / abs(legacy_result)
-                assert (
-                    rel_error < 1e-10
-                ), f"Multilayer parity failed at n={n}: legacy={legacy_result}, core={core_result}"
+                assert rel_error < 1e-10, (
+                    f"Multilayer parity failed at n={n}: legacy={legacy_result}, core={core_result}"
+                )
 
     def test_bulk_props_parity(self):
         """bulk_props should match reference within 1e-10."""
@@ -522,12 +522,12 @@ class TestParityVerification:
                 -np.degrees(2 * np.arctan(delfstar.real / delfstar.imag)), 90
             )
 
-            assert np.isclose(
-                grho_val, expected_grho, rtol=1e-10
-            ), f"bulk_props grho mismatch: {grho_val} vs {expected_grho}"
-            assert np.isclose(
-                phi_val, expected_phi, rtol=1e-10
-            ), f"bulk_props phi mismatch: {phi_val} vs {expected_phi}"
+            assert np.isclose(grho_val, expected_grho, rtol=1e-10), (
+                f"bulk_props grho mismatch: {grho_val} vs {expected_grho}"
+            )
+            assert np.isclose(phi_val, expected_phi, rtol=1e-10), (
+                f"bulk_props phi mismatch: {phi_val} vs {expected_phi}"
+            )
 
 
 # =============================================================================
@@ -560,9 +560,9 @@ class TestGUIvsScriptParity:
         with open(qcm_path) as f:
             source = f.read()
 
-        assert (
-            "from scipy import optimize" not in source
-        ), "QCM.py should not import scipy.optimize"
+        assert "from scipy import optimize" not in source, (
+            "QCM.py should not import scipy.optimize"
+        )
         assert "optimize.root" not in source, "QCM.py should not use optimize.root"
 
     def test_gui_script_sauerbreyf_parity(self):
@@ -761,15 +761,15 @@ class TestDeprecationWarning:
             deprecation_warnings = [
                 x for x in w if issubclass(x.category, DeprecationWarning)
             ]
-            assert (
-                len(deprecation_warnings) > 0
-            ), "No DeprecationWarning emitted on QCM_functions import"
+            assert len(deprecation_warnings) > 0, (
+                "No DeprecationWarning emitted on QCM_functions import"
+            )
 
             # Verify message content
             msg = str(deprecation_warnings[0].message)
-            assert (
-                "deprecated" in msg.lower()
-            ), f"Warning message should mention deprecation: {msg}"
+            assert "deprecated" in msg.lower(), (
+                f"Warning message should mention deprecation: {msg}"
+            )
 
 
 # =============================================================================
@@ -789,14 +789,14 @@ class TestScipyOptimizeRemoval:
         source = inspect.getsource(QCM_functions)
 
         # Check that scipy.optimize is not imported as 'optimize' alias
-        assert (
-            "import scipy.optimize as optimize" not in source
-        ), "scipy.optimize should not be imported as 'optimize'"
+        assert "import scipy.optimize as optimize" not in source, (
+            "scipy.optimize should not be imported as 'optimize'"
+        )
 
         # Check that optimize.least_squares is not used (should use NLSQ instead)
-        assert (
-            "optimize.least_squares" not in source
-        ), "optimize.least_squares should not be used (use NLSQ instead)"
+        assert "optimize.least_squares" not in source, (
+            "optimize.least_squares should not be used (use NLSQ instead)"
+        )
 
 
 if __name__ == "__main__":

@@ -48,7 +48,7 @@ class BenchmarkResult:
         self.max = np.max(times)
 
     def __repr__(self) -> str:
-        return f"{self.name}: {self.mean*1000:.2f}ms (±{self.std*1000:.2f}ms)"
+        return f"{self.name}: {self.mean * 1000:.2f}ms (±{self.std * 1000:.2f}ms)"
 
 
 def simple_benchmark(func, n_iterations: int = 10, warmup: int = 2) -> BenchmarkResult:
@@ -171,9 +171,9 @@ class TestPhase2MutableDefaults:
 
         if mutable_defaults:
             print(f"\nMutable defaults found:\n" + "\n".join(mutable_defaults))
-        assert (
-            len(mutable_defaults) == 0
-        ), f"Found {len(mutable_defaults)} mutable defaults"
+        assert len(mutable_defaults) == 0, (
+            f"Found {len(mutable_defaults)} mutable defaults"
+        )
 
 
 class TestPhase2VectorizedApply:
@@ -261,15 +261,15 @@ class TestPhase3NumericalStability:
 
         # Test division by zero with default fill_value (NaN)
         result = safe_divide(1.0, 0.0)
-        assert jnp.isnan(
-            result
-        ), "safe_divide should return NaN for 1/0 with default fill"
+        assert jnp.isnan(result), (
+            "safe_divide should return NaN for 1/0 with default fill"
+        )
 
         # Test division by zero with custom fill_value
         result = safe_divide(1.0, 0.0, fill_value=0.0)
-        assert jnp.isclose(
-            result, 0.0
-        ), "safe_divide should return 0.0 for 1/0 with fill_value=0"
+        assert jnp.isclose(result, 0.0), (
+            "safe_divide should return 0.0 for 1/0 with fill_value=0"
+        )
         assert not jnp.isinf(result), "safe_divide should not return Inf"
 
         # Test normal division
