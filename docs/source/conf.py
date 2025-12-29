@@ -51,14 +51,26 @@ napoleon_google_docstring = True
 napoleon_numpy_docstring = True
 
 myst_enable_extensions = [
+    "amsmath",
     "colon_fence",
     "deflist",
+    "dollarmath",
     "fieldlist",
     "linkify",
     "substitution",
     "tasklist",
 ]
 myst_heading_anchors = 2
+
+# MathJax configuration for proper LaTeX rendering
+mathjax3_config = {
+    "tex": {
+        "macros": {
+            "drho": r"d\rho",
+            "grho": r"|G^*|\rho",
+        },
+    },
+}
 
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
