@@ -758,6 +758,122 @@ class QCMModel:
             return _CALCTYPE_REGISTRY[calctype]
         return None
 
+    def _solve_with_custom_residual(
+        self,
+        custom_residual: CalctypeResidualFn,
+        delfstar: dict[int, complex],
+        nh: list[int],
+        bulklimit: float,
+    ) -> SolveResult:
+        """
+        Solve properties using a custom residual function.
+
+        Parameters
+        ----------
+        custom_residual : CalctypeResidualFn
+            Custom residual function with signature:
+            (params, delfstar_exp, harmonics, f1, refh, Zq) -> array
+        delfstar : dict[int, complex]
+            Experimental frequency shifts.
+        nh : list[int]
+            Harmonic specification [n1, n2, n3].
+        bulklimit : float
+            Threshold for bulk vs thin film classification.
+
+        Returns
+        -------
+        SolveResult
+            Fitting results with grho_refh, phi, drho.
+        """
+        n1, n2, n3 = nh[0], nh[1], nh[2]
+        f1 = self.f1
+        Zq = self.Zq
+        refh = self.refh
+
+        # Get experimental ratios for initial guess
+        rd_exp = self._rd_from_delfstar(n3, delfstar)
+        is_bulk = self._is_bulk(rd_exp, bulklimit)
+
+        # Initial guess from SLA-style calculation
+        if is_bulk:
+            grho_refh, phi = self._bulk_props(delfstar)
+            drho = 1e-6  # Default thin film thickness for bulk
+        else:
+            grho_refh, phi = self._bulk_props(delfstar)
+            drho = 1e-6  # Initial guess
+
+        # Track whether residual function encountered an error
+        residual_error: list[str | None] = [None]
+
+        # Wrap custom residual for optimistix (must accept args parameter)
+        def wrapped_residual(params: jnp.ndarray, args: None) -> jnp.ndarray:
+            del args  # unused
+            try:
+                result = custom_residual(params, delfstar, nh, f1, refh, Zq)
+                return jnp.asarray(result)
+            except Exception as e:
+                # Record error and return large residuals
+                residual_error[0] = str(e)
+                logger.warning(f"Custom residual error: {e}")
+                return jnp.array([1e10, 1e10, 1e10])
+
+        # Run optimization
+        solver = optx.LevenbergMarquardt(rtol=1e-8, atol=1e-8)
+        x0 = jnp.array([grho_refh, phi, drho])
+
+        try:
+            result = optx.least_squares(
+                wrapped_residual, solver, x0, args=None, throw=False
+            )
+
+            # Check if residual function encountered an error
+            if residual_error[0] is not None:
+                return SolveResult(
+                    success=False,
+                    message=f"Custom residual error: {residual_error[0]}",
+                )
+
+            grho_refh = float(result.value[0])
+            phi = float(result.value[1])
+            drho = float(result.value[2])
+
+            # Clamp to valid ranges
+            grho_refh = np.clip(grho_refh, 1e3, 1e12)
+            phi = np.clip(phi, 0.0, np.pi / 2)
+            drho = np.clip(drho, 1e-10, 1e-2)
+
+            # Calculate dlam_refh
+            grho_n = self._grho_at_harmonic(refh, grho_refh, phi)
+            dlam_refh = float(
+                physics.calc_dlam(refh, grho_n, phi, drho, f1=f1)
+            )
+
+            residuals = np.array(wrapped_residual(result.value, None))
+
+            # Check if final evaluation also had errors
+            if residual_error[0] is not None:
+                return SolveResult(
+                    success=False,
+                    message=f"Custom residual error: {residual_error[0]}",
+                )
+
+            return SolveResult(
+                drho=drho,
+                grho_refh=grho_refh,
+                phi=phi,
+                dlam_refh=dlam_refh,
+                residuals=residuals,
+                success=True,
+                message="Custom calctype fit",
+            )
+
+        except Exception as e:
+            logger.error(f"Custom calctype optimization failed: {e}")
+            return SolveResult(
+                success=False,
+                message=f"Custom calctype optimization failed: {e}",
+            )
+
     def configure(
         self,
         f1: float | None = None,
@@ -1186,15 +1302,11 @@ class QCMModel:
         # Check if custom calctype is registered
         custom_residual = self._get_calctype_residual(effective_calctype)
         if custom_residual is not None:
-            # Use custom residual function
+            # Use custom residual function (US5: Full integration)
             logger.info(f"Using custom calctype: {effective_calctype}")
-            # TODO: Full integration of custom residual function
-            # For now, fall back to SLA
-            logger.warning(
-                f"Custom calctype '{effective_calctype}' not fully integrated, "
-                f"falling back to SLA behavior"
+            return self._solve_with_custom_residual(
+                custom_residual, self.delfstars, nh, bulklimit
             )
-            effective_calctype = "SLA"
         elif effective_calctype not in self.BUILTIN_CALCTYPES:
             # Unknown calctype - warn and fall back
             logger.warning(
