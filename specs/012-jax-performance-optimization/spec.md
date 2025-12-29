@@ -19,7 +19,7 @@ Users running multilayer film analysis experience slow performance due to missin
 
 **Why this priority**: These optimizations provide 30-50x cumulative speedup with relatively low implementation risk. They target the most frequently called functions in the hot path.
 
-**Independent Test**: Can be fully tested by running `pytest tests/` and benchmark comparisons showing ≥10x speedup on multilayer calculations.
+**Independent Test**: Can be fully tested by running `pytest tests/` and benchmark comparisons showing ≥2x speedup on multilayer calculations (target: 30x).
 
 **Acceptance Scenarios**:
 
@@ -91,10 +91,12 @@ Users processing large datasets need vectorized signal processing and autodiff J
 
 ### Edge Cases
 
-- What happens when multilayer calculation has 0 or 1 layers? (Verify JIT handles edge cases)
-- How does system handle phi values at exactly 0 or π/2? (Verify clamping works correctly)
-- What happens when arctan2 receives (0, 0)? (Verify proper handling)
-- How does vectorized peak finding handle empty or single-element arrays?
+**Handling Strategy**: Return safe sentinel values (0.0, NaN) with logged warnings.
+
+- **0 or 1 layers in multilayer calculation**: Return identity impedance (Z=1+0j) with warning
+- **phi at exactly 0 or π/2**: Clamp to safe range, return clamped value with warning
+- **arctan2(0, 0)**: Return 0.0 with warning (undefined angle defaults to zero)
+- **Empty or single-element arrays in peak finding**: Return empty result array with warning
 
 ## Requirements
 
@@ -129,8 +131,8 @@ Users processing large datasets need vectorized signal processing and autodiff J
 
 ### Measurable Outcomes
 
-- **SC-001**: Phase 1 benchmark shows ≥30x speedup on multilayer calculations
-- **SC-002**: Phase 2 benchmark shows ≥5x additional speedup on batch operations
+- **SC-001**: Phase 1 benchmark shows ≥30x speedup on multilayer calculations (flexible: accept ≥2x with documented actual)
+- **SC-002**: Phase 2 benchmark shows ≥5x additional speedup on batch operations (flexible: accept ≥2x with documented actual)
 - **SC-003**: All 600+ tests pass after each optimization phase
 - **SC-004**: Zero mutable default argument linting errors
 - **SC-005**: Zero NaN/Inf outputs on edge-case numerical inputs
@@ -145,7 +147,7 @@ Before merging any optimization:
 |------|-------------|
 | Tests | `pytest tests/` - all pass |
 | Numerical | Max rel error < 1e-10 vs baseline |
-| Performance | Measured improvement ≥ claimed speedup |
+| Performance | Warm-start timing with `block_until_ready()`, 10+ iterations, excluding first JIT compilation |
 | Memory | Not increased >20% |
 
 ## Implementation Phases
@@ -170,12 +172,21 @@ Before merging any optimization:
 7. Fix arctan division (stability)
 8. Add phi clamping (NaN prevention)
 
-### Phase 4: Advanced Optimizations
+### Phase 4: Advanced Optimizations (Optional Stretch Goals)
 **Target**: 10-50x on specific operations
+**Status**: Optional - not required for feature completion
 
 9. Vectorize peak_prominences/peak_widths (10-50x)
 10. Replace FD Jacobians with autodiff (2-3x)
 11. Cache Savgol coefficients (1.8x)
+
+## Clarifications
+
+### Session 2025-12-28
+- Q: What benchmark methodology should be used for measuring speedup? → A: Warm-start timing with `block_until_ready()` (exclude first JIT, 10+ iterations)
+- Q: What if optimization falls short of claimed speedup target? → A: Accept any measurable improvement (≥2x) with documented actual speedup
+- Q: Is Phase 4 required or optional? → A: Phases 1-3 required, Phase 4 optional stretch goals
+- Q: How should edge cases be handled? → A: Return safe sentinel values (0.0, NaN) with logged warnings
 
 ## Already Optimized (No Action Needed)
 
