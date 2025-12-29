@@ -422,6 +422,99 @@ def _jax_calc_delfstar_bulk(
 
 
 # =============================================================================
+# Module-Level Residual Functions (T012-T014 - 012-jax-performance)
+# =============================================================================
+# These residual functions are hoisted from closure to module level to avoid
+# redefining functions inside loops, which improves performance. The `args`
+# parameter passes context that would otherwise be captured by closures.
+# Note: We don't apply @jax.jit here because:
+# 1. optimistix handles JIT compilation internally
+# 2. Integer args (n1, n2, n3, refh) need to be static for physics functions
+
+
+def _residual_thin_film_guess(x: jnp.ndarray, args: tuple) -> jnp.ndarray:
+    """
+    Residual for thin film initial guess optimization (hoisted from closure).
+
+    Parameters
+    ----------
+    x : jnp.ndarray
+        Parameters [dlam_refh, phi]
+    args : tuple
+        (n1, n2, n3, refh, rh_exp, rd_exp)
+
+    Returns
+    -------
+    jnp.ndarray
+        Residual [rh_calc - rh_exp, rd_calc - rd_exp]
+    """
+    n1, n2, n3, refh, rh_exp, rd_exp = args
+    dlam = x[0]
+    phi_val = x[1]
+    rh_calc = _jax_rhcalc(n1, n2, refh, dlam, phi_val)
+    rd_calc = _jax_rdcalc(n3, refh, dlam, phi_val)
+    return jnp.array([rh_calc - rh_exp, rd_calc - rd_exp])
+
+
+def _residual_thin_film(x: jnp.ndarray, args: tuple) -> jnp.ndarray:
+    """
+    Residual for thin film refinement optimization (hoisted from closure).
+
+    Parameters
+    ----------
+    x : jnp.ndarray
+        Parameters [grho_refh, phi, drho]
+    args : tuple
+        (n1, n2, n3, f1, Zq, refh, exp_real_n1, exp_real_n2, exp_imag_n3)
+
+    Returns
+    -------
+    jnp.ndarray
+        Residual [real(calc_n1) - exp_real_n1, real(calc_n2) - exp_real_n2,
+                  imag(calc_n3) - exp_imag_n3]
+    """
+    n1, n2, n3, f1, Zq, refh, exp_real_n1, exp_real_n2, exp_imag_n3 = args
+    grho = x[0]
+    phi_val = x[1]
+    d = x[2]
+
+    calc_n1 = _jax_calc_delfstar(n1, grho, phi_val, d, f1, Zq, refh)
+    calc_n2 = _jax_calc_delfstar(n2, grho, phi_val, d, f1, Zq, refh)
+    calc_n3 = _jax_calc_delfstar(n3, grho, phi_val, d, f1, Zq, refh)
+
+    return jnp.array(
+        [
+            jnp.real(calc_n1) - exp_real_n1,
+            jnp.real(calc_n2) - exp_real_n2,
+            jnp.imag(calc_n3) - exp_imag_n3,
+        ]
+    )
+
+
+def _residual_bulk(x: jnp.ndarray, args: tuple) -> jnp.ndarray:
+    """
+    Residual for bulk material optimization (hoisted from closure).
+
+    Parameters
+    ----------
+    x : jnp.ndarray
+        Parameters [grho_refh, phi]
+    args : tuple
+        (refh, f1, Zq, exp_real, exp_imag)
+
+    Returns
+    -------
+    jnp.ndarray
+        Residual [real(calc) - exp_real, imag(calc) - exp_imag]
+    """
+    refh, f1, Zq, exp_real, exp_imag = args
+    grho = x[0]
+    phi_val = x[1]
+    calc = _jax_calc_delfstar_bulk(refh, grho, phi_val, f1, Zq, refh)
+    return jnp.array([jnp.real(calc) - exp_real, jnp.imag(calc) - exp_imag])
+
+
+# =============================================================================
 # Global Calctype Registry (T048 - US4)
 # =============================================================================
 
@@ -785,7 +878,7 @@ class QCMModel:
         SolveResult
             Fitting results with grho_refh, phi, drho.
         """
-        n1, n2, n3 = nh[0], nh[1], nh[2]
+        n3 = nh[2]
         f1 = self.f1
         Zq = self.Zq
         refh = self.refh
@@ -844,9 +937,7 @@ class QCMModel:
 
             # Calculate dlam_refh
             grho_n = self._grho_at_harmonic(refh, grho_refh, phi)
-            dlam_refh = float(
-                physics.calc_dlam(refh, grho_n, phi, drho, f1=f1)
-            )
+            dlam_refh = float(physics.calc_dlam(refh, grho_n, phi, drho, f1=f1))
 
             residuals = np.array(wrapped_residual(result.value, None))
 
@@ -1164,7 +1255,8 @@ class QCMModel:
             raise ValueError("f1 must be set")
 
         grho_refh = (np.pi * self.Zq * abs(df) / self.f1) ** 2
-        phi = min(np.pi / 2, -2 * np.arctan(np.real(df) / np.imag(df)))
+        # T035 (012-jax-perf): Use arctan2 to avoid division by zero when imag(df) = 0
+        phi = min(np.pi / 2, -2 * np.arctan2(np.real(df), np.imag(df)))
 
         return grho_refh, phi
 
@@ -1190,20 +1282,16 @@ class QCMModel:
         dlam_refh_init = 0.05
         phi_init = np.pi / 180 * 5
 
-        # Create pure JAX residual function (captures n1, n2, n3, refh, rh_exp, rd_exp)
-        # Optimistix requires fn(y, args) signature
-        def residual_fn(x: jnp.ndarray, args: None) -> jnp.ndarray:
-            del args  # unused
-            dlam = x[0]
-            phi_val = x[1]
-            rh_calc = _jax_rhcalc(n1, n2, refh, dlam, phi_val)
-            rd_calc = _jax_rdcalc(n3, refh, dlam, phi_val)
-            return jnp.array([rh_calc - rh_exp, rd_calc - rd_exp])
+        # T012: Use hoisted residual function for JIT caching (012-jax-performance)
+        # Pass context via args tuple instead of closure capture
+        residual_args = (n1, n2, n3, refh, rh_exp, rd_exp)
 
         solver = optx.LevenbergMarquardt(rtol=1e-8, atol=1e-8)
 
         x0 = jnp.array([dlam_refh_init, phi_init])
-        result = optx.least_squares(residual_fn, solver, x0, args=None, throw=False)
+        result = optx.least_squares(
+            _residual_thin_film_guess, solver, x0, args=residual_args, throw=False
+        )
 
         dlam_refh = float(result.value[0])
         phi = float(result.value[1])
@@ -1342,20 +1430,15 @@ class QCMModel:
             exp_real = np.real(delfstar[refh])
             exp_imag = np.imag(delfstar[refh])
 
-            # Refine with optimizer - pure JAX residual
-            # Optimistix requires fn(y, args) signature
-            def residual_bulk(x: jnp.ndarray, args: None) -> jnp.ndarray:
-                del args  # unused
-                grho = x[0]
-                phi_val = x[1]
-                calc = _jax_calc_delfstar_bulk(refh, grho, phi_val, f1, Zq, refh)
-                return jnp.array([jnp.real(calc) - exp_real, jnp.imag(calc) - exp_imag])
+            # T013: Use hoisted residual function for JIT caching (012-jax-performance)
+            # Pass context via args tuple instead of closure capture
+            bulk_args = (refh, f1, Zq, exp_real, exp_imag)
 
             solver = optx.LevenbergMarquardt(rtol=1e-8, atol=1e-8)
 
             x0 = jnp.array([grho_refh, phi])
             result = optx.least_squares(
-                residual_bulk, solver, x0, args=None, throw=False
+                _residual_bulk, solver, x0, args=bulk_args, throw=False
             )
 
             grho_refh = float(result.value[0])
@@ -1365,7 +1448,7 @@ class QCMModel:
             phi = min(phi, np.pi / 2)
 
             covariance = None
-            residuals = np.array(residual_bulk(result.value, None))
+            residuals = np.array(_residual_bulk(result.value, bulk_args))
 
             return SolveResult(
                 drho=drho,
@@ -1395,31 +1478,25 @@ class QCMModel:
             exp_real_n2 = np.real(delfstar[n2])
             exp_imag_n3 = np.imag(delfstar[n3])
 
-            # Refine with optimizer - pure JAX residual
-            # Optimistix requires fn(y, args) signature
-            def residual_thin(x: jnp.ndarray, args: None) -> jnp.ndarray:
-                del args  # unused
-                grho = x[0]
-                phi_val = x[1]
-                d = x[2]
-
-                calc_n1 = _jax_calc_delfstar(n1, grho, phi_val, d, f1, Zq, refh)
-                calc_n2 = _jax_calc_delfstar(n2, grho, phi_val, d, f1, Zq, refh)
-                calc_n3 = _jax_calc_delfstar(n3, grho, phi_val, d, f1, Zq, refh)
-
-                return jnp.array(
-                    [
-                        jnp.real(calc_n1) - exp_real_n1,
-                        jnp.real(calc_n2) - exp_real_n2,
-                        jnp.imag(calc_n3) - exp_imag_n3,
-                    ]
-                )
+            # T013-T014: Use hoisted residual function for JIT caching (012-jax-performance)
+            # Pass context via args tuple instead of closure capture
+            thin_args = (
+                n1,
+                n2,
+                n3,
+                f1,
+                Zq,
+                refh,
+                exp_real_n1,
+                exp_real_n2,
+                exp_imag_n3,
+            )
 
             solver = optx.LevenbergMarquardt(rtol=1e-8, atol=1e-8)
 
             x0 = jnp.array([grho_refh, phi, drho])
             result = optx.least_squares(
-                residual_thin, solver, x0, args=None, throw=False
+                _residual_thin_film, solver, x0, args=thin_args, throw=False
             )
 
             grho_refh = float(result.value[0])
@@ -1437,7 +1514,7 @@ class QCMModel:
                 physics.calc_dlam(self.refh, grho_n, phi, drho, f1=self.f1)
             )
 
-            residuals = np.array(residual_thin(result.value, None))
+            residuals = np.array(_residual_thin_film(result.value, thin_args))
 
             # Error propagation from Jacobian using JAX autodiff (T014)
             covariance = None
@@ -1445,8 +1522,8 @@ class QCMModel:
             if calculate_errors:
                 try:
                     # Compute Jacobian at solution using JAX jacfwd
-                    # Create a wrapper that only takes x for jacfwd (args fixed to None)
-                    jac_fn = jax.jacfwd(lambda x: residual_thin(x, None))
+                    # Use hoisted function with fixed args for JIT caching
+                    jac_fn = jax.jacfwd(lambda x: _residual_thin_film(x, thin_args))
                     jac = jac_fn(jnp.array([grho_refh, phi, drho]))
                     jac_np = np.array(jac)
 

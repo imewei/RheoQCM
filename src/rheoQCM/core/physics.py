@@ -205,6 +205,50 @@ def safe_divide(
     return jnp.where(is_zero, fill_value, result)
 
 
+# =============================================================================
+# T036-T037: Phi Clamping (012-jax-performance-optimization)
+# =============================================================================
+# Physical phase angles should be in [0, π/2] for most viscoelastic materials.
+# tan(phi/2) is used in several calculations and requires phi < π to avoid infinity.
+# We clamp to [epsilon, π - epsilon] to avoid both tan(0) division and tan(π/2) infinity.
+
+# Epsilon for phi clamping (avoid tan singularities)
+_PHI_EPSILON: float = 1e-10
+
+
+@jax.jit
+def clamp_phi(
+    phi: jnp.ndarray,
+    phi_min: float = _PHI_EPSILON,
+    phi_max: float = jnp.pi - _PHI_EPSILON,
+) -> jnp.ndarray:
+    """
+    Clamp phase angle to valid range for tan(phi/2) calculations.
+
+    T036 (012-jax-perf): Prevents NaN/Inf from tan(phi/2) singularities.
+
+    Parameters
+    ----------
+    phi : array
+        Phase angle(s) in radians.
+    phi_min : float, optional
+        Minimum allowed value. Default: 1e-10 (avoids tan(0) = 0 division).
+    phi_max : float, optional
+        Maximum allowed value. Default: π - 1e-10 (avoids tan(π/2) = ∞).
+
+    Returns
+    -------
+    phi_clamped : array
+        Phase angle clamped to [phi_min, phi_max].
+
+    Notes
+    -----
+    For most viscoelastic materials, phi should be in [0, π/2].
+    This function provides a wider safety margin to handle edge cases.
+    """
+    return jnp.clip(phi, phi_min, phi_max)
+
+
 @jax.jit
 def safe_sqrt(x: jnp.ndarray) -> jnp.ndarray:
     """
@@ -637,7 +681,9 @@ def calc_deltarho(
     """
     lamrho = calc_lamrho(n, grho_n, phi, f1=f1)
     phi = jnp.asarray(phi, dtype=jnp.float64)
-    return lamrho / (2 * jnp.pi * jnp.tan(phi / 2))
+    # T036 (012-jax-perf): Clamp phi to avoid tan singularities
+    phi_safe = clamp_phi(phi)
+    return lamrho / (2 * jnp.pi * jnp.tan(phi_safe / 2))
 
 
 @partial(jax.jit, static_argnames=["f1"])
@@ -802,11 +848,14 @@ def normdelfstar(
     dlam_n = dlam3 * (n / 3) ** (1 - phi / jnp.pi)
 
     # D = 2*pi*dlam*(1 - i*tan(phi/2))
-    D = 2 * jnp.pi * dlam_n * (1 - 1j * jnp.tan(phi / 2))
+    # T036 (012-jax-perf): Clamp phi to avoid tan singularities
+    phi_safe = clamp_phi(phi)
+    D = 2 * jnp.pi * dlam_n * (1 - 1j * jnp.tan(phi_safe / 2))
 
     # Using sinc definition: sinc(x) = sin(pi*x)/(pi*x)
     # So sin(D)/D = sinc(D/pi)
-    return -jnp.sinc(D / jnp.pi) / jnp.cos(D)
+    # T038 (012-jax-perf): Use safe_divide to avoid cos(D)=0 singularity
+    return safe_divide(-jnp.sinc(D / jnp.pi), jnp.cos(D))
 
 
 @partial(jax.jit, static_argnames=["f1"])
@@ -941,21 +990,37 @@ def _newton_step_complex_damped(
     """
     Perform one damped Newton-Raphson step for complex root finding.
 
-    Uses finite differences for the Jacobian with damping for stability.
+    T044 (012-jax-perf): Uses JAX autodiff for Jacobian instead of finite differences.
+    For complex functions, we compute the Wirtinger derivative using real/imag split.
     """
     # Compute function value
     f_val = _kotula_equation(gstar, xi, Gmstar, Gfstar, xi_crit, s, t)
 
-    # Compute derivative with respect to real and imaginary parts
-    # Use relative epsilon for numerical stability
-    eps = 1e-8 * jnp.maximum(1.0, jnp.abs(gstar))
-    f_plus_real = _kotula_equation(gstar + eps, xi, Gmstar, Gfstar, xi_crit, s, t)
-    f_plus_imag = _kotula_equation(gstar + eps * 1j, xi, Gmstar, Gfstar, xi_crit, s, t)
+    # T044: Use JAX autodiff for Jacobian instead of finite differences
+    # Split complex gstar into real/imag components for autodiff
+    def _kotula_real_imag(gstar_real: jnp.ndarray, gstar_imag: jnp.ndarray) -> tuple:
+        """Wrapper for autodiff: takes real/imag parts, returns real/imag of result."""
+        g = gstar_real + 1j * gstar_imag
+        result = _kotula_equation(g, xi, Gmstar, Gfstar, xi_crit, s, t)
+        return jnp.real(result), jnp.imag(result)
 
-    df_dreal = (f_plus_real - f_val) / eps
-    df_dimag = (f_plus_imag - f_val) / eps
+    # Compute Jacobian using JAX forward-mode autodiff
+    # jacfwd returns (df_real/dg_real, df_real/dg_imag) and (df_imag/dg_real, df_imag/dg_imag)
+    gstar_real = jnp.real(gstar)
+    gstar_imag = jnp.imag(gstar)
 
-    # Wirtinger derivative for complex function
+    # Partial derivatives with respect to real part
+    jac_fn_real = jax.jacfwd(_kotula_real_imag, argnums=0)
+    df_dr_real, df_di_real = jac_fn_real(gstar_real, gstar_imag)
+
+    # Partial derivatives with respect to imaginary part
+    jac_fn_imag = jax.jacfwd(_kotula_real_imag, argnums=1)
+    df_dr_imag, df_di_imag = jac_fn_imag(gstar_real, gstar_imag)
+
+    # Wirtinger derivative: df/dg* = (df/dx + i*df/dy) / 2
+    # where f = f_r + i*f_i and g = x + iy
+    df_dreal = df_dr_real + 1j * df_di_real
+    df_dimag = df_dr_imag + 1j * df_di_imag
     df_dgstar = (df_dreal - 1j * df_dimag) / 2
 
     # Newton update with damping
@@ -1084,9 +1149,9 @@ def kotula_gstar(
         return _solve_kotula_single(xi, Gmstar, Gfstar, xi_crit, s, t, max_iter, tol)
     else:
         # Vectorize over xi values
-        solve_fn = lambda x: _solve_kotula_single(
-            x, Gmstar, Gfstar, xi_crit, s, t, max_iter, tol
-        )
+        def solve_fn(x: jnp.ndarray) -> jnp.ndarray:
+            return _solve_kotula_single(x, Gmstar, Gfstar, xi_crit, s, t, max_iter, tol)
+
         return jax.vmap(solve_fn)(xi)
 
 
@@ -1336,9 +1401,17 @@ def create_interp_func(
     return interp_func
 
 
+# T046 (012-jax-perf): Cache Savgol coefficients to avoid recomputation
+# Module-level cache for savgol coefficients
+_savgol_cache: dict[tuple[int, int], jnp.ndarray] = {}
+
+
 def _savgol_coeffs(window_length: int, polyorder: int) -> jnp.ndarray:
     """
-    Compute Savitzky-Golay filter coefficients.
+    Compute Savitzky-Golay filter coefficients with caching.
+
+    T046 (012-jax-perf): Coefficients are cached to avoid recomputation
+    for commonly used window_length/polyorder combinations.
 
     Parameters
     ----------
@@ -1352,6 +1425,11 @@ def _savgol_coeffs(window_length: int, polyorder: int) -> jnp.ndarray:
     coeffs : array
         Filter coefficients for convolution.
     """
+    # Check cache first
+    cache_key = (window_length, polyorder)
+    if cache_key in _savgol_cache:
+        return _savgol_cache[cache_key]
+
     # Half window size
     m = window_length // 2
 
@@ -1367,7 +1445,12 @@ def _savgol_coeffs(window_length: int, polyorder: int) -> jnp.ndarray:
     coeffs = ATA_inv @ A.T
 
     # First row gives smoothing coefficients
-    return coeffs[0]
+    result = coeffs[0]
+
+    # Cache the result
+    _savgol_cache[cache_key] = result
+
+    return result
 
 
 def savgol_filter(
