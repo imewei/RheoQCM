@@ -2,13 +2,26 @@
 RheoQCM Services Package.
 
 This package contains service interfaces for GUI decomposition:
+- DataService: Data management and caching
+- AnalysisService: Analysis orchestration
+- ExportService: Data export coordination
 - HardwareService: VNA and temperature device operations
 - PlotManager: Matplotlib widget coordination
 - SettingsRepository: Settings persistence with validation
+- ServiceContainer: Dependency injection container
 
 These interfaces enable dependency injection and headless testing.
 """
 
+from rheoQCM.services.base import (
+    AnalysisService,
+    DataService,
+    DefaultAnalysisService,
+    DefaultDataService,
+    DefaultExportService,
+    ExportService,
+    ServiceContainer,
+)
 from rheoQCM.services.hardware import (
     AcquisitionError,
     DefaultHardwareService,
@@ -34,6 +47,14 @@ from rheoQCM.services.settings import (
 )
 
 __all__ = [
+    # Core Services (from base.py)
+    "DataService",
+    "DefaultDataService",
+    "AnalysisService",
+    "DefaultAnalysisService",
+    "ExportService",
+    "DefaultExportService",
+    "ServiceContainer",
     # Hardware
     "HardwareService",
     "DefaultHardwareService",
