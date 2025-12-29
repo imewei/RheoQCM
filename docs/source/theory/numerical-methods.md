@@ -264,3 +264,9 @@ On GPU, this achieves >100,000 solutions/second.
 2. Levenberg, K. (1944). "A method for the solution of certain non-linear
    problems in least squares." *Quarterly of Applied Mathematics*, 2(2),
    164-168.
+
+## Next Steps
+
+- {doc}`../tutorials/scripting-basics` - Apply these methods in Python
+- {doc}`../tutorials/bayesian-fitting` - Full Bayesian analysis tutorial
+- {doc}`../api/index` - API reference documentation

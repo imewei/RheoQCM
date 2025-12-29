@@ -30,6 +30,25 @@ New to RheoQCM? Start here:
 2. :doc:`tutorials/quickstart` - Run your first analysis in 5 minutes
 3. :doc:`theory/index` - Understand the QCM physics background
 
+Documentation Sections
+----------------------
+
+.. list-table::
+   :widths: 20 80
+   :header-rows: 0
+
+   * - **Tutorials**
+     - Step-by-step guides: :doc:`tutorials/installation` · :doc:`tutorials/quickstart` · :doc:`tutorials/gui-workflow` · :doc:`tutorials/scripting-basics` · :doc:`tutorials/batch-analysis` · :doc:`tutorials/bayesian-fitting`
+
+   * - **Theory**
+     - Physics background: :doc:`theory/qcm-fundamentals` · :doc:`theory/viscoelastic-modeling` · :doc:`theory/multilayer-films` · :doc:`theory/numerical-methods`
+
+   * - **User Guide**
+     - Practical workflows: :doc:`user-guide/data-acquisition` · :doc:`user-guide/data-import` · :doc:`user-guide/analysis-settings` · :doc:`user-guide/visualization` · :doc:`user-guide/exporting-results`
+
+   * - **API Reference**
+     - Code documentation: :doc:`api/index`
+
 .. toctree::
    :maxdepth: 2
    :caption: Tutorials

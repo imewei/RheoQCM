@@ -64,3 +64,8 @@ For a deeper understanding of QCM theory, we recommend:
 
 3. Sauerbrey, G. (1959). "Verwendung von Schwingquarzen zur Wägung dünner
    Schichten und zur Mikrowägung." *Zeitschrift für Physik*, 155(2), 206-222.
+
+## Get Started
+
+Begin with {doc}`qcm-fundamentals` to understand the basic physics, then
+proceed through the chapters in order.

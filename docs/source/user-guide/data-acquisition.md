@@ -24,7 +24,7 @@ workflows on other platforms, see {doc}`data-import`.
 ### VNA Connection
 
 1. Connect N2PK VNA to computer via USB
-2. Install myVNA software from [g8kbb.co.uk](http://g8kbb.co.uk/html/downloads.html)
+2. Install myVNA software (search for "myVNA N2PK" or visit the N2PK VNA community)
 3. Launch myVNA and verify VNA connection
 4. Set myVNA to "Basic Mode" (VNA Hardware → Configure CSD)
 

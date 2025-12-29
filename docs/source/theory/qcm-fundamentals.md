@@ -197,5 +197,7 @@ For a glassy polymer ($|G^*| \sim 10^9$ Pa):
 | Viscoelastic | Thin films with dissipation | Full SLA model |
 | Bulk | $d > 2\delta$ | Direct modulus extraction |
 
-The next chapter explains how RheoQCM extracts viscoelastic properties from
-QCM-D measurements.
+## Next Steps
+
+- {doc}`viscoelastic-modeling` - How RheoQCM extracts rheological properties
+- {doc}`../tutorials/quickstart` - Try your first analysis

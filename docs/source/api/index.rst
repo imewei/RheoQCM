@@ -167,3 +167,11 @@ Migration from Legacy API
    configure_jax()
    model = QCMModel(f1=5e6, refh=3)
    result = model.solve_properties(...)
+
+See Also
+--------
+
+- :doc:`/tutorials/scripting-basics` - Python API usage tutorial
+- :doc:`/tutorials/batch-analysis` - Batch processing guide
+- :doc:`/theory/numerical-methods` - Algorithm details
+- :doc:`/changelog` - Version history and migration guide
