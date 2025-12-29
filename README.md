@@ -183,6 +183,10 @@ Please cite as:
 - **Megan Yang** - Developer
 - **Kenneth R. Shull** - Project PI
 
+### Fork Maintainer
+
+- **Wei Chen** ([wchen@anl.gov](mailto:wchen@anl.gov)) - Contributor and maintainer of this fork
+
 ## Related Projects
 
 - [MATLAB QCM Data Acquisition](https://github.com/Shull-Research-Group/QCM_Data_Acquisition_Program) - Original MATLAB version
