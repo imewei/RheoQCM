@@ -159,6 +159,7 @@ __pypackages__/
 # ----------------------------------------------------------------------------
 # Sphinx build artifacts
 docs/_build/
+docs/legacy/
 docs/build/
 doc/build/
 .doctrees/
