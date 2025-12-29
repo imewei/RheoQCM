@@ -1,3 +1,5 @@
+:orphan:
+
 # Analysis Workflows
 
 This section collects practical analysis workflows for RheoQCM.

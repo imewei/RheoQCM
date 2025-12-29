@@ -1,3 +1,5 @@
+:orphan:
+
 # UI Workflow Notes
 
 This page preserves the existing UI behavior notes.

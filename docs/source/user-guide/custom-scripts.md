@@ -1,3 +1,5 @@
+:orphan:
+
 # Custom Scripts and UI Hooks
 
 This page preserves legacy notes for custom scripting and UI hooks.

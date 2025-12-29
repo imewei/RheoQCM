@@ -1,3 +1,5 @@
+:orphan:
+
 # Useful QCM Info
 
 Converted from {download}`QCMnotes.pdf <../_static/QCMnotes.pdf>` for easier

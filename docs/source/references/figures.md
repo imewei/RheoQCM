@@ -1,3 +1,5 @@
+:orphan:
+
 # Figures
 
 ![Figure 1](../_images/fig1.svg)
