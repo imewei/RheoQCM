@@ -45,6 +45,12 @@ from rheoQCM.services.settings import (
     SettingsRepository,
     ValidationError,
 )
+from rheoQCM.services.theming import (
+    Theme,
+    ThemeColors,
+    ThemeManager,
+    get_system_theme,
+)
 
 __all__ = [
     # Core Services (from base.py)
@@ -75,4 +81,9 @@ __all__ = [
     "ValidationError",
     "CorruptedFileError",
     "DEFAULT_SETTINGS",
+    # Theming
+    "Theme",
+    "ThemeColors",
+    "ThemeManager",
+    "get_system_theme",
 ]
