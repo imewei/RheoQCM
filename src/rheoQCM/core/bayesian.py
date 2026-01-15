@@ -21,6 +21,7 @@ __all__ = [
     "BayesianFitResult",
     "BayesianFitter",
     "DiagnosticPlot",
+    "MCMCDiagnostics",
     "PriorSpec",
     "plot_comparison",
 ]
@@ -144,6 +145,91 @@ class PriorSpec:
 
 
 @dataclass
+class MCMCDiagnostics:
+    """Structured MCMC diagnostic summary.
+
+    Provides all MCMC diagnostics in a single structured object
+    for easy access and artifact export.
+
+    Attributes
+    ----------
+    rhat : dict[str, float]
+        R-hat convergence diagnostic per parameter.
+    ess_bulk : dict[str, float]
+        Bulk effective sample size per parameter.
+    ess_tail : dict[str, float]
+        Tail effective sample size per parameter.
+    divergences : int
+        Number of divergent transitions.
+    bfmi : list[float]
+        Bayesian Fraction of Missing Information per chain.
+    max_tree_depth_fraction : float
+        Fraction of samples hitting max tree depth.
+    seed : int
+        Random seed used for reproducibility.
+    software_versions : dict[str, str]
+        Versions of key packages (numpyro, jax, arviz).
+    """
+
+    rhat: dict[str, float]
+    ess_bulk: dict[str, float]
+    ess_tail: dict[str, float]
+    divergences: int
+    bfmi: list[float]
+    max_tree_depth_fraction: float
+    seed: int
+    software_versions: dict[str, str]
+
+    @property
+    def converged(self) -> bool:
+        """True if all R-hat < 1.01."""
+        return all(r < 1.01 for r in self.rhat.values())
+
+    @property
+    def sufficient_ess(self) -> bool:
+        """True if all ESS bulk >= 400."""
+        return all(e >= 400 for e in self.ess_bulk.values())
+
+    @property
+    def good_bfmi(self) -> bool:
+        """True if all chain BFMI >= 0.3."""
+        return all(b >= 0.3 for b in self.bfmi)
+
+    @property
+    def no_divergences(self) -> bool:
+        """True if no divergent transitions."""
+        return self.divergences == 0
+
+    @property
+    def all_diagnostics_pass(self) -> bool:
+        """True if all diagnostics pass recommended thresholds."""
+        return (
+            self.converged
+            and self.sufficient_ess
+            and self.good_bfmi
+            and self.no_divergences
+        )
+
+    def to_dict(self) -> dict:
+        """Export diagnostics as dictionary for artifact storage."""
+        return {
+            "rhat": self.rhat,
+            "ess_bulk": self.ess_bulk,
+            "ess_tail": self.ess_tail,
+            "divergences": self.divergences,
+            "bfmi": self.bfmi,
+            "max_tree_depth_fraction": self.max_tree_depth_fraction,
+            "seed": self.seed,
+            "software_versions": self.software_versions,
+            "converged": self.converged,
+            "sufficient_ess": self.sufficient_ess,
+            "good_bfmi": self.good_bfmi,
+            "no_divergences": self.no_divergences,
+            "all_pass": self.all_diagnostics_pass,
+        }
+
+
+@dataclass
 class BayesianFitResult:
     """Represents completed Bayesian MCMC inference results.
 
@@ -171,6 +257,10 @@ class BayesianFitResult:
         Effective sample size per parameter
     divergences : int
         Number of divergent transitions
+    bfmi : list[float]
+        Bayesian Fraction of Missing Information per chain
+    diagnostics : MCMCDiagnostics
+        Structured diagnostics summary
     """
 
     samples: SamplesDict
@@ -184,6 +274,8 @@ class BayesianFitResult:
     rhat: dict[str, float]
     ess: dict[str, float]
     divergences: int
+    bfmi: list[float]
+    diagnostics: MCMCDiagnostics
 
     @property
     def converged(self) -> bool:
@@ -431,7 +523,12 @@ class BayesianFitter:
         )
 
         rhat = {name: float(summary_df.loc[name, "r_hat"]) for name in param_names}
-        ess = {name: float(summary_df.loc[name, "ess_bulk"]) for name in param_names}
+        ess_bulk = {
+            name: float(summary_df.loc[name, "ess_bulk"]) for name in param_names
+        }
+        ess_tail = {
+            name: float(summary_df.loc[name, "ess_tail"]) for name in param_names
+        }
 
         sample_stats = inference_data.sample_stats
         if "diverging" in sample_stats:
@@ -439,6 +536,48 @@ class BayesianFitter:
         else:
             divergences = 0
 
+        # Compute BFMI (Bayesian Fraction of Missing Information) per chain
+        bfmi_values: list[float] = []
+        if "energy" in sample_stats:
+            energy = sample_stats["energy"].values  # shape: (n_chains, n_samples)
+            for chain_idx in range(energy.shape[0]):
+                chain_energy = energy[chain_idx, :]
+                energy_diff = np.diff(chain_energy)
+                # BFMI = Var(E[n] - E[n-1]) / Var(E[n])
+                bfmi = float(np.var(energy_diff) / np.var(chain_energy))
+                bfmi_values.append(bfmi)
+        else:
+            # Fallback if energy not available
+            bfmi_values = [1.0] * self.n_chains
+
+        # Compute max tree depth fraction
+        max_tree_depth_fraction = 0.0
+        if "tree_depth" in sample_stats:
+            tree_depth = sample_stats["tree_depth"].values
+            # NUTS default max tree depth is 10
+            max_tree_depth_fraction = float(np.mean(tree_depth >= 10))
+
+        # Get software versions for reproducibility
+        software_versions = {
+            "numpyro": numpyro.__version__,
+            "jax": jax.__version__,
+            "arviz": az.__version__,
+            "numpy": np.__version__,
+        }
+
+        # Create structured diagnostics
+        diagnostics = MCMCDiagnostics(
+            rhat=rhat,
+            ess_bulk=ess_bulk,
+            ess_tail=ess_tail,
+            divergences=divergences,
+            bfmi=bfmi_values,
+            max_tree_depth_fraction=max_tree_depth_fraction,
+            seed=seed,
+            software_versions=software_versions,
+        )
+
+        # Issue warnings for diagnostic failures
         if not all(r < 1.01 for r in rhat.values()):
             warnings.warn(
                 f"Some R-hat values >= 1.01: {rhat}. Chains may not have converged.",
@@ -446,9 +585,9 @@ class BayesianFitter:
                 stacklevel=2,
             )
 
-        if not all(e > 400 for e in ess.values()):
+        if not all(e >= 400 for e in ess_bulk.values()):
             warnings.warn(
-                f"Some ESS values < 400: {ess}. Consider more samples.",
+                f"Some ESS values < 400: {ess_bulk}. Consider more samples.",
                 UserWarning,
                 stacklevel=2,
             )
@@ -456,6 +595,16 @@ class BayesianFitter:
         if divergences > 0:
             warnings.warn(
                 f"{divergences} divergent transitions detected. Check priors/model.",
+                UserWarning,
+                stacklevel=2,
+            )
+
+        # BFMI warning (low BFMI indicates poor exploration of posterior tails)
+        low_bfmi_chains = [i for i, b in enumerate(bfmi_values) if b < 0.3]
+        if low_bfmi_chains:
+            warnings.warn(
+                f"Low BFMI (<0.3) in chains {low_bfmi_chains}: {[bfmi_values[i] for i in low_bfmi_chains]}. "
+                "Consider reparameterization or more informative priors.",
                 UserWarning,
                 stacklevel=2,
             )
@@ -470,8 +619,10 @@ class BayesianFitter:
             n_samples=self.n_samples,
             n_warmup=self.n_warmup,
             rhat=rhat,
-            ess=ess,
+            ess=ess_bulk,
             divergences=divergences,
+            bfmi=bfmi_values,
+            diagnostics=diagnostics,
         )
 
     def summary(

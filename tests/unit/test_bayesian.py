@@ -19,8 +19,34 @@ import pytest
 from rheoQCM.core.bayesian import (
     BayesianFitResult,
     BayesianFitter,
+    MCMCDiagnostics,
     PriorSpec,
 )
+
+
+def _make_mock_diagnostics(
+    rhat: dict[str, float] | None = None,
+    ess: dict[str, float] | None = None,
+    divergences: int = 0,
+) -> MCMCDiagnostics:
+    """Create mock MCMCDiagnostics for testing."""
+    rhat = rhat or {"p0": 1.001}
+    ess = ess or {"p0": 500.0}
+    return MCMCDiagnostics(
+        rhat=rhat,
+        ess_bulk=ess,
+        ess_tail=ess,
+        divergences=divergences,
+        bfmi=[0.9, 0.9, 0.9, 0.9],
+        max_tree_depth_fraction=0.0,
+        seed=0,
+        software_versions={
+            "numpyro": "0.14.0",
+            "jax": "0.4.0",
+            "arviz": "0.18.0",
+            "numpy": "2.0.0",
+        },
+    )
 
 
 class TestPriorSpecDataclass:
@@ -137,6 +163,8 @@ class TestBayesianFitResultDataclass:
             rhat={"p0": 1.001},
             ess={"p0": 500},
             divergences=0,
+            bfmi=[0.9, 0.9, 0.9, 0.9],
+            diagnostics=_make_mock_diagnostics(rhat={"p0": 1.001}),
         )
 
         assert result.converged is True
@@ -158,6 +186,8 @@ class TestBayesianFitResultDataclass:
             rhat={"p0": 1.05},  # Above threshold
             ess={"p0": 500},
             divergences=0,
+            bfmi=[0.9, 0.9, 0.9, 0.9],
+            diagnostics=_make_mock_diagnostics(rhat={"p0": 1.05}),
         )
 
         assert result.converged is False
@@ -184,6 +214,11 @@ class TestBayesianFitResultDataclass:
             rhat={"p0": 1.001, "p1": 1.001},
             ess={"p0": 500, "p1": 500},
             divergences=0,
+            bfmi=[0.9, 0.9],
+            diagnostics=_make_mock_diagnostics(
+                rhat={"p0": 1.001, "p1": 1.001},
+                ess={"p0": 500.0, "p1": 500.0},
+            ),
         )
 
         arr = result.samples_array
