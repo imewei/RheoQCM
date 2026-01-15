@@ -153,6 +153,7 @@ from rheoQCM.core.bayesian import (
     BayesianFitResult,
     BayesianFitter,
     DiagnosticPlot,
+    MCMCDiagnostics,
     PriorSpec,
     plot_comparison,
 )
@@ -253,6 +254,23 @@ from rheoQCM.core.uncertainty import (
     regularize_covariance,
 )
 
+# Validation exports
+from rheoQCM.core.validation import (
+    DTypeError,
+    MonotonicityError,
+    RangeError,
+    ShapeError,
+    ValidationError,
+    ValidatorSpec,
+    check_dtype,
+    check_finite,
+    check_monotonic,
+    check_no_nan,
+    check_range,
+    check_shape,
+    validate_input,
+)
+
 __all__ = [
     # JAX configuration
     "configure_jax",
@@ -337,6 +355,21 @@ __all__ = [
     "BayesianFitResult",
     "BayesianFitter",
     "DiagnosticPlot",
+    "MCMCDiagnostics",
     "PriorSpec",
     "plot_comparison",
+    # Validation
+    "ValidationError",
+    "ShapeError",
+    "DTypeError",
+    "RangeError",
+    "MonotonicityError",
+    "ValidatorSpec",
+    "validate_input",
+    "check_shape",
+    "check_dtype",
+    "check_range",
+    "check_monotonic",
+    "check_no_nan",
+    "check_finite",
 ]
