@@ -1,6 +1,8 @@
 # Migration Guide: QCMFuncs to rheoQCM.core
 
-This guide helps you migrate from the deprecated `QCMFuncs` module to the modern `rheoQCM.core` API.
+This guide helps you migrate from the removed `QCMFuncs` module to the modern `rheoQCM.core` API.
+The `QCMFuncs` module has been completely removed. The `DataSaver` module has been replaced
+by `rheoQCM.io.data_store.DataStore`.
 
 ## Key Differences
 
@@ -16,7 +18,7 @@ This guide helps you migrate from the deprecated `QCMFuncs` module to the modern
 ### Import Changes
 
 ```python
-# OLD (deprecated)
+# OLD (removed)
 from QCMFuncs.QCM_functions import sauerbreyf, sauerbreym, grho, bulk_props
 
 # NEW (recommended)
@@ -144,25 +146,6 @@ delfstars = jnp.array([
 
 result = batch_analyze_vmap(delfstars, harmonics=[3, 5, 7], nhcalc='357')
 # result.drho, result.grho_refh, result.phi are arrays of shape (N_samples,)
-```
-
-## Suppressing Deprecation Warnings
-
-If you need to continue using QCMFuncs temporarily, you can suppress the warnings:
-
-```bash
-# Environment variable
-export QCMFUNCS_SUPPRESS_DEPRECATION=1
-```
-
-```python
-# Or in code
-import os
-os.environ['QCMFUNCS_SUPPRESS_DEPRECATION'] = '1'
-
-import warnings
-warnings.filterwarnings('ignore', category=DeprecationWarning, module='QCMFuncs')
-warnings.filterwarnings('ignore', category=FutureWarning, module='QCMFuncs')
 ```
 
 ## Function Mapping Reference

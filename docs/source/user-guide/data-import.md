@@ -41,14 +41,14 @@ The data is converted and saved as `.h5` in the same directory.
 
 ```python
 from rheoQCM.io.excel_handler import ExcelHandler
-from rheoQCM.modules.DataSaver import DataSaver
+from rheoQCM.io.data_store import DataStore
 
 # Read Excel file
 handler = ExcelHandler()
 data = handler.read("qcmd_export.xlsx")
 
 # Create RheoQCM data file
-ds = DataSaver()
+ds = DataStore()
 ds.init_file("converted_data.h5")
 
 # Import data
@@ -81,7 +81,7 @@ data.harm % Harmonic numbers [1 × n_harmonics]
 
 ```python
 import hdf5storage
-from rheoQCM.modules.DataSaver import DataSaver
+from rheoQCM.io.data_store import DataStore
 
 # Load MAT file
 mat_data = hdf5storage.loadmat("experiment.mat")
@@ -93,7 +93,7 @@ delg = mat_data['data']['g']
 harmonics = mat_data['data']['harm'].flatten()
 
 # Convert to RheoQCM format
-ds = DataSaver()
+ds = DataStore()
 ds.init_file("converted.h5")
 # ... import data ...
 ```

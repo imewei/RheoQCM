@@ -98,13 +98,13 @@ High-level modules for data management and peak tracking.
 
    rheoQCM.modules
    rheoQCM.modules.QCM
-   rheoQCM.modules.DataSaver
+   rheoQCM.io.data_store
    rheoQCM.modules.PeakTracker
 
 Services
 --------
 
-Service components for hardware, plotting, and settings.
+Service components for plotting and settings.
 
 .. autosummary::
    :toctree: generated
@@ -112,7 +112,6 @@ Service components for hardware, plotting, and settings.
 
    rheoQCM.services
    rheoQCM.services.base
-   rheoQCM.services.hardware
    rheoQCM.services.plotting
    rheoQCM.services.settings
 
@@ -137,36 +136,6 @@ JAX configuration for precision and GPU acceleration.
 before any analysis to enable 64-bit precision.
 
 See :mod:`rheoQCM.core.jax_config` in the Core Package section above.
-
-Legacy API (Deprecated)
------------------------
-
-.. deprecated:: 2.0.0
-   The ``QCMFuncs`` module is deprecated and will be removed in a future release.
-   Use :mod:`rheoQCM.core` instead.
-   See :doc:`/changelog` for migration instructions.
-
-.. autosummary::
-   :toctree: generated
-   :nosignatures:
-
-   QCMFuncs
-   QCMFuncs.QCM_functions
-
-Migration from Legacy API
-^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. code-block:: python
-
-   # Old (deprecated)
-   from QCMFuncs import QCM_functions as qcm
-   result = qcm.solve(...)
-
-   # New (recommended)
-   from rheoQCM.core import QCMModel, configure_jax
-   configure_jax()
-   model = QCMModel(f1=5e6, refh=3)
-   result = model.solve_properties(...)
 
 See Also
 --------

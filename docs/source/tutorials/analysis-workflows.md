@@ -4,10 +4,10 @@
 
 This section collects practical analysis workflows for RheoQCM.
 
-## Example: Manual Analysis with QCMFuncs
+## Example: Manual Analysis with rheoQCM.core
 
-Legacy analysis functions remain available in `QCMFuncs`. See the API reference
-and migration guide for modern replacements in `rheoQCM.core`.
+Use the `rheoQCM.core` module for scripted analysis. See the API reference
+and {doc}`scripting-basics` for usage examples.
 
 ## Example: GUI-based Acquisition
 

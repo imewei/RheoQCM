@@ -82,11 +82,11 @@ class SolveResult:
 ### HDF5 Files
 
 ```python
-from rheoQCM.modules.DataSaver import DataSaver
+from rheoQCM.io.data_store import DataStore
 import pandas as pd
 
 # Load RheoQCM native format
-ds = DataSaver()
+ds = DataStore()
 ds.load_file("experiment.h5")
 
 # Access data as DataFrame

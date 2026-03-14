@@ -48,6 +48,7 @@ from numpyro.infer.initialization import init_to_value
 
 if TYPE_CHECKING:
     from matplotlib.figure import Figure
+    from xarray import DataTree
 
 # Type aliases
 type Float64Array = npt.NDArray[np.float64]
@@ -241,8 +242,8 @@ class BayesianFitResult:
         Parameter names
     summary : pd.DataFrame
         Summary statistics (mean, std, HDI)
-    inference_data : az.InferenceData
-        ArviZ InferenceData object
+    inference_data : DataTree
+        ArviZ DataTree object (xarray.DataTree)
     nlsq_warmstart : dict[str, float]
         NLSQ estimates used for warm-start
     n_chains : int
@@ -266,7 +267,7 @@ class BayesianFitResult:
     samples: SamplesDict
     param_names: list[str]
     summary: pd.DataFrame
-    inference_data: az.InferenceData
+    inference_data: DataTree
     nlsq_warmstart: dict[str, float]
     n_chains: int
     n_samples: int
@@ -519,7 +520,7 @@ class BayesianFitter:
         summary_df = az.summary(
             inference_data,
             var_names=param_names,
-            hdi_prob=0.95,
+            ci_prob=0.95,
         )
 
         rhat = {name: float(summary_df.loc[name, "r_hat"]) for name in param_names}
@@ -629,7 +630,7 @@ class BayesianFitter:
         self,
         result: BayesianFitResult,
         *,
-        hdi_prob: float = 0.95,
+        ci_prob: float = 0.95,
     ) -> pd.DataFrame:
         """Generate parameter summary statistics.
 
@@ -637,18 +638,18 @@ class BayesianFitter:
         ----------
         result : BayesianFitResult
             Bayesian fit result
-        hdi_prob : float
-            HDI probability (default: 0.95)
+        ci_prob : float
+            Credible interval probability (default: 0.95)
 
         Returns
         -------
         pd.DataFrame
-            Summary with mean, std, median, HDI, rhat, ESS
+            Summary with mean, std, CI, rhat, ESS
         """
         return az.summary(
             result.inference_data,
             var_names=result.param_names,
-            hdi_prob=hdi_prob,
+            ci_prob=ci_prob,
         )
 
     def generate_diagnostic_suite(

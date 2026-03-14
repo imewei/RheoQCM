@@ -155,7 +155,9 @@ class TestBayesianFitResultDataclass:
             samples={"p0": np.random.randn(4, 1000)},
             param_names=["p0"],
             summary=pd.DataFrame({"mean": [1.0]}),
-            inference_data=az.InferenceData(),
+            inference_data=az.from_dict(
+                {"posterior": {"_placeholder": np.array([[0.0]])}}
+            ),
             nlsq_warmstart={"p0": 1.0},
             n_chains=4,
             n_samples=1000,
@@ -178,7 +180,9 @@ class TestBayesianFitResultDataclass:
             samples={"p0": np.random.randn(4, 1000)},
             param_names=["p0"],
             summary=pd.DataFrame({"mean": [1.0]}),
-            inference_data=az.InferenceData(),
+            inference_data=az.from_dict(
+                {"posterior": {"_placeholder": np.array([[0.0]])}}
+            ),
             nlsq_warmstart={"p0": 1.0},
             n_chains=4,
             n_samples=1000,
@@ -206,7 +210,9 @@ class TestBayesianFitResultDataclass:
             samples=samples,
             param_names=["p0", "p1"],
             summary=pd.DataFrame({"mean": [1.0, 2.0]}),
-            inference_data=az.InferenceData(),
+            inference_data=az.from_dict(
+                {"posterior": {"_placeholder": np.array([[0.0]])}}
+            ),
             nlsq_warmstart={"p0": 1.0, "p1": 2.0},
             n_chains=2,
             n_samples=100,

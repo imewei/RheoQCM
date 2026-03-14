@@ -3,45 +3,25 @@
 BCB Thin Film Analysis Example
 
 Demonstrates QCM analysis of a BCB (benzocyclobutene) thin film sample
-using the QCMFuncs legacy interface.
-
-For new scripts, consider using the modern rheoQCM.core API:
-    from rheoQCM.core.analysis import QCMAnalyzer
+using the modern rheoQCM.core API.
 """
 
-import os
-import sys
-from pathlib import Path
+from rheoQCM.core.analysis import analyze_delfstar
+from rheoQCM.core.jax_config import configure_jax
 
-import matplotlib.pyplot as plt
+configure_jax()
 
-# Suppress deprecation warning for this legacy example
-os.environ["QCMFUNCS_SUPPRESS_DEPRECATION"] = "1"
+# BCB thin film frequency shift data (harmonics 1, 3, 5)
+delfstar = {
+    1: -28206.4782657343 + 5.6326137881j,
+    3: -87768.0313369799 + 155.716064797j,
+    5: -159742.686586637 + 888.6642467156j,
+}
 
-# Add QCMFuncs to path (relative to this script)
-# Script is in src/example/, QCMFuncs is in src/QCMFuncs/
-script_dir = Path(__file__).parent
-src_dir = script_dir.parent  # src/
-sys.path.insert(0, str(src_dir / "QCMFuncs"))
+# Solve for film properties using harmonics 3, 5
+# nh = [n_delf, n_delg, refh]: fit delf at n=3, delg at n=5, ref harmonic = 3
+result = analyze_delfstar(delfstar, nh=[3, 5, 3])
 
-import QCM_functions as qcm  # noqa: E402
-
-plt.close("all")
-
-# Read the data
-# data is in src/data/
-data_path = src_dir / "data" / "samples" / "bcb_4.xlsx"
-df = qcm.read_xlsx(str(data_path))
-
-# pick a calculation
-# we fit to the frequency shifts for the values before the colon
-# we fit to the dissipation shifts for the values after the colon
-calc = "3.5_5"
-
-# solve for the properties
-layers = {1: {"grho3": 1e12, "phi": 1, "drho": 5e-3}}
-soln = qcm.solve_for_props(df, calc, ["grho3", "phi", "drho"], layers)
-
-# now make the property axes and plot the property values on it
-figinfo = qcm.make_prop_axes(["grho3.linear", "phi", "drho"], xunit="index")
-qcm.plot_props(soln, figinfo, fmt="+-", num="BCB properties", nplot=[3, 5, 7])
+print(f"drho     = {result.drho:.3e} kg/m^2")
+print(f"grho_refh = {result.grho_refh:.3e} Pa·kg/m^3")
+print(f"phi      = {result.phi:.4f} rad")

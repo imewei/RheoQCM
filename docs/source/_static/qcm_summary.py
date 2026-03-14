@@ -5,20 +5,17 @@ Created on Mon Dec 10 00:29:00 2018
 @author: ken
 """
 
-import sys
-
 import matplotlib.pyplot as plt
 import numpy as np
 
-sys.path.append("/home/ken/Mydocs/Python/QCM_py/QCMFuncs")
-import QCM_functions as qcm
+from rheoQCM.core.multilayer import calc_delfstar_multilayer
 
-thick_glass = {"drho": 5e-3, "grho3": 1e12, "phi": 1}
-weakglass = {"drho": 1e-5, "grho3": 1e10, "phi": 30}
-water = {"drho": np.inf, "grho3": 1e8, "phi": 90}
-thin_water = {"drho": 1e-5, "grho3": 1e8, "phi": 90}
-rubber = {"drho": 5e-5, "grho3": 1e10, "phi": 45}
-johannsmann = {"drho": 4e-4, "grho3": 5e11, "phi": 11.3}
+thick_glass = {"drho": 5e-3, "grho": 1e12, "phi": np.deg2rad(1)}
+weakglass = {"drho": 1e-5, "grho": 1e10, "phi": np.deg2rad(30)}
+water = {"drho": np.inf, "grho": 1e8, "phi": np.deg2rad(90)}
+thin_water = {"drho": 1e-5, "grho": 1e8, "phi": np.deg2rad(90)}
+rubber = {"drho": 5e-5, "grho": 1e10, "phi": np.deg2rad(45)}
+johannsmann = {"drho": 4e-4, "grho": 5e11, "phi": np.deg2rad(11.3)}
 
 
 fig = {}
@@ -50,11 +47,11 @@ def addplot_both(fignum, film, parms):
         xdata = nvals
     delfstar_sla = np.zeros(len(nvals), dtype=complex)
     delfstar_LL = np.zeros(len(nvals), dtype=complex)
-    layers = {"film": film}
+    layers = {1: film}
 
     for i, n in enumerate(nvals):
-        delfstar_sla[i] = qcm.calc_delfstar(n, layers, "sla") / n
-        delfstar_LL[i] = qcm.calc_delfstar(n, layers, "LL") / n
+        delfstar_sla[i] = calc_delfstar_multilayer(n, layers, calctype="SLA") / n
+        delfstar_LL[i] = calc_delfstar_multilayer(n, layers, calctype="LL") / n
 
     ax[fignum][0].plot(xdata, delfstar_sla.real, "+-", label="SLA")
     ax[fignum][0].plot(xdata, delfstar_LL.real, "x-", label="LL")
@@ -74,10 +71,10 @@ def addplot_LL(fignum, film, legend, parms):
         xdata = nvals
 
     delfstar_LL = np.zeros(len(nvals), dtype=complex)
-    layers = {"film": film}
+    layers = {1: film}
 
     for i, n in enumerate(nvals):
-        delfstar_LL[i] = qcm.calc_delfstar(n, layers, "LL") / n
+        delfstar_LL[i] = calc_delfstar_multilayer(n, layers, calctype="LL") / n
 
     ax[fignum][0].plot(xdata, delfstar_LL.real, "x-", label=legend)
     ax[fignum][1].plot(xdata, delfstar_LL.imag, "x-", label=legend)
@@ -85,14 +82,14 @@ def addplot_LL(fignum, film, legend, parms):
 
 plt.close("all")
 makefig(1, parms)
-film = {"drho": 4e-4, "grho3": 5e11, "phi": 11.3}
+film = {"drho": 4e-4, "grho": 5e11, "phi": np.deg2rad(11.3)}
 addplot_both(1, film, parms)
 
 makefig(2, parms)
 films = {
-    1: {"drho": 4e-4, "grho3": 2e11, "phi": 11.3},
-    2: {"drho": 4e-4, "grho3": 5e11, "phi": 11.3},
-    3: {"drho": 4e-4, "grho3": 1e12, "phi": 11.3},
+    1: {"drho": 4e-4, "grho": 2e11, "phi": np.deg2rad(11.3)},
+    2: {"drho": 4e-4, "grho": 5e11, "phi": np.deg2rad(11.3)},
+    3: {"drho": 4e-4, "grho": 1e12, "phi": np.deg2rad(11.3)},
 }
 
 legends = {1: "$|G^*|=2x10^8$ Pa", 2: "$|G^*|=5x10^8$ Pa", 3: "$|G^*|=10^9$ Pa"}
@@ -104,9 +101,9 @@ ax[2][1].legend()
 
 makefig(3, parms)
 films = {
-    1: {"drho": 4e-4, "grho3": 5e11, "phi": 5},
-    2: {"drho": 4e-4, "grho3": 5e11, "phi": 10},
-    3: {"drho": 4e-4, "grho3": 5e11, "phi": 20},
+    1: {"drho": 4e-4, "grho": 5e11, "phi": np.deg2rad(5)},
+    2: {"drho": 4e-4, "grho": 5e11, "phi": np.deg2rad(10)},
+    3: {"drho": 4e-4, "grho": 5e11, "phi": np.deg2rad(20)},
 }
 legends = {1: r"$\phi=5^\circ$", 2: r"$\phi=10^\circ$", 3: r"$\phi=20^\circ$"}
 
@@ -121,7 +118,7 @@ fig[2].savefig("fig2.svg")
 fig[3].savefig("fig3.svg")
 
 # %%
-thick_glass = {"drho": 5e-3, "grho3": 1e12, "phi": 1}
+thick_glass = {"drho": 5e-3, "grho": 1e12, "phi": np.deg2rad(1)}
 makefig(4, parms)
 addplot_both(4, thick_glass, parms)
 fig[4].savefig("fig4.svg")

@@ -137,10 +137,10 @@ $$\phi = \arctan(G''/G')$$
 ### From HDF5 File
 
 ```python
-from rheoQCM.modules.DataSaver import DataSaver
+from rheoQCM.io.data_store import DataStore
 
 # Load data file
-ds = DataSaver()
+ds = DataStore()
 ds.load_file("path/to/data.h5")
 
 # Access frequency shift data

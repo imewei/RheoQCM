@@ -157,14 +157,14 @@ Typical performance on a dataset with 100,000 time points:
 ```python
 from pathlib import Path
 from rheoQCM.core.analysis import batch_analyze
-from rheoQCM.modules.DataSaver import DataSaver
+from rheoQCM.io.data_store import DataStore
 
 data_dir = Path("experiments/")
 results_all = {}
 
 for filepath in data_dir.glob("*.h5"):
     # Load file
-    ds = DataSaver()
+    ds = DataStore()
     ds.load_file(str(filepath))
 
     # Prepare measurements
@@ -200,7 +200,8 @@ def process_file(filepath):
     configure_jax()  # Must configure in each process
 
     # Load and process
-    ds = DataSaver()
+    from rheoQCM.io.data_store import DataStore
+    ds = DataStore()
     ds.load_file(str(filepath))
 
     df = ds.samp

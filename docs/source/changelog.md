@@ -41,8 +41,9 @@ All notable changes to RheoQCM are documented here.
 - Mutable default argument patterns (`def f(x=[])`)
 - Numerical stability with `arctan2` and `clamp_phi`
 
-### Deprecated
-- `QCMFuncs` module: Use `rheoQCM.core` instead (emits FutureWarning)
+### Removed
+- `QCMFuncs` module: Replaced by `rheoQCM.core` (see {doc}`migration`)
+- `DataSaver` module: Replaced by `rheoQCM.io.data_store.DataStore`
 
 ## [1.x] - Legacy
 
@@ -68,8 +69,8 @@ All notable changes to RheoQCM are documented here.
 #### 1. Update Imports
 
 ```python
-# Old
-from QCMFuncs import QCM_functions as qcm
+# Old (removed)
+# from QCMFuncs import QCM_functions as qcm
 
 # New
 from rheoQCM.core import QCMModel, configure_jax
