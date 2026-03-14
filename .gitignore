@@ -228,6 +228,7 @@ dmypy.json
 .agent/
 .claude/
 .code/
+.serena/
 .specify/
 .codex/
 .gemini/
