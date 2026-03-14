@@ -28,13 +28,6 @@ config_default = {
         "config_file": "logger_config.json",  # logger configeration file name
         "default_level": logging.ERROR,  # default level for logging
     },
-    # myVNA path
-    "vna_path": [
-        r"C:\Program Files (x86)\G8KBB\myVNA\myVNA.exe",
-        r"C:\Program Files\G8KBB\myVNA\myVNA.exe",
-    ],
-    # where the calibration files saved (not necessary)
-    "vna_cal_file_path": r"./cal/",
     # highest harmonic can be shown in the UI.
     "max_harmonic": 9,  # MUST >= 1
     # time string format
@@ -59,16 +52,8 @@ config_default = {
         "comboBox_tempdevice",
         "comboBox_thrmcpltype",
     ],
-    # enable and disable list
-    "pushButton_runstop_enable_list": [
-        # 'treeWidget_settings_settings_hardware',
-        "pushButton_newfile",
-        "pushButton_appendfile",
-        "actionNew_Exp",
-        "actionLoad_Exp",
-    ],
+    # widget enable/disable lists for file operations
     "pushButton_runstop_disable_list": [
-        # 'treeWidget_settings_settings_hardware',
         "dateTimeEdit_reftime",
         "pushButton_resetreftime",
         "pushButton_newfile",

@@ -46,7 +46,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "rheoQCM"
 version = "0.1.0"
-description = "QCM-D data acquisition and analysis software with rheological modeling"
+description = "QCM-D data analysis software with rheological modeling"
 readme = "README.md"
 license = {file = "LICENSE"}
 authors = [
@@ -122,12 +122,6 @@ gui = [
     "PyQt6>=6.6.0",
     # lmfit dependency removed - PeakTracker now uses NLSQ (nlsq>=0.4.1 in core deps)
 ]
-hardware = [
-    # NI DAQ for temperature sensor
-    "nidaqmx>=1.0.0",
-    # Windows-specific for AccessMyVNA module
-    "pypiwin32>=223; sys_platform == 'win32'",
-]
 # mpmath provides fallback for Kotula model when JAX is unavailable
 fallback = [
     "mpmath>=1.3.0",
@@ -139,7 +133,7 @@ docs = [
     "linkify-it-py>=2.0",
 ]
 all = [
-    "rheoQCM[dev,gui,hardware,fallback,docs]",
+    "rheoQCM[dev,gui,fallback,docs]",
 ]
 
 [project.scripts]
@@ -159,12 +153,11 @@ package = true
 
 [tool.setuptools.packages.find]
 where = ["src"]
-include = ["rheoQCM", "rheoQCM.*", "QCMFuncs", "QCMFuncs.*"]
+include = ["rheoQCM", "rheoQCM.*"]
 exclude = ["tests*", "docs*"]
 
 [tool.setuptools.package-data]
 "rheoQCM" = ["py.typed", "*.json", "*.yaml"]
-"QCMFuncs" = ["*.json", "*.yaml"]
 
 [tool.pytest.ini_options]
 minversion = "8.0"
@@ -177,7 +170,6 @@ markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "integration: integration tests",
     "gui: GUI tests requiring PyQt6",
-    "hardware: tests requiring hardware (NI DAQ, myVNA)",
     "physics: physics core tests",
     "model: model layer tests",
 ]
@@ -274,13 +266,6 @@ warn_unreachable = false  # Platform-specific code has intentional unreachable b
 strict_equality = true
 
 # Per-module overrides for legacy/hardware code
-[[tool.mypy.overrides]]
-module = [
-    "rheoQCM.modules.AccessMyVNA",
-    "rheoQCM.services.hardware",
-]
-ignore_errors = true  # Windows-only hardware interfaces
-
 [[tool.mypy.overrides]]
 module = [
     "rheoQCM.MainWindow",

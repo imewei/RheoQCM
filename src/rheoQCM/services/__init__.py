@@ -5,7 +5,6 @@ This package contains service interfaces for GUI decomposition:
 - DataService: Data management and caching
 - AnalysisService: Analysis orchestration
 - ExportService: Data export coordination
-- HardwareService: VNA and temperature device operations
 - PlotManager: Matplotlib widget coordination
 - SettingsRepository: Settings persistence with validation
 - ServiceContainer: Dependency injection container
@@ -21,14 +20,6 @@ from rheoQCM.services.base import (
     DefaultExportService,
     ExportService,
     ServiceContainer,
-)
-from rheoQCM.services.hardware import (
-    AcquisitionError,
-    DefaultHardwareService,
-    DeviceInfo,
-    HardwareService,
-    MockHardwareService,
-    SweepResult,
 )
 from rheoQCM.services.plotting import (
     DefaultPlotManager,
@@ -61,13 +52,6 @@ __all__ = [
     "ExportService",
     "DefaultExportService",
     "ServiceContainer",
-    # Hardware
-    "HardwareService",
-    "DefaultHardwareService",
-    "MockHardwareService",
-    "DeviceInfo",
-    "SweepResult",
-    "AcquisitionError",
     # Plotting
     "PlotManager",
     "DefaultPlotManager",

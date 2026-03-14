@@ -178,7 +178,6 @@ class ServiceContainer:
 
     data: DataService | None = field(default=None)
     analysis: AnalysisService | None = field(default=None)
-    hardware: Any | None = field(default=None)
     settings: Any | None = field(default=None)
     export: ExportService | None = field(default=None)
 
@@ -198,7 +197,6 @@ class ServiceContainer:
             - 'data': DataService instance
             - 'analysis': AnalysisService instance
             - 'export': ExportService instance
-            - 'hardware': HardwareService instance
             - 'settings': SettingsRepository instance
         use_defaults : bool
             If True, create default implementations for missing services.
@@ -214,7 +212,6 @@ class ServiceContainer:
         data = config.get("data")
         analysis = config.get("analysis")
         export = config.get("export")
-        hardware = config.get("hardware")
         settings = config.get("settings")
 
         if use_defaults:
@@ -228,7 +225,6 @@ class ServiceContainer:
         return cls(
             data=data,
             analysis=analysis,
-            hardware=hardware,
             settings=settings,
             export=export,
         )

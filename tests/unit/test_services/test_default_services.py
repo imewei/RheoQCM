@@ -215,12 +215,11 @@ class TestServiceContainer:
         assert isinstance(container.analysis, DefaultAnalysisService)
         assert isinstance(container.export, DefaultExportService)
 
-    def test_hardware_and_settings_optional(self) -> None:
-        """Test that hardware and settings remain None by default."""
+    def test_settings_optional(self) -> None:
+        """Test that settings remains None by default."""
         container = ServiceContainer.create()
 
-        # These don't have defaults in create()
-        assert container.hardware is None
+        # Settings doesn't have a default in create()
         assert container.settings is None
 
     def test_full_workflow(self, tmp_path: Path) -> None:
