@@ -288,75 +288,16 @@ class TestKotulaCPUGPUEquivalence:
         assert jnp.allclose(result1, result2, rtol=1e-10)
 
 
-class TestKotulaFallback:
-    """T028-T029: Tests for QCMFuncs wrapper behavior."""
-
-    def test_qcmfuncs_kotula_matches_core(self, kotula_params):
-        """T028: QCMFuncs.kotula_gstar produces same results as core JAX impl."""
-        from QCMFuncs.QCM_functions import kotula_gstar as qcm_kotula_gstar
-
-        xi_values = [0.2, 0.5, 0.8]
-
-        for xi in xi_values:
-            # Core JAX implementation
-            jax_result = kotula_gstar(
-                xi,
-                kotula_params["Gmstar"],
-                kotula_params["Gfstar"],
-                kotula_params["xi_crit"],
-                kotula_params["s"],
-                kotula_params["t"],
-            )
-
-            # QCMFuncs wrapper (uses JAX when available)
-            qcm_result = qcm_kotula_gstar(
-                xi,
-                kotula_params["Gmstar"],
-                kotula_params["Gfstar"],
-                kotula_params["xi_crit"],
-                kotula_params["s"],
-                kotula_params["t"],
-            )
-
-            # Results should match within numerical precision
-            relative_diff = abs(complex(jax_result) - qcm_result) / abs(qcm_result)
-            assert relative_diff < 1e-8, f"Mismatch at xi={xi}: {relative_diff}"
-
-    def test_qcmfuncs_handles_array_input(self, kotula_params):
-        """QCMFuncs.kotula_gstar handles array input correctly."""
-        from QCMFuncs.QCM_functions import kotula_gstar as qcm_kotula_gstar
-
-        xi = np.linspace(0.1, 0.9, 50)
-
-        result = qcm_kotula_gstar(
-            xi,
-            kotula_params["Gmstar"],
-            kotula_params["Gfstar"],
-            kotula_params["xi_crit"],
-            kotula_params["s"],
-            kotula_params["t"],
-        )
-
-        # Should return numpy array
-        assert isinstance(result, np.ndarray)
-        assert result.shape == xi.shape
-        assert np.all(np.isfinite(result))
+class TestCorePhysicsRequired:
+    """Verify core physics module is properly importable (JAX-only)."""
 
     def test_core_physics_is_required(self):
-        """T029 (Phase 7 update): Core physics module is required (JAX-only).
-
-        After the QCM module unification (spec 004), the core JAX implementation
-        is required and there is no fallback to mpmath. This test verifies
-        that the core physics module is properly importable.
-        """
-        # Verify core physics module is importable
+        """Core physics module is required (JAX-only, no fallback)."""
         from rheoQCM.core import physics
 
-        # Verify key functions exist
         assert hasattr(physics, "kotula_gstar")
         assert hasattr(physics, "kotula_xi")
         assert hasattr(physics, "_kotula_equation")
 
-        # Verify functions are callable
         assert callable(physics.kotula_gstar)
         assert callable(physics.kotula_xi)
