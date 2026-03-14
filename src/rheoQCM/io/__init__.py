@@ -26,6 +26,7 @@ from rheoQCM.io.base import (
     get_supported_extensions,
     register_handler,
 )
+from rheoQCM.io.data_store import DataStore
 from rheoQCM.io.excel_handler import ExcelHandler
 from rheoQCM.io.hdf5_handler import HDF5Handler, check_hdf5_format
 from rheoQCM.io.json_handler import JSONHandler
@@ -88,6 +89,8 @@ def load_data(path: Path, **options: Any) -> dict[str, Any]:
 
 
 __all__ = [
+    # DataStore (analysis-only successor to DataSaver)
+    "DataStore",
     # Base
     "FormatHandler",
     "get_handler",

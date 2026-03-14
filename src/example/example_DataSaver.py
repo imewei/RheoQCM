@@ -1,17 +1,17 @@
 """
-The easist way to export the data is use the export function in the UI.
-This is an example file showing how to use DataSaver module to extract
+The easiest way to export the data is use the export function in the UI.
+This is an example file showing how to use the DataStore module to extract
 the data from the data file in Python code.
-You may find more functions in DataSaver module. E.g.: changing marks,
+You may find more functions in DataStore module. E.g.: changing marks,
 reference frequency/gamma, reference time etc.
 
 Note: Ensure rheoQCM is installed (pip install -e .) before running this script.
 """
 
-from rheoQCM.modules import DataSaver
+from rheoQCM.io.data_store import DataStore
 
 chn_name = "samp"  # 'samp' for chnnel 'S'; 'ref' for channel 'R'
-data_saver = DataSaver.DataSaver()
+data_saver = DataStore()
 # load data
 path = "string of file path"
 data_saver.load_file(path)

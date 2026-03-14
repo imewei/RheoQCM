@@ -1,11 +1,16 @@
 """
-DataSaver manages persistent QCM data storage in HDF5 files.
+DataStore manages persistent QCM data storage in HDF5 files (analysis-only).
+
+This module is the analysis-only successor to DataSaver, with live VNA
+acquisition methods removed. It provides the in-memory data store for
+the GUI session and all file I/O for saved QCM-D data.
 
 Responsibilities include:
 
-- Creating new data files
-- Appending scans and reference data
-- Reading/deleting datasets
+- Loading existing data files
+- Managing sample/reference channel DataFrames
+- Storing calculated mechanical properties
+- Exporting data to Excel/CSV
 
 Data format notes:
 
@@ -38,7 +43,6 @@ import json
 import logging
 import os
 import re
-import time  # for test
 
 import h5py
 import numpy as np
@@ -49,14 +53,17 @@ from rheoQCM.core.physics import create_interp_func  # JAX-based interpolation
 logger = logging.getLogger(__name__)
 
 
-class DataSaver:
+class DataStore:
     """
-    Manages persistent QCM data storage in HDF5 format.
+    Manages persistent QCM data storage in HDF5 format (analysis-only).
 
-    DataSaver provides a comprehensive interface for:
+    DataStore is the analysis-only successor to DataSaver, providing
+    the in-memory data store for the GUI session with all live VNA
+    acquisition methods removed.
 
-    - Creating and loading HDF5 data files
-    - Storing raw frequency scan data (conductance, susceptance)
+    Provides a comprehensive interface for:
+
+    - Loading HDF5 data files
     - Managing sample and reference channel data
     - Persisting calculated mechanical properties
     - Exporting data to Excel format
@@ -66,7 +73,7 @@ class DataSaver:
     ver : str, optional
         Version string stored in the data file metadata.
     settings : dict, optional
-        Configuration dictionary with hardware and experiment settings.
+        Configuration dictionary with experiment settings.
 
     Attributes
     ----------
@@ -86,16 +93,9 @@ class DataSaver:
 
     Examples
     --------
-    Create a new data file:
-
-    >>> ds = DataSaver(ver="1.0")
-    >>> ds.init_file("/path/to/data.h5")
-    >>> ds.append_data(queue_id=0, data_dict=scan_data)
-    >>> ds.save_to_file()
-
     Load existing data:
 
-    >>> ds = DataSaver()
+    >>> ds = DataStore()
     >>> ds.load_file("/path/to/existing.h5")
     >>> df = ds.samp  # Access sample channel data
     """
@@ -615,221 +615,11 @@ class DataSaver:
 
         self.saveflg = False
 
-    def dynamic_save(
-        self,
-        chn_names,
-        harm_list,
-        t="",
-        temp=np.nan,
-        f=None,
-        G=None,
-        B=None,
-        fs=None,
-        gs=None,
-        ps=None,
-        marks=None,
-    ):
-        """
-        save raw data of ONE QUEUE to self.raw and save to h5 file
-        NOTE: only update on test a time
-        chn_names: list of chn_name ['samp', 'ref']
-        harm_list: list of str ['1', '3', '5', '7', '9']
-        t: dict of str
-        temp: dict of float
-        f, G, B: dict of ndarray f[chn_name][harm]
-        fs: dicts of delta freq fs[chn_name]
-        gs: dicts of delta gamma gs[chn_name]
-        marks: [0]. by default all will be marked as 0
-        """
-        if marks is None:
-            marks = [0]
-
-        # add an empty row to data
-        queue_id = self._append_new_queue(chn_names, queue_id=None)
-
-        # save data
-        self._save_queue_data(
-            chn_names,
-            harm_list,
-            queue_id=queue_id,
-            t=t,
-            temp=temp,
-            fs=fs,
-            gs=gs,
-            ps=ps,
-            marks=marks,
-        )
-
-        # save raw data to file by chn_names
-        self._save_raw(chn_names, harm_list, t=t, temp=temp, f=f, G=G, B=B)
-
-        self.saveflg = False
-
-    def _append_new_queue(self, chn_names, queue_id=None):
-        """
-        append a new row to self.chn_name for following add new data
-        NOTE: only update one test a time
-        chn_names: list of chn_name ['samp', 'ref']
-        harm_list: list of str ['1', '3', '5', '7', '9']
-        t: dict of str
-        temp: float
-        f, G, B: dict of ndarray f[chn_name][harm]
-        fs: dicts of delta freq fs[chn_name]
-        gs: dicts of delta gamma gs[chn_name]
-        marks: [0, 0, ...]. by default all will be marked as 0
-
-        return: queue_id
-        """
-
-        # add current queue id to queue_list as max(queue_list) + 1
-        if not self.queue_list:
-            queue_id = 0
-        else:
-            logger.info(self.queue_list)
-            if queue_id is None:  # add a new id
-                queue_id = max(self.queue_list) + 1
-            else:  # add a given id (for recreating data)
-                pass
-        self.queue_list.append(queue_id)
-
-        for chn_name in chn_names:
-            data_new = pd.DataFrame.from_dict(
-                {
-                    "queue_id": [queue_id],
-                    "t": [""],  # str
-                    "temp": [np.nan],  # float
-                    "marks": [self.nan_harm_list()],  # list default [nan, nan, ...]
-                    "fs": [self.nan_harm_list()],
-                    "gs": [self.nan_harm_list()],
-                    "ps": [self.nan_harm_list()],
-                }
-            )
-            # append empty data to chn_name
-            setattr(
-                self,
-                chn_name,
-                getattr(self, chn_name).append(data_new, ignore_index=True),
-            )
-
-        return queue_id
-
-    def _save_queue_data(
-        self,
-        chn_names,
-        harm_list,
-        queue_id=None,
-        t=np.nan,
-        temp=np.nan,
-        fs=None,
-        gs=None,
-        ps=None,
-        marks=None,
-    ):
-        """
-        NOTE: only update one test a time
-        chn_names: list of chn_name ['samp', 'ref']
-        harm_list: list of str ['1', '3', '5', '7', '9']
-        t: dict of str
-        temp: float
-        f, G, B: dict of ndarray f[chn_name][harm]
-        fs: dicts of delta freq fs[chn_name]
-        gs: dicts of delta gamma gs[chn_name]
-        marks: [0]. by default all will be marked as 0
-        """
-        if marks is None:
-            marks = [0]
-
-        # for i in range(1, self.settings['max_harmonic']+2, 2):
-        #     if str(i) not in harm_list: # tested harmonic
-        #         marks.insert(int((i-1)/2), np.nan)
-
-        # append to the form by chn_name
-        for chn_name in chn_names:
-            fs_all = self.get_queue(chn_name, queue_id, col="fs").iloc[0]
-            gs_all = self.get_queue(chn_name, queue_id, col="gs").iloc[0]
-            ps_all = self.get_queue(chn_name, queue_id, col="ps").iloc[0]
-            marks_all = self.get_queue(chn_name, queue_id, col="marks").iloc[0]
-            # prepare data: change list to the size of harm_list by inserting nan to the empty harm
-
-            logger.info("ps_all %s", ps_all)
-
-            for i, harm in enumerate(harm_list):
-                harm = int(harm)
-                # logger.info(i)
-                # logger.info(harm)
-                # logger.info(int((harm-1)/2))
-                # logger.info(fs[chn_name][i])
-                logger.info(ps)
-                if fs is not None:
-                    fs_all[int((harm - 1) / 2)] = fs[chn_name][i]
-                if gs is not None:
-                    gs_all[int((harm - 1) / 2)] = gs[chn_name][i]
-                if ps is not None:
-                    ps_all[int((harm - 1) / 2)] = ps[chn_name][i]
-                marks_all[int((harm - 1) / 2)] = marks[i]
-
-            # for i in range(1, self.settings['max_harmonic']+2, 2):
-            #     if str(i) not in harm_list: # tested harmonic
-            #         fs[chn_name].insert(int((i-1)/2), np.nan)
-            #         gs[chn_name].insert(int((i-1)/2), np.nan)
-
-            # up self.samp/ref first
-            # create a df to append
-            data_new = pd.DataFrame(
-                data={
-                    "queue_id": [queue_id],
-                    "t": [t[chn_name]],
-                    "temp": [temp[chn_name]],
-                    "marks": [marks_all],  # list default [0, 0, 0, 0, 0]
-                    "fs": [fs_all],
-                    "gs": [gs_all],
-                    "ps": [ps_all],
-                },
-                index=[getattr(self, chn_name).iloc[[-1]].index.values.astype(int)[0]],
-            )
-            # logger.info(data_new)
-            getattr(self, chn_name).update(data_new)
-            logger.info(getattr(self, chn_name).tail())
-
-    def _save_raw(
-        self, chn_names, harm_list, t=np.nan, temp=np.nan, f=None, G=None, B=None
-    ):
-        """
-        save raw data of ONE QUEUE to save to h5 file
-        NOTE: only update on test a time
-        chn_names: list of chn_name ['samp', 'ref']
-        harm_list: list of str ['1', '3', '5', '7', '9']
-        t: dict of strftime
-        temp: float
-        f, G, B: dict of ndarray f[chn_name][harm]
-        marks: [0]. by default all will be marked as 0
-        """
-
-        t0 = time.time()
-        with h5py.File(self.path, "a") as fh:
-            for chn_name in chn_names:
-                # creat group for test
-                g_queue = fh.create_group(
-                    "raw/" + chn_name + "/" + str(max(self.queue_list))
-                )
-                # add t, temp to attrs
-                # store t as string
-                g_queue.attrs["t"] = t[chn_name]
-                if temp[chn_name]:
-                    logger.info(temp)
-                    g_queue.attrs["temp"] = temp[chn_name]
-
-                for harm in harm_list:
-                    # create data_set for f, G, B of the harm
-                    g_queue.create_dataset(
-                        harm,
-                        data=np.stack(
-                            (f[chn_name][harm], G[chn_name][harm], B[chn_name][harm]),
-                            axis=0,
-                        ),
-                    )
-        t1 = time.time()
-        logger.info(t1 - t0)
+    # NOTE: Acquisition-only methods removed in DataStore migration:
+    # - dynamic_save() — live VNA acquisition saving
+    # - _append_new_queue() — live queue creation
+    # - _save_queue_data() — live queue data updates
+    # - _save_raw() — raw VNA sweep data writing
 
     def save_data(self):
         """
@@ -3606,6 +3396,6 @@ class DataSaver:
 
 
 if __name__ == "__main__":
-    data_saver = DataSaver(settings={"max_harmonic": 9})
+    data_saver = DataStore(settings={"max_harmonic": 9})
     temp = data_saver.temp_C_to_unit(25, unit="C")
     logger.info(temp)
