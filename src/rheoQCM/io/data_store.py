@@ -857,7 +857,7 @@ class DataStore:
 
         mech_key = self.get_mech_key(nhcalc)
         if mech_key not in getattr(self, chn_name + "_prop"):
-            logger.warning(f"no df of {mech_key} in {chn_name}")
+            logger.warning("no df of %s in %s", mech_key, chn_name)
             return
 
         # set index to int
@@ -982,11 +982,11 @@ class DataStore:
         else:
             if mech_keys:  # given mech_keys to remove
                 for mech_key in mech_keys:
-                    complete = getattr(self, chn_name + "_prop").pop(mech_keys, None)
+                    complete = getattr(self, chn_name + "_prop").pop(mech_key, None)
                     if complete is None:
-                        logger.warning(f"{mech_key} does not exist")
+                        logger.warning("%s does not exist", mech_key)
                     else:
-                        logger.warning(f"{mech_key} removed from {chn_name}")
+                        logger.warning("%s removed from %s", mech_key, chn_name)
                         self.saveflg = False
             else:  # clear chn_name
                 getattr(self, chn_name + "_prop").clear()
