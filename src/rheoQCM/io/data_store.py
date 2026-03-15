@@ -331,9 +331,9 @@ class DataStore:
                 # replace na with self.nan_harm_list
                 for col in mech_keys_single:
                     logger.info("col: %s; type: %s", col, type(df_mech[col]))
-                    # TODO error here: use a.all() or a.any()
+                    # scalar columns: after outer merge, missing cells are float NaN
                     df_mech[col] = df_mech[col].apply(
-                        lambda x: self.nan_harm_list() if np.isnan(x).all() else x
+                        lambda x: self.nan_harm_list() if pd.isna(x) else x
                     )  # add list of nan to all null
                 for col in mech_keys_multiple:
                     df_mech[col] = df_mech[col].apply(
@@ -2159,8 +2159,6 @@ class DataStore:
                         lambda x, g=g: np.full_like(x, g, dtype=float)
                         for g in func_g_list
                     ]
-                    # print([x([0, 2]) for x in func_f_list])
-                    # print([x([0, 2]) for x in func_g_list])
                     # make function for each ind_list
                     func_list.append(self.make_interpfun(func_f_list, func_g_list))
 
