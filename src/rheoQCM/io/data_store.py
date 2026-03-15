@@ -125,7 +125,7 @@ class DataStore:
         """
         attributes needs to be initiated with new file
         """
-        self.mode = ""  # mode of datasaver 'init': new file; 'load': append/load file
+        self.mode = ""  # mode of DataStore: 'init': new file; 'load': append/load file
         self.path = ""
         self.saveflg = True  # flag to show if modified data has been saved to file
         self.refflg = dict.fromkeys(
@@ -286,13 +286,13 @@ class DataStore:
         ]
 
         mech_key = self.get_mech_key(nhcalc)
-        logger.info(mech_key)
+        logger.debug(mech_key)
 
         if mech_key in getattr(self, chn_name + "_prop").keys():
-            logger.info("mech_key exists")
+            logger.debug("mech_key exists")
             df_mech = getattr(self, chn_name + "_prop")[mech_key].copy()
-            logger.info(df_mech.head())
-            logger.info(df_mech.columns)
+            logger.debug(df_mech.head())
+            logger.debug(df_mech.columns)
             mech_queue_id = df_mech["queue_id"]
             data_queue_id = getattr(self, chn_name)["queue_id"]
 
@@ -300,7 +300,7 @@ class DataStore:
             # previous version w/ new column in the current list
             df_mech = self.add_missed_cols_to_df(df_mech, mech_keys_single)
             df_mech = self.add_missed_cols_to_df(df_mech, mech_keys_multiple)
-            logger.info(df_mech)
+            logger.debug(df_mech)
 
             # check if queue_id is the same as self.chn_name
             if mech_queue_id.equals(data_queue_id):
@@ -318,10 +318,10 @@ class DataStore:
                     ].to_frame(),
                     how="outer",
                 )
-                logger.info(df_mech)
+                logger.debug(df_mech)
                 # replace na with self.nan_harm_list
                 for col in mech_keys_single:
-                    logger.info("col: %s; type: %s", col, type(df_mech[col]))
+                    logger.debug("col: %s; type: %s", col, type(df_mech[col]))
                     # scalar columns: after outer merge, missing cells are float NaN
                     df_mech[col] = df_mech[col].apply(
                         lambda x: self.nan_harm_list() if pd.isna(x) else x
@@ -330,9 +330,9 @@ class DataStore:
                     df_mech[col] = df_mech[col].apply(
                         lambda x: self.nan_harm_list() if np.isnan(x).all() else x
                     )  # add list of nan to all null
-                logger.info(df_mech)
+                logger.debug(df_mech)
         else:  # not exist, make a new dataframe
-            logger.info("mech_key does not exist")
+            logger.debug("mech_key does not exist")
             df_mech = pd.DataFrame(
                 columns=data_keys + mech_keys_single + mech_keys_multiple
             )
@@ -340,7 +340,7 @@ class DataStore:
             # set values
             nrows = len(getattr(self, chn_name)["queue_id"])
             nan_list = [self.nan_harm_list()] * nrows
-            logger.info(nan_list)
+            logger.debug(nan_list)
             df_mech["queue_id"] = getattr(self, chn_name)["queue_id"]
             df_mech["queue_id"] = df_mech["queue_id"].astype("int")
             # df_mech['t'] = getattr(self, chn_name)['t']
@@ -351,7 +351,7 @@ class DataStore:
             for df_key in mech_keys_multiple:
                 df_mech[df_key] = nan_list
 
-        logger.info(df_mech["delf_calcs"].head)
+        logger.debug(df_mech["delf_calcs"].head)
 
         # set it to class
         self.update_mech_df_in_prop(chn_name, nhcalc, df_mech)
@@ -386,7 +386,7 @@ class DataStore:
 
         # save version information
         self._save_ver()
-        logger.info(self.ver)
+        logger.debug(self.ver)
         # save settings here to make sure the data file has enough information for reading later, even though the program crashes while running
         self.save_data_settings(settings=self.settings)
 
@@ -407,7 +407,7 @@ class DataStore:
         # get data information
         with h5py.File(self.path, "r") as fh:
             key_list = list(fh.keys())
-            logger.info(key_list)
+            logger.debug(key_list)
 
             dump_exp_ref = self._make_exp_ref()
             if "exp_ref" in fh.keys():
@@ -424,9 +424,9 @@ class DataStore:
             else:
                 self.exp_ref = dump_exp_ref
             self.ver = fh.attrs["ver"]
-            logger.info(self.ver)
-            logger.info(self.exp_ref)
-            logger.info(fh["data/samp"][()])
+            logger.debug(self.ver)
+            logger.debug(self.exp_ref)
+            logger.debug(fh["data/samp"][()])
             for chn_name in self._chn_keys:
                 # df for data from samp/ref chn
                 setattr(
@@ -562,20 +562,20 @@ class DataStore:
         if ps is None:
             ps = [np.nan]
 
-        logger.info("queue_list \n%s", self.get_queue_id(chn_name).values)
+        logger.debug("queue_list \n%s", self.get_queue_id(chn_name).values)
         if queue_id in self.get_queue_id(chn_name).values:  # is going to overwrite data
-            logger.info("queue_id (%s) in list", queue_id)
+            logger.debug("queue_id (%s) in list", queue_id)
             # get
             fs_all = self.get_queue(chn_name, queue_id, col="fs").iloc[0]
             gs_all = self.get_queue(chn_name, queue_id, col="gs").iloc[0]
             ps_all = self.get_queue(chn_name, queue_id, col="ps").iloc[0]
         else:  # is going to append data
-            logger.info("queue_id (%s) not in list", queue_id)
+            logger.debug("queue_id (%s) not in list", queue_id)
             fs_all = self.nan_harm_list()  # list for each harmonic
             gs_all = self.nan_harm_list()  # list for each harmonic
             ps_all = self.nan_harm_list()  # list for each harmonic
-        logger.info("fs_all %s", fs_all)
-        logger.info("type fs_all %s", type(fs_all))
+        logger.debug("fs_all %s", fs_all)
+        logger.debug("type fs_all %s", type(fs_all))
 
         # append to the form by chn_name
         # prepare data: change list to the size of harm_list by inserting nan to the empty harm
@@ -603,7 +603,7 @@ class DataStore:
         """
         with h5py.File(self.path, "a") as fh:
             for key in self._chn_keys:
-                logger.info(key)
+                logger.debug("Saving channel data: %s", key)
                 if key in fh["data"]:
                     data = fh["data/" + key]
                     data[()] = getattr(self, key).to_json()
@@ -622,25 +622,6 @@ class DataStore:
                         data=getattr(self, key + "_ref").to_json(),
                         dtype=h5py.special_dtype(vlen=str),
                     )
-
-        # following is using delete/create protocal
-        """ with h5py.File(self.path, 'a') as fh:
-            for key in self._chn_keys:
-                logger.info(key)
-                if key in fh['data']:
-                    del fh['data/' + key]
-                if key + '_ref' in fh['data']:
-                    del fh['data/' + key + '_ref']
-                logger.info(json.dumps(getattr(self, key).to_dict()))
-                # fh['data/' + key] = json.dumps(getattr(self, key).to_dict())
-                fh.create_dataset('data/' + key, data=getattr(self, key).to_json(), dtype=h5py.special_dtype(vlen=str))
-
-                # save <key>_ref
-                logger.info(getattr(self, key + '_ref').columns)
-                logger.info(getattr(self, key + '_ref').head())
-                logger.info(getattr(self, key + '_ref').head().to_json())
-                data_ref = getattr(self, key + '_ref').to_json()
-                fh.create_dataset('data/' + key + '_ref', data=data_ref, dtype=h5py.special_dtype(vlen=str)) """
 
     def save_settings(self, settings=None):
         """
@@ -720,7 +701,7 @@ class DataStore:
             # set func = {} in exp_ref which cannot be saved as text
             exp_ref["func"] = {}
 
-            logger.info(self.exp_ref)
+            logger.debug(self.exp_ref)
             if "exp_ref" in fh:
                 data_exp_ref = fh["exp_ref"]
                 data_exp_ref[()] = json.dumps(exp_ref)
@@ -743,7 +724,7 @@ class DataStore:
         with h5py.File(self.path, "r") as fh:
             chn_queue_list = list(fh["raw/" + chn_name].keys())
             chn_queue_list = list(map(int, chn_queue_list))  # convert from str to int
-            logger.info(chn_queue_list)
+            logger.debug(chn_queue_list)
         return chn_queue_list
 
     def get_queue_id_harms_from_raw(self, chn_name, queue_id):
@@ -799,14 +780,14 @@ class DataStore:
         check if corresponding raw data exists
         file_handle: handle to the file
         """
-        logger.info("raw chn:%s id:%s harm:%s", chn_name, queue_id, harm)
-        logger.info("raw in fh: %s", "raw" in file_handle.keys())
-        logger.info('chn_name in fh["raw"]: %s', chn_name in file_handle["raw"])
-        logger.info(
+        logger.debug("raw chn:%s id:%s harm:%s", chn_name, queue_id, harm)
+        logger.debug("raw in fh: %s", "raw" in file_handle.keys())
+        logger.debug('chn_name in fh["raw"]: %s', chn_name in file_handle["raw"])
+        logger.debug(
             "queue_id in raw/chn_name: %s",
             str(int(queue_id)) in file_handle["raw/" + chn_name],
         )
-        logger.info(
+        logger.debug(
             "harm in raw/chn_name/queue_id: %s",
             harm in file_handle["raw/" + chn_name + "/" + str(int(queue_id))],
         )
@@ -817,10 +798,10 @@ class DataStore:
             and str(int(queue_id)) in file_handle["raw/" + chn_name]
             and harm in file_handle["raw/" + chn_name + "/" + str(int(queue_id))]
         ):
-            logger.info("raw exists")
+            logger.debug("raw exists")
             return True
         else:
-            logger.info("raw does not exists")
+            logger.debug("raw does not exist")
             return False
 
     def get_queue(self, chn_name, queue_id, col=""):
@@ -840,18 +821,18 @@ class DataStore:
         update col data of a queue_id
         """
         if queue_id in self.get_queue_id(chn_name).values:  # overwrite
-            logger.info(
+            logger.debug(
                 getattr(self, chn_name).loc[
                     getattr(self, chn_name).queue_id == queue_id, col
                 ]
             )
-            logger.info("col %s", col)
-            logger.info("val %s", val)
+            logger.debug("col %s", col)
+            logger.debug("val %s", val)
 
             ind = getattr(self, chn_name)[
                 getattr(self, chn_name).queue_id == queue_id
             ].index[0]  # integer
-            logger.info(ind)
+            logger.debug(ind)
             getattr(self, chn_name).at[ind, col] = val
 
             # # following .loc works the same as .at
@@ -932,7 +913,7 @@ class DataStore:
                 for mech_key, df in getattr(self, chn_name + "_prop").items():
                     # get names of columns with list in it
                     cols = [col for col in df.columns if isinstance(df[col][0], list)]
-                    logger.info(cols)
+                    logger.debug(cols)
 
                     for col in cols:
                         df[col] = df[col].apply(
@@ -965,8 +946,10 @@ class DataStore:
         mech_df["queue_id"] = mech_df.queue_id.astype("int")
 
         getattr(self, chn_name + "_prop")[self.get_mech_key(nhcalc)] = mech_df
-        logger.info("mech_df in data_saver")
-        logger.info(getattr(self, chn_name + "_prop")[self.get_mech_key(nhcalc)])
+        logger.debug("mech_df updated in DataStore for %s / %s", chn_name, nhcalc)
+        logger.debug(
+            "mech_df: %s", getattr(self, chn_name + "_prop")[self.get_mech_key(nhcalc)]
+        )
         self.saveflg = False
 
     def get_mech_df_in_prop(self, chn_name, nhcalc):
@@ -1232,7 +1215,7 @@ class DataStore:
         df = getattr(self, chn_name).copy()
 
         if "ps" in df.columns:
-            logger.info(df.columns)
+            logger.debug(df.columns)
             df = df.drop(columns="ps")
 
         # convert t column to datetime object
@@ -1247,18 +1230,18 @@ class DataStore:
             )  # split columns: fs and gs
             df = df.drop(columns=col)  # drop columns: fs and gs
 
-        logger.info(df.head())
+        logger.debug(df.head())
 
         # drop columns with all
         if dropnancolumn:
             df = df.dropna(axis="columns", how="all")
             if "temp" not in df.columns:  # no temperature data
                 df["temp"] = np.nan  # add temp column back
-        logger.info(df.head())
+        logger.debug(df.head())
 
         if dropnanmarkrow:  # keep rows with marks only
             # select rows with marks
-            logger.info("reshape_data_df: dropnanmarkrow = True")
+            logger.debug("reshape_data_df: dropnanmarkrow = True")
             df = df[self.rows_with_marks(chn_name)][:]
             if "marks" in df.columns:
                 df = df.drop(columns="marks")  # drop marks column
@@ -1336,8 +1319,8 @@ class DataStore:
         """
         reshape and tidy mech df (mech_key in samp_prop and ref_prop) for exporting
         """
-        logger.info(chn_name)
-        logger.info(mech_key)
+        logger.debug(chn_name)
+        logger.debug(mech_key)
         df = getattr(self, chn_name + "_prop")[mech_key].copy()
         cols = list(df.columns)
         cols.remove("queue_id")
@@ -1352,12 +1335,12 @@ class DataStore:
             else:  # single value
                 df[col] = df[col].apply(lambda x: x[0])
 
-        logger.info(df.head())
+        logger.debug(df.head())
 
         # drop columns with all
         if dropnancolumn:
             df = df.dropna(axis="columns", how="all")
-        logger.info(df.head())
+        logger.debug(df.head())
 
         if dropnanmarkrow:  # rows with marks only
             # select rows with marks
@@ -1473,7 +1456,7 @@ class DataStore:
             logger.warning("no data saved!")
             return t
         else:
-            logger.info(self.get_t_ref())
+            logger.debug(self.get_t_ref())
             t = t - self.get_t_ref()  # delta t to reference (t0)
             t = t.dt.total_seconds()  # convert to second
             return t
@@ -1486,7 +1469,7 @@ class DataStore:
             # creat group for test
             g_queue = fh["raw/" + chn_name + "/" + str(queue_id)]
             t_str = g_queue.attrs["t"]
-            logger.info("t_str %s", t_str)
+            logger.debug("t_str %s", t_str)
             return t_str
 
     def get_temp_C_from_raw(self, chn_name, queue_id):
@@ -1524,12 +1507,12 @@ class DataStore:
         """
 
         mech_key = self.get_mech_key(nhcalc)
-        logger.info(mech_key)
+        logger.debug(mech_key)
 
         # data_queue_id = getattr(self, chn_name)['queue_id']
 
         if mech_key in getattr(self, chn_name + "_prop").keys():
-            logger.info("mech_key exists")
+            logger.debug("mech_key exists")
             return getattr(self, chn_name + "_prop")[mech_key]["queue_id"].copy()
         else:
             return []
@@ -1595,7 +1578,7 @@ class DataStore:
             t0 = self.settings.get(
                 "t0", self.settings.get("dateTimeEdit_reftime", None)
             )
-            logger.info("t0 %s", t0)
+            logger.debug("t0 %s", t0)
             if not t0:
                 if self.samp.shape[0] > 0:  # use the first queque time
                     t0 = datetime.datetime.strptime(
@@ -1692,7 +1675,7 @@ class DataStore:
                 m.values.tolist(), dtype=float
             )  # the dtype=float replace None with np.nan
             if np.any(arr_m == 1):  # there are marks (1)
-                logger.info("there are marks (1) in df")
+                logger.debug("there are marks (1) in df")
                 # replace None with np.nan
                 arr_s = arr_s * arr_m  # leave values where only marks == 1
                 # replace unmarked (marks == 0) with np.nan
@@ -1743,11 +1726,11 @@ class DataStore:
         s = getattr(self, chn_name + "_prop")[mech_key][col].copy()
         # s = self.update_mech_df_shape(chn_name, mech_key)[col].copy() # use update_mech_df_shape function will update the mech_prop in case its shape is not updated with data
 
-        logger.info("chn_name/mech_key/col %s %s %s", chn_name, mech_key, col)
-        logger.info("mech_s head %s", s.head())
-        logger.info("mech_s %s", type(s.values.tolist()))
-        logger.info("mech_s %s", s.values.tolist()[0])
-        logger.info("mech_s %s", type(s.values.tolist()[0]))
+        logger.debug("chn_name/mech_key/col %s %s %s", chn_name, mech_key, col)
+        logger.debug("mech_s head %s", s.head())
+        logger.debug("mech_s %s", type(s.values.tolist()))
+        logger.debug("mech_s %s", s.values.tolist()[0])
+        logger.debug("mech_s %s", type(s.values.tolist()[0]))
 
         if not mark:
             return pd.DataFrame(s.values.tolist(), s.index).rename(
@@ -1764,7 +1747,7 @@ class DataStore:
                 m.values.tolist(), dtype=float
             )  # the dtype=float replace None with np.nan
             if np.any(arr_m == 1):  # there are marks (1)
-                logger.info("there are marks (1) in df")
+                logger.debug("there are marks (1) in df")
                 # replace None with np.nan
                 arr_s = arr_s * arr_m  # leave values where only marks == 1
                 # replace unmarked (marks == 0) with np.nan
@@ -1794,7 +1777,7 @@ class DataStore:
         mode = self.exp_ref.get("mode")
 
         if mode["cryst"] == "single":  # single crystal
-            logger.info("single")
+            logger.debug("single")
 
             ref_s = self.interp_film_ref(
                 chn_name, col=col
@@ -1852,12 +1835,12 @@ class DataStore:
         # check self.exp_ref
         if self.exp_ref[chn_name + "_ref"][0] in self._chn_keys:  # use test data
             # reset mark (1 to 0) and copy
-            logger.info("in file reference")
+            logger.debug("in file reference")
             if df is None:
-                logger.info("df is None")
+                logger.debug("df is None")
                 df = getattr(self, self.exp_ref[chn_name + "_ref"][0]).copy()
         elif df is None:  # chn_name is not samp/ref and df is not given
-            logger.info("out file reference and df is None")
+            logger.debug("out file reference and df is None")
             raise ValueError(
                 r"df should not be None when {} is reference source.".format(
                     self.exp_ref[chn_name + "_ref"][0]
@@ -1880,7 +1863,7 @@ class DataStore:
             return
 
         # check idx_list structure
-        logger.info("idx_list %s", idx_list)
+        logger.debug("idx_list %s", idx_list)
         if any(
             isinstance(idx_item, list) for idx_item in idx_list
         ):  # idx_list is list of lists
@@ -1889,7 +1872,7 @@ class DataStore:
                 idx_list_opened.extend(idx_item)
         else:
             idx_list_opened = idx_list
-        logger.info("idx_list_opened %s", idx_list_opened)
+        logger.debug("idx_list_opened %s", idx_list_opened)
 
         mode = self.exp_ref.get("mode")
         if mode["cryst"] == "single":
@@ -1928,9 +1911,9 @@ class DataStore:
             # copy df to ref
             if source in self._chn_keys:  # use data from current test
                 df = getattr(self, source)
-                logger.info("source %s", source)
-                logger.info("idx_list_opened %s", idx_list_opened)
-                logger.info(df)
+                logger.debug("source %s", source)
+                logger.debug("idx_list_opened %s", idx_list_opened)
+                logger.debug(df)
                 self.copy_to_ref(
                     chn_name, df.loc[idx_list_opened, :]
                 )  # copy to reference data set
@@ -1955,7 +1938,7 @@ class DataStore:
         calculate reference of f (f0) and g (g0)  by the set in self.samp_ref, self.ref_ref and save them in self.exp_ref['f0'] and ['g0']
         """
         mode = self.exp_ref.get("mode")
-        logger.info("chn_name:  %s", chn_name)
+        logger.debug("chn_name:  %s", chn_name)
 
         if getattr(self, chn_name).empty:  # no data
             logger.info("%s has no data", chn_name)
@@ -1985,10 +1968,10 @@ class DataStore:
                     return
 
                 func_list = []  # list of funcs
-                logger.info("reference_idx %s", reference_idx)
-                logger.info("exp_ref %s", self.exp_ref)
+                logger.debug("reference_idx %s", reference_idx)
+                logger.debug("exp_ref %s", self.exp_ref)
                 for ind_list in reference_idx:  # iterate each list
-                    logger.info("ind_list %s", ind_list)
+                    logger.debug("ind_list %s", ind_list)
 
                     func_f_list = []  # func for all freq
                     func_g_list = []  # func for all gamma
@@ -2008,15 +1991,15 @@ class DataStore:
                         dropnanmarkrow=False,
                         deltaval=False,
                     )
-                    logger.info("chn_ref_source %s", chn_ref_source)
+                    logger.debug("chn_ref_source %s", chn_ref_source)
                     func_f_list = (
                         ref_fs_df.loc[ind_list].mean().values.tolist()
                     )  # list of float for now
                     func_g_list = (
                         ref_gs_df.loc[ind_list].mean().values.tolist()
                     )  # list of float for now
-                    logger.info("func_f_list %s", func_f_list)
-                    logger.info("func_g_list %s", func_g_list)
+                    logger.debug("func_f_list %s", func_f_list)
+                    logger.debug("func_g_list %s", func_g_list)
                     # for version <= 0.18
                     # Save to self.exp_ref[chn_name]
                     if all(
@@ -2053,25 +2036,6 @@ class DataStore:
                 # copy to samp_ref
                 setattr(self, chn_name + "_ref", df)
 
-                """ for single reference
-                if getattr(self, chn_name + '_ref').shape[0] > 0: # there is reference data saved
-                    logger.info('>0')
-                    # calculate f0 and g0
-                    for col, key in self._ref_keys.items():
-                        logger.info('%s %s %s', chn_name, col, key)
-                        df = self.get_list_column_to_columns_marked_rows(chn_name + '_ref', col, mark=mark, dropnanmarkrow=False, deltaval=False)
-                        logger.info(getattr(self, chn_name + '_ref')[col])
-                        self.exp_ref[chn_name][key] = df.mean().values.tolist()
-                    self.refflg[chn_name] = True
-                else: # no data saved
-                    # clear self.exp_ref.<chn_name>
-                    self.exp_ref[chn_name] = {
-                        'f0': self.nan_harm_list(), # list for each harmonic
-                        'g0': self.nan_harm_list(), # list for each harmonic
-                    }
-                    self.refflg[chn_name] = False
-                """
-
             elif mode["temp"] == "var":  # single crystal and constant temperature
                 chn_ref_source = self.exp_ref[chn_name + "_ref"][0]
 
@@ -2079,7 +2043,7 @@ class DataStore:
                 temp = self.get_temp_by_uint_marked_rows(
                     chn_ref_source, dropnanmarkrow=False, unit="C"
                 )  # in C. If marked only, set dropnanmarkrow=True
-                logger.info(temp)
+                logger.debug("Reference temperature data: %s", temp)
                 if np.isnan(temp).all():  # no temp data
                     logger.warning("no temperature data in reference!")
                     self.refflg[chn_name] = False
@@ -2122,10 +2086,10 @@ class DataStore:
                 )  # absolute gamma in Hz. If marked, set mark=True
 
                 func_list = []  # list of funcs
-                logger.info("reference_idx %s", reference_idx)
-                logger.info("exp_ref %s", self.exp_ref)
+                logger.debug("reference_idx %s", reference_idx)
+                logger.debug("exp_ref %s", self.exp_ref)
                 for ind_list in reference_idx:  # iterate each list
-                    logger.info("ind_list %s", ind_list)
+                    logger.debug("ind_list %s", ind_list)
                     if len(ind_list) == 1:  # single point
                         # cause single point is not allowed for interpolation, doubling the length by repeating
                         ind_list = ind_list * 2
@@ -2142,8 +2106,8 @@ class DataStore:
                         if np.isnan(fharmind).all():  # no data in harm and ind_list
                             pass  # already initiated
                         else:  # there is data
-                            logger.info("tempind %s", tempind)
-                            logger.info("fharmind %s", fharmind)
+                            logger.debug("tempind %s", tempind)
+                            logger.debug("fharmind %s", fharmind)
                             func_f_list.append(
                                 create_interp_func(
                                     tempind,
@@ -2251,10 +2215,10 @@ class DataStore:
 
                 # get interpolated f and g by chn_temp
                 for seg, ind_list in enumerate(film_idx):  # iterate each list
-                    logger.info(self.exp_ref["func"])
+                    logger.debug(self.exp_ref["func"])
                     chn_func = self.exp_ref["func"][chn_name]
-                    logger.info("len(ind_list) %s", len(ind_list))
-                    logger.info("len(fun) %s", len(chn_func))
+                    logger.debug("len(ind_list) %s", len(ind_list))
+                    logger.debug("len(fun) %s", len(chn_func))
                     # get interpolated f, g of temp in ind_list (tempind)
                     # len(ind_list) can be longer than len(chn_func)
                     # use modulus
@@ -2263,7 +2227,7 @@ class DataStore:
                     )  # dummy values with the same size of data
                     # transpose
                     fs_list = np.transpose(np.array(f_list)).tolist()
-                    logger.info("len(fs_list) %s", len(fs_list))
+                    logger.debug("len(fs_list) %s", len(fs_list))
 
                     gs_list = np.transpose(np.array(g_list)).tolist()
 
@@ -2271,7 +2235,7 @@ class DataStore:
                     cols.fs[ind_list] = fs_list
                     cols.gs[ind_list] = gs_list
 
-                logger.info(cols[col].head())
+                logger.debug(cols[col].head())
 
             elif mode["temp"] == "var":  # single crystal and variable temperature
                 if np.isnan(chn_temp).all():  # no temp data
@@ -2299,17 +2263,17 @@ class DataStore:
                 # get interpolated f and g by chn_temp
                 for seg, ind_list in enumerate(film_idx):  # iterate each list
                     tempind = chn_temp[ind_list]
-                    logger.info(self.exp_ref["func"])
+                    logger.debug(self.exp_ref["func"])
                     chn_func = self.exp_ref["func"][chn_name]
-                    logger.info("len(ind_list) %s", len(ind_list))
-                    logger.info("len(fun) %s", len(chn_func))
+                    logger.debug("len(ind_list) %s", len(ind_list))
+                    logger.debug("len(fun) %s", len(chn_func))
                     # get interpolated f, g of temp in ind_list (tempind)
                     # len(ind_list) can be longer than len(chn_func)
                     # use modulus
                     f_list, g_list = chn_func[seg % len(chn_func)](tempind)
                     # transpose
                     fs_list = np.transpose(np.array(f_list)).tolist()
-                    logger.info("len(fs_list) %s", len(fs_list))
+                    logger.debug("len(fs_list) %s", len(fs_list))
 
                     gs_list = np.transpose(np.array(g_list)).tolist()
 
@@ -2317,8 +2281,8 @@ class DataStore:
                     cols.fs[ind_list] = fs_list
                     cols.gs[ind_list] = gs_list
 
-                logger.info("cols[ind_list]\n%s", cols.iloc[ind_list])
-                logger.info(cols[col].head())
+                logger.debug("cols[ind_list]\n%s", cols.iloc[ind_list])
+                logger.debug(cols[col].head())
         elif mode["cryst"] == "dual":
             pass  # dual-crystal branch
 
@@ -2438,10 +2402,10 @@ class DataStore:
             lambda x: True if 1 in x else False
         )
         if marked_rows.any():  # there are marked rows
-            logger.info("There are marked rows")
+            logger.debug("There are marked rows")
             return marked_rows
         else:  # no amrked rows, return all
-            logger.info("There is no marked row.\nReturn all")
+            logger.debug("There is no marked row.\nReturn all")
             return ~marked_rows
 
     def with_marks(self, chn_name):
@@ -2472,8 +2436,8 @@ class DataStore:
         """
         new_mark, old_mark = mark_pair
         df_new = df.copy()
-        logger.info(type(df_new))
-        logger.info(df_new.tail())
+        logger.debug(type(df_new))
+        logger.debug(df_new.tail())
         df_new.marks = df_new.marks.apply(
             lambda x: [new_mark if mark == old_mark else mark for mark in x]
         )
@@ -2528,7 +2492,7 @@ class DataStore:
         """
         for col in col_list:
             if col not in df.columns:
-                logger.info("col %s not in dataframe", col)
+                logger.debug("col %s not in dataframe", col)
                 df[col] = np.nan
                 df[col] = df[col].apply(
                     lambda x: self.nan_harm_list()
@@ -2601,8 +2565,8 @@ class DataStore:
                         if self._raw_exists(
                             fh, chn_name, int(df_chn.queue_id[ind]), harm
                         ):  # raw data exist
-                            logger.info(df_chn.queue_id[ind])
-                            logger.info(
+                            logger.debug(df_chn.queue_id[ind])
+                            logger.debug(
                                 fh[
                                     "raw/"
                                     + chn_name
@@ -2741,10 +2705,10 @@ class DataStore:
         df["f0s"] = f0s
         df["g0s"] = g0s
 
-        logger.info(f_arr.shape)
-        logger.info(g_arr.shape)
-        logger.info(fstar_arr.shape)
-        logger.info(df["fstars"].iloc[0])
+        logger.debug(f_arr.shape)
+        logger.debug(g_arr.shape)
+        logger.debug(fstar_arr.shape)
+        logger.debug(df["fstars"].iloc[0])
 
         return df
 
@@ -2754,8 +2718,8 @@ class DataStore:
         make a new df with shape of a and iterpolated data of b
         columns = ['queue_id', 't', 'temp', 'marks', 'fstars', 'fs', 'gs', 'delfstars', 'delfs', 'delgs', 'f0stars', 'f0s', 'g0s']
         """
-        logger.info("df_a %s", df_a)
-        logger.info("df_b %s", df_b)
+        logger.debug("df_a %s", df_a)
+        logger.debug("df_b %s", df_b)
 
         # make a new df with the same shape of df_a
         df = df_a.copy()
@@ -2778,7 +2742,7 @@ class DataStore:
                 "marks",
             ]:  # f/g columns with columns
                 # clear all values execpt queue_id, t, temp
-                logger.info("col %s", col)
+                logger.debug("col %s", col)
                 df[col] = df[col].apply(lambda x: self.nan_harm_list())
                 # get value
                 col_s = df_b[col].copy()
@@ -2792,8 +2756,8 @@ class DataStore:
                         mode["temp"] == "const"
                     ):  # single crystal and constant temperature
                         col_mean = np.mean(col_arr, axis=0)  # get mean of each column
-                        logger.info("col_arr %s", col_arr)
-                        logger.info("col_mean %s", col_mean)
+                        logger.debug("col_arr %s", col_arr)
+                        logger.debug("col_mean %s", col_mean)
                         df[col] = df[col].apply(
                             lambda x, col_mean=col_mean: list(col_mean)
                         )  # save back to all rows
@@ -2814,12 +2778,12 @@ class DataStore:
                             logger.warning("Check index format!")
                             return
 
-                        logger.info("col_s %s", col_s.iloc[0])
-                        logger.info("col_fs %s", df_b["fs"].iloc[0])
-                        logger.info("col_arr.shape %s", col_arr.shape)
+                        logger.debug("col_s %s", col_s.iloc[0])
+                        logger.debug("col_fs %s", df_b["fs"].iloc[0])
+                        logger.debug("col_arr.shape %s", col_arr.shape)
                         # iterate columns in col_arr
                         n_arr_cols = col_arr.shape[1] if len(col_arr.shape) > 1 else 1
-                        logger.info("n_arr_cols %s", n_arr_cols)
+                        logger.debug("n_arr_cols %s", n_arr_cols)
 
                         func_list = []
                         # calc the fun
@@ -2840,7 +2804,7 @@ class DataStore:
                                         lambda temp: np.array([np.nan] * len(temp))
                                     )  # add a func return nan
                                 else:  # there is data
-                                    logger.info(
+                                    logger.debug(
                                         "%s %s", temp_b_ind.shape, col_arr_i.shape
                                     )
                                     func_seg_list.append(
@@ -2876,7 +2840,7 @@ class DataStore:
                             v_list = func_list[seg % len(func_list)](temp_a_ind)
                             # transpose
                             val_list = np.transpose(np.array(v_list)).tolist()
-                            logger.info("len(val_list) %s", len(val_list))
+                            logger.debug("len(val_list) %s", len(val_list))
 
                             df[col][ind_list] = val_list
 
@@ -2956,7 +2920,7 @@ class DataStore:
         if init_file and settings:
             self.init_file(name + ".h5", settings=settings, t0=t0_str)
             f1 = self.settings["comboBox_base_frequency"] * 1e6  # in Hz
-            logger.info("path: %s", self.path)
+            logger.debug("path: %s", self.path)
         elif f1:
             f1 = f1 * 1e6  # in Hz
             self.path = name + ".h5"  # convert xlsx file to h5
@@ -2965,13 +2929,13 @@ class DataStore:
         g1 = 0  # in Hz
 
         # read QCM-D data
-        logger.info("ext %s", ext)
+        logger.debug("ext %s", ext)
         if ext == ".csv":
             df = pd.read_csv(path)
         elif ext == ".xlsx":
             df = pd.read_excel(path)
-        logger.info(df.shape)
-        logger.info(df.head())
+        logger.debug(df.shape)
+        logger.debug(df.head())
 
         # import data to class
         self.import_data_from_df(df, t0, t0_str, f1, g1, config_default)
@@ -2988,7 +2952,7 @@ class DataStore:
         """
         # get column names
         columns = df.columns
-        logger.info(columns)
+        logger.debug(columns)
 
         # the way to determine the corresponding column is:
         # check the same key in config_default.data_saver_import_data and find if any name string is in columns and use the name string to import data
@@ -3036,14 +3000,14 @@ class DataStore:
 
         # find column name with number
         col_with_num = df.filter(regex=r"\d+").columns
-        logger.info(col_with_num)
+        logger.debug(col_with_num)
 
         # extract the numbers
         r = re.compile(r"(\d+)")
         num_list = [
             int(m.group(1)) for col in col_with_num for m in [r.search(col)] if m
         ]
-        logger.info(num_list)
+        logger.debug(num_list)
 
         if not num_list:  # no number found
             logger.warning("No columns with harmonics was found!")
@@ -3055,14 +3019,14 @@ class DataStore:
             num_list = sorted(set(num_list))  # remove the duplicated numbers
 
         base_num = num_list[0]  # the smallest number is considered as the base number
-        logger.info("base_num %s", base_num)
+        logger.debug("base_num %s", base_num)
 
         # suppose 1st harmonic in data
         if base_num == round(f1 / 1e6):  # number is frequency (assume f1 != 1 MHz)
             harm_list = [n / round(f1 / 1e6) for n in num_list]
         elif base_num == 1:  # number is harmonic
             harm_list = num_list
-        logger.info("harm_list %s", harm_list)
+        logger.debug("harm_list %s", harm_list)
 
         # initiate reference and create the make up raw data
         ref_fs = {"ref": []}
@@ -3146,7 +3110,7 @@ class DataStore:
 
         # Build samp rows directly — dynamic_save() was removed in DataStore migration.
         # Construct each row as a single-row DataFrame and concat into self.samp.
-        logger.info("df before import %s", df.head())
+        logger.debug("df before import %s", df.head())
         samp_rows = []
         for i in df.index:
             samp_rows.append(
@@ -3167,8 +3131,8 @@ class DataStore:
         if samp_rows:
             self.samp = pd.concat([self.samp, *samp_rows], ignore_index=True)
 
-        logger.info(self.samp.fs[0])
-        logger.info(self.samp["marks"][0])
+        logger.debug(self.samp.fs[0])
+        logger.debug(self.samp["marks"][0])
 
         self.queue_list = list(self.samp.index)
 
@@ -3187,13 +3151,13 @@ class DataStore:
             ]
         )
         self.ref = pd.concat([self.ref, ref_row], ignore_index=True)
-        logger.info(self.ref.head())
-        logger.info(self.ref["marks"][0])
+        logger.debug(self.ref.head())
+        logger.debug(self.ref["marks"][0])
 
         # set reference
         self.set_ref_set("samp", "ref", idx_list=[0])
 
-        logger.info(self.exp_ref)
+        logger.debug(self.exp_ref)
 
         self.raw = {}
 
@@ -3203,4 +3167,4 @@ class DataStore:
 if __name__ == "__main__":
     data_saver = DataStore(settings={"max_harmonic": 9})
     temp = data_saver.temp_C_to_unit(25, unit="C")
-    logger.info(temp)
+    logger.debug(temp)
