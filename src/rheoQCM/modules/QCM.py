@@ -1123,8 +1123,8 @@ if __name__ == "__main__":
         nh, delfstar, film, calctype="SLA", bulklimit=0.5
     )
 
-    logger.info("drho %s", drho)
-    logger.info("grho_refh %s", grho_refh)
-    logger.info("phi %s", phi)
-    logger.info("dlam_refh %s", dlam_refh)
-    logger.info("err %s", err)
+    logger.debug("drho %s", drho)
+    logger.debug("grho_refh %s", grho_refh)
+    logger.debug("phi %s", phi)
+    logger.debug("dlam_refh %s", dlam_refh)
+    logger.debug("err %s", err)

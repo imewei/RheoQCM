@@ -60,7 +60,7 @@ def list_modules(module):
     # return modules
 
     # from subclass
-    logger.info(dir(module))
+    logger.debug(dir(module))
     subcls_list = inspect.getmembers(module, inspect.isclass)
 
     return {subcls[0]: subcls[0] for subcls in subcls_list}
@@ -99,20 +99,20 @@ def index_from_str(idx_str, chn_idx, join_segs=True):
 
     # create a dummy data with index
     data = list(range(max(chn_idx) + 1))
-    logger.info(chn_idx)
-    logger.info(data)
+    logger.debug(chn_idx)
+    logger.debug(data)
     try:
         # check if string contains [ ]
         segs = re.findall(r"\[([0-9\:][^]]*)\]", idx_str)  # get [] as seg
-        logger.info(segs)
+        logger.debug(segs)
         if segs:
             for seg in segs:
-                logger.info("multi")
-                logger.info(seg)
-                logger.info("data[%s]", seg)
+                logger.debug("multi")
+                logger.debug(seg)
+                logger.debug("data[%s]", seg)
                 new_idx = _safe_slice(data, seg)
-                logger.info(new_idx)
-                logger.info("type(new_idx) %s", type(new_idx))
+                logger.debug(new_idx)
+                logger.debug("type(new_idx) %s", type(new_idx))
                 if join_segs:  # True: combine
                     if isinstance(new_idx, int):
                         idx.append(new_idx)
@@ -125,8 +125,8 @@ def index_from_str(idx_str, chn_idx, join_segs=True):
                         idx.append(new_idx)
 
         else:
-            logger.info("single")
-            logger.info("data[%s]", idx_str)
+            logger.debug("single")
+            logger.debug("data[%s]", idx_str)
             new_idx = _safe_slice(data, idx_str)
             if isinstance(new_idx, int):
                 idx.append(new_idx)
@@ -135,7 +135,7 @@ def index_from_str(idx_str, chn_idx, join_segs=True):
 
         # check the index with chn_idx
         if join_segs:  # combine all
-            logger.info("joined %s", sorted(set(idx) & set(chn_idx)))
+            logger.debug("joined %s", sorted(set(idx) & set(chn_idx)))
             return sorted(set(idx) & set(chn_idx))
         else:  # keep separate
             # return thel list
@@ -166,12 +166,12 @@ def sel_ind_dict(harms, sel_idx_dict, mode, marks):
         sel_idx_dict = data_idx_dict
     if mode == "marked":
         for harm in harms:
-            logger.info(harm)
+            logger.debug(harm)
             data_idx_dict[harm] = list(
                 marks[marks["mark" + harm] == 1].index
             )  # all the indices with data for each harm
         sel_idx_dict = data_idx_dict
-        logger.info(sel_idx_dict)
+        logger.debug(sel_idx_dict)
 
     if mode == "selpts":
         pass
@@ -205,7 +205,7 @@ def idx_dict_to_harm_dict(sel_idx_dict):
     for idxs in sel_idx_dict.values():
         idx_set |= set(idxs)
     idx_un = list(idx_set)
-    logger.info("idx_un %s", idx_un)
+    logger.debug("idx_un %s", idx_un)
 
     sel_harm_dict = {}
     for idx in idx_un:

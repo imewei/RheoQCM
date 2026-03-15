@@ -927,28 +927,28 @@ for harm in range(1, config_default["max_harmonic"] + 2, 2):
 def get_config():
     config = config_default.copy()  # make a copy
     file_path = config_default["default_config_file_name"]
-    logger.info("user config file_path %s", file_path)
+    logger.debug("user config file_path %s", file_path)
 
     config, complete = update_dict(file_path, config)
     if complete:
-        logger.info("use user config")
+        logger.debug("use user config")
         return config
     else:
-        logger.info("use default config")
+        logger.debug("use default config")
         return config_default
 
 
 def get_settings():
     settings = settings_default.copy()  # make a copy
     file_path = config_default["default_settings_file_name"]
-    logger.info("user settings file_path %s", file_path)
+    logger.debug("user settings file_path %s", file_path)
 
     settings, complete = update_dict(file_path, settings)
     if complete:
-        logger.info("use user settings")
+        logger.debug("use user settings")
         return settings
     else:
-        logger.info("use default settings")
+        logger.debug("use default settings")
         return settings_default
 
 
@@ -976,5 +976,5 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     config_default = get_config()
     settings_default = get_settings()
-    logger.info("config: %s", config_default)
-    logger.info("settings: %s", settings_default)
+    logger.debug("config: %s", config_default)
+    logger.debug("settings: %s", settings_default)

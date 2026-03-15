@@ -547,7 +547,7 @@ class MatplotlibWidget(QWidget):
 
     def data_rectsleector_picker_switch(self, checked):
         if checked:
-            logger.info(True)
+            logger.debug(True)
             # active rectangle selector
             self.rect_selector.set_active(True)
             # connect pick event
@@ -582,8 +582,8 @@ class MatplotlibWidget(QWidget):
         # clear pick data .l['lp']
         self.clr_lines(l_list=["lp"])
 
-        logger.info(eclick)
-        logger.info(erelease)
+        logger.debug(eclick)
+        logger.debug(erelease)
         x1, x2 = sorted([eclick.xdata, erelease.xdata])  # x1 < x2
         y1, y2 = sorted([eclick.ydata, erelease.ydata])  # y1 < y2
 
@@ -638,13 +638,13 @@ class MatplotlibWidget(QWidget):
         x_p = thisline.get_xdata()
         y_p = thisline.get_ydata()
         ind = event.ind[0]
-        logger.info(thisline)
-        logger.info(thisline.get_label())
-        logger.info(x_p.name)
-        logger.info(y_p.name)
-        logger.info(ind)
-        logger.info("x_p %s", x_p)
-        logger.info("%s %s", x_p.iloc[ind], y_p.iloc[ind])
+        logger.debug(thisline)
+        logger.debug(thisline.get_label())
+        logger.debug(x_p.name)
+        logger.debug(y_p.name)
+        logger.debug(ind)
+        logger.debug("x_p %s", x_p)
+        logger.debug("%s %s", x_p.iloc[ind], y_p.iloc[ind])
         self.l["lp"][0].set_data(x_p.iloc[ind], y_p.iloc[ind])
         self.l["lp"][0].set_label(
             thisline.get_label() + "_" + str(ind)
@@ -675,8 +675,8 @@ class MatplotlibWidget(QWidget):
             .l['lm<n>]
         NOTE: this function should be used every time contour is changed
         """
-        logger.info("self.l.get('C'): %s", self.l.get("C"))
-        logger.info("kwargs: %s", kwargs.keys())
+        logger.debug("self.l.get('C'): %s", self.l.get("C"))
+        logger.debug("kwargs: %s", kwargs.keys())
 
         if self.ax:
             self.ax[0].cla()
@@ -714,10 +714,10 @@ class MatplotlibWidget(QWidget):
         if "cmap" in kwargs:
             cmap = kwargs.get("cmap")
         else:
-            logger.info("cmap not in kwargs")
+            logger.debug("cmap not in kwargs")
             cmap = config_default["contour_array"]["cmap"]
 
-        logger.info(
+        logger.debug(
             "levels %s",
             type(levels),
         )
@@ -1211,7 +1211,7 @@ class MatplotlibWidget(QWidget):
                 for ax in self.ax:
                     self.del_templines(ax=ax)
 
-        logger.info("it is a contour: %s", "C" in self.l)
+        logger.debug("it is a contour: %s", "C" in self.l)
         if "C" not in self.l:  # not contour
             # we don't reset contour limit
             self.reset_ax_lim(ax)
@@ -1222,9 +1222,9 @@ class MatplotlibWidget(QWidget):
         set style of artists in class
         artists: 'linestyle', 'markersize' etc. the same keywords as in matplotlib
         """
-        logger.info(line_list)
-        logger.info(self.l)
-        logger.info(self.l.keys())
+        logger.debug(line_list)
+        logger.debug(self.l)
+        logger.debug(self.l.keys())
         for key, val in kwargs.items():
             for line_key in line_list:
                 getattr(self.l[line_key][0], f"set_{key}")(val)
@@ -1289,7 +1289,7 @@ class MatplotlibWidget(QWidget):
             ylist = []
         if label_list is None:
             label_list = []
-        logger.info("add_temp_lines")
+        logger.debug("add_temp_lines")
         if len(label_list) == 0:
             label_list = [""] * len(xlist)  # make up a label_list with all ''
         for x, y, label in zip(xlist, ylist, label_list, strict=False):
@@ -1353,6 +1353,6 @@ class MatplotlibWidget(QWidget):
 
 def press_zoomX(obj, event):
     event.key = "x"
-    logger.info("event %s", event)
+    logger.debug("event %s", event)
     NavigationToolbar2QT.press_zoom(obj, event)
-    logger.info("zoomed on x")
+    logger.debug("zoomed on x")

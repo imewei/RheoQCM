@@ -425,10 +425,10 @@ def findpeaks_py(
         logger.warning(f"findpeaks_py input x is not well assigned!\nx = {x}")
         exit(0)
 
-    logger.info(threshold)
-    logger.info("f distance %s", distance / (x[1] - x[0]))
-    logger.info(prominence)
-    logger.info("f width %s", width / (x[1] - x[0]))
+    logger.debug(threshold)
+    logger.debug("f distance %s", distance / (x[1] - x[0]))
+    logger.debug(prominence)
+    logger.debug("f width %s", width / (x[1] - x[0]))
     peaks, props = find_peaks(
         resonance,
         threshold=threshold,
@@ -437,8 +437,8 @@ def findpeaks_py(
         width=max(1, width / (x[1] - x[0])),
     )
 
-    logger.info(peaks)
-    logger.info(props)
+    logger.debug(peaks)
+    logger.debug(props)
 
     indices = np.copy(peaks)
     values = resonance[indices]
@@ -453,10 +453,10 @@ def findpeaks_py(
             values = -np.sort(-values)
         else:
             order = np.argsort(values)
-        logger.info(values)
-        logger.info(peaks)
-        logger.info(order)
-        logger.info(props)
+        logger.debug(values)
+        logger.debug(peaks)
+        logger.debug(order)
+        logger.debug(props)
 
         for i in range(order.size):
             indices[i] = indices[order[i]]
@@ -490,10 +490,10 @@ def guess_peak_factors(freq, resonance):
         Rmax = resonance[cen_index]
         amp = Rmax - np.amin(resonance)
         half_max = amp / 2 + np.amin(resonance)
-        logger.info("Rmax %s", Rmax)
-        logger.info("amp %s", amp)
+        logger.debug("Rmax %s", Rmax)
+        logger.debug("amp %s", amp)
         half_wid = np.absolute(freq[np.argmin(np.abs(half_max - resonance))] - cen)
-        logger.info(half_wid)
+        logger.debug(half_wid)
         return amp, cen, half_wid, half_max
     elif peak_finder_method == "py_func":
         cen_index = np.argmax(resonance)
@@ -592,23 +592,23 @@ class PeakTracker:
         if f, G, B  all(is None): update harmdata, freq_span only.
         harm: int
         """
-        logger.info("#### update_input ####")
+        logger.debug("#### update_input ####")
         if fGB is not None:
             f, G, B = fGB
             self.harminput[chn_name][harm]["isfitted"] = False
             self.harminput[chn_name][harm]["f"] = f
             self.harminput[chn_name][harm]["G"] = G
             self.harminput[chn_name][harm]["B"] = B
-            logger.info("f[chn][harm] %s", "None" if f is None else len(f))
+            logger.debug("f[chn][harm] %s", "None" if f is None else len(f))
 
         if not harmdata:
             harm_dict = {}
         else:
             harm_dict = harmdata[chn_name][harm]
 
-            logger.info("chn_name:  %s, harm: %s", chn_name, harm)
-            logger.info("harmdata[chn][harm] %s", harm_dict)
-        logger.info(" #####################")
+            logger.debug("chn_name:  %s, harm: %s", chn_name, harm)
+            logger.debug("harmdata[chn][harm] %s", harm_dict)
+        logger.debug(" #####################")
 
         if not freq_span:
             self.harminput[chn_name][harm]["current_span"] = [None, None]
@@ -757,9 +757,9 @@ class PeakTracker:
         def set_new_cen(freq, cen, current_span, current_xlim):
             cen_range = config_default["cen_range"]
             cen_diff = cen - np.mean(np.array([freq[0], freq[-1]]))
-            logger.info("cen_diff %s", cen_diff)
+            logger.debug("cen_diff %s", cen_diff)
             half_cen_span = cen_range * current_span
-            logger.info("half_cen_span %s", half_cen_span)
+            logger.debug("half_cen_span %s", half_cen_span)
             if np.absolute(cen_diff) > half_cen_span:
                 if cen_diff / half_cen_span < -config_default["big_move_thresh"]:
                     return cen - half_cen_span
@@ -774,7 +774,7 @@ class PeakTracker:
             wid_ratio_range = config_default["wid_ratio_range"]
             change_thresh = config_default["change_thresh"]
             wid_ratio = 0.5 * current_span / half_wid
-            logger.info("wid_ratio %s", wid_ratio)
+            logger.debug("wid_ratio %s", wid_ratio)
             if wid_ratio < wid_ratio_range[0]:
                 new_span = max(
                     min(
@@ -784,7 +784,7 @@ class PeakTracker:
                     current_span * (1 + change_thresh[0]),
                 )
             elif wid_ratio > wid_ratio_range[1]:
-                logger.info(
+                logger.debug(
                     "peak too thin\n %s %s %s %s",
                     half_wid,
                     wid_ratio_range[1] * half_wid * 2,
@@ -810,8 +810,8 @@ class PeakTracker:
         harm = self.active_harm
         track_condition = self.harminput[chn_name][harm]["condition"]
         track_method = self.harminput[chn_name][harm]["method"]
-        logger.info("track_condition: %s", track_condition)
-        logger.info("track_method: %s", track_method)
+        logger.debug("track_condition: %s", track_condition)
+        logger.debug("track_method: %s", track_method)
         freq = self.harminput[chn_name][harm]["f"]
         if track_method == "bmax":
             resonance = self.harminput[chn_name][harm]["B"]
@@ -825,10 +825,10 @@ class PeakTracker:
             *self.harminput[chn_name][harm]["current_span"]
         )
 
-        logger.info("current_center %s", current_center)
-        logger.info("current_span %s", current_span)
-        logger.info("current_xlim %s", current_xlim)
-        logger.info("f1f2 %s %s", freq[0], freq[-1])
+        logger.debug("current_center %s", current_center)
+        logger.debug("current_span %s", current_span)
+        logger.debug("current_xlim %s", current_xlim)
+        logger.debug("f1f2 %s %s", freq[0], freq[-1])
         new_cen = current_center
         new_xlim = self.harminput[chn_name][harm]["current_span"]
 
@@ -846,20 +846,20 @@ class PeakTracker:
             new_span = set_new_span(current_span, half_wid)
             new_xlim = set_new_xlim(new_cen, new_span)
 
-            logger.info("current_center %s", current_center)
-            logger.info("current_span %s", current_span)
-            logger.info("current_xlim %s", current_xlim)
-            logger.info("new_cen %s", new_cen)
-            logger.info("new_span %s", new_span)
-            logger.info("new_xlim %s", new_xlim)
+            logger.debug("current_center %s", current_center)
+            logger.debug("current_span %s", current_span)
+            logger.debug("current_xlim %s", current_xlim)
+            logger.debug("new_cen %s", new_cen)
+            logger.debug("new_span %s", new_span)
+            logger.debug("new_xlim %s", new_xlim)
         elif track_condition == "fixcntspn":
-            logger.info("fixcntspn")
+            logger.debug("fixcntspn")
             pass
         elif track_condition == "usrdef":
             pass
 
-        logger.info("new_cen: %s", new_cen)
-        logger.info("new_xlim: %s", new_xlim)
+        logger.debug("new_cen: %s", new_cen)
+        logger.debug("new_xlim: %s", new_xlim)
 
         self.update_output(chn_name, harm, span=new_xlim)
         self.update_output(chn_name, harm, cen_trk=cen)
@@ -875,9 +875,9 @@ class PeakTracker:
         harm = self.active_harm
         n_policy = self.harminput[chn_name][harm]["n_policy"]
         p_policy = self.harminput[chn_name][harm]["p_policy"]
-        logger.info("chn_name %s", chn_name)
-        logger.info("harm %s", harm)
-        logger.info("p_policy %s", p_policy)
+        logger.debug("chn_name %s", chn_name)
+        logger.debug("harm %s", harm)
+        logger.debug("p_policy %s", p_policy)
 
         if p_policy == "maxamp":
             sortstr = "descend"
@@ -894,7 +894,7 @@ class PeakTracker:
             width=config_default["peak_min_width_Hz"],
         )
 
-        logger.info("indices %s", indices)
+        logger.debug("indices %s", indices)
         if indices.size == 0:
             self.found_n = 0
             self.update_output(found_n=0)
@@ -914,15 +914,15 @@ class PeakTracker:
         elif n_policy == "fixed":
             self.found_n = self.harminput[chn_name][harm]["n"]
 
-        logger.info(type(self.harminput[chn_name][harm]["n"]))
-        logger.info(indices)
-        logger.info(heights)
-        logger.info(prominences)
-        logger.info(widths)
+        logger.debug(type(self.harminput[chn_name][harm]["n"]))
+        logger.debug(indices)
+        logger.debug(heights)
+        logger.debug(prominences)
+        logger.debug(widths)
 
         for i in range(self.found_n):
             if i + 1 <= len(indices):
-                logger.info(i)
+                logger.debug(i)
                 self.peak_guess[i] = {
                     "amp": prominences[i],
                     "cen": self.x[indices[i]],
@@ -941,7 +941,7 @@ class PeakTracker:
                     "phi": phi,
                 }
         self.update_output(found_n=self.found_n)
-        logger.info("out found %s", self.harmoutput[chn_name][harm]["found_n"])
+        logger.debug("out found %s", self.harmoutput[chn_name][harm]["found_n"])
 
     def prev_guess(self, chn_name=None, harm=None):
         """
@@ -952,7 +952,7 @@ class PeakTracker:
             harm = self.active_harm
 
         result = self.harmoutput[chn_name][harm].get("result", None)
-        logger.info(result)
+        logger.debug(result)
         if not result:
             self.peak_guess = {}
             self.found_n = 0
@@ -961,8 +961,8 @@ class PeakTracker:
 
         val = result.params.valuesdict()
 
-        logger.info(self.harmoutput[chn_name][harm]["found_n"])
-        logger.info(self.harminput[chn_name][harm]["n"])
+        logger.debug(self.harmoutput[chn_name][harm]["found_n"])
+        logger.debug(self.harminput[chn_name][harm]["n"])
         n_policy = self.harminput[chn_name][harm]["n_policy"]
 
         if n_policy == "max":
@@ -1024,7 +1024,7 @@ class PeakTracker:
             method_list = [self.harminput[self.active_chn][self.active_harm]["method"]]
 
         for method in method_list:
-            logger.info(method)
+            logger.debug(method)
             if method == "prev":
                 self.prev_guess()
             else:
@@ -1054,7 +1054,7 @@ class PeakTracker:
         wid_rough = (np.amax(f) - np.amin(f)) / 6
         phi_rough = 0
 
-        logger.info("peak_guess %s", self.peak_guess)
+        logger.debug("peak_guess %s", self.peak_guess)
 
         if self.found_n == 0:
             self.found_n = 1
@@ -1107,16 +1107,16 @@ class PeakTracker:
         harm = self.active_harm
         factor = self.get_input(key="factor")
 
-        logger.info("chn: %s, harm: %s", chn_name, harm)
-        logger.info(self.get_output())
-        logger.info("mm factor %s", factor)
-        logger.info("self n %s", self.found_n)
+        logger.debug("chn: %s, harm: %s", chn_name, harm)
+        logger.debug(self.get_output())
+        logger.debug("mm factor %s", factor)
+        logger.debug("self n %s", self.found_n)
 
         # Guess parameters and set up
         self.auto_guess()
         self.set_params()
 
-        logger.info("self n %s", self.found_n)
+        logger.debug("self n %s", self.found_n)
 
         n_peaks = self.found_n
         self.update_output(n_peaks=n_peaks)
@@ -1135,8 +1135,8 @@ class PeakTracker:
             for i in range(self.found_n):
                 cen_i = params_dict[i]["cen"]
                 wid_i = params_dict[i]["wid"]
-                logger.info("cen_i %s", cen_i)
-                logger.info("wid_i %s", wid_i)
+                logger.debug("cen_i %s", cen_i)
+                logger.debug("wid_i %s", wid_i)
                 ind_min = np.abs(
                     self.harminput[chn_name][harm]["f"] - (cen_i - wid_i * factor)
                 ).argmin()
@@ -1159,10 +1159,10 @@ class PeakTracker:
             G = G[idx_list]
             B = B[idx_list]
 
-            logger.info("data len after factor %s", len(f))
+            logger.debug("data len after factor %s", len(f))
 
-        logger.info("factor\n%s", factor)
-        logger.info("mm params %s", self.harmoutput[chn_name][harm]["params"])
+        logger.debug("factor\n%s", factor)
+        logger.debug("mm params %s", self.harmoutput[chn_name][harm]["params"])
 
         try:
             # Build p0 and bounds for NLSQ
@@ -1204,10 +1204,10 @@ class PeakTracker:
             )
             result.chisqr = chisqr
 
-            logger.info("NLSQ Fit Report:")
-            logger.info("  Success: %s", result.success)
-            logger.info("  Chi-squared: %.6g", chisqr)
-            logger.info("  Parameters: %s", result.params.valuesdict())
+            logger.debug("NLSQ Fit Report:")
+            logger.debug("  Success: %s", result.success)
+            logger.debug("  Chi-squared: %.6g", chisqr)
+            logger.debug("  Parameters: %s", result.params.valuesdict())
 
         except (RuntimeError, ValueError, np.linalg.LinAlgError):
             result = {}
@@ -1237,11 +1237,11 @@ class PeakTracker:
                 [result.params.get("p" + str(i) + "_cen").value for i in range(found_n)]
             )
 
-            logger.info("found_n %s", found_n)
-            logger.info(result.params)
-            logger.info("params %s", result.params.valuesdict())
-            logger.info(amp_array)
-            logger.info(cen_array)
+            logger.debug("found_n %s", found_n)
+            logger.debug(result.params)
+            logger.debug("params %s", result.params.valuesdict())
+            logger.debug(amp_array)
+            logger.debug(cen_array)
 
             maxamp_idx = np.argmax(amp_array)
             mincen_idx = np.argmin(cen_array)
@@ -1300,7 +1300,7 @@ class PeakTracker:
             val["sucess"] = result.success
             val["chisqr"] = result.chisqr
 
-            logger.info("params %s", result.params.valuesdict())
+            logger.debug("params %s", result.params.valuesdict())
         else:
             # No result - return NaN values
             val["amp_trk"] = {"value": np.nan, "stderr": np.nan}
@@ -1439,8 +1439,8 @@ class PeakTracker:
             self.active_harm = harm
 
         self.init_active_val(chn_name=chn_name, harm=harm)
-        logger.info("chn: %s, harm: %s", chn_name, harm)
-        logger.info("self.chn: %s,self.harm: %s", self.active_chn, self.active_harm)
+        logger.debug("chn: %s, harm: %s", chn_name, harm)
+        logger.debug("self.chn: %s,self.harm: %s", self.active_chn, self.active_harm)
 
         self.minimize_GB()
 
@@ -1471,7 +1471,7 @@ class PeakTracker:
         Generate a human-readable fit result report.
         """
         v_fit = self.get_fit_values()
-        logger.info(v_fit)
+        logger.debug(v_fit)
         keys = {
             "f (Hz)": "cen_rec",
             "\u0393" + " (Hz)": "wid_rec",
@@ -1631,7 +1631,7 @@ class PeakTracker:
 
 if __name__ == "__main__":
     # Test the JAX model functions
-    logger.info("Testing JAX model functions...")
+    logger.debug("Testing JAX model functions...")
 
     # Create synthetic test data
     f = np.linspace(4.99e6, 5.01e6, 200)
@@ -1648,8 +1648,8 @@ if __name__ == "__main__":
     G = G_true + noise
     B = B_true + noise
 
-    logger.info("  Test data generated: %s points", len(f))
-    logger.info(
+    logger.debug("  Test data generated: %s points", len(f))
+    logger.debug(
         "  True parameters: amp=%s, cen=%s, wid=%s, phi=%s",
         amp_true,
         cen_true,
@@ -1658,7 +1658,7 @@ if __name__ == "__main__":
     )
 
     # Test NLSQ fitting directly
-    logger.info("Testing NLSQ curve_fit...")
+    logger.debug("Testing NLSQ curve_fit...")
 
     model = create_composite_model(1)
 
@@ -1674,21 +1674,21 @@ if __name__ == "__main__":
 
     popt, pcov = curve_fit(model, x_stacked, y_data, p0=p0, bounds=bounds)
 
-    logger.info("  Fitted parameters:")
-    logger.info("    amp = %.6g (true: %s)", popt[0], amp_true)
-    logger.info("    cen = %.6g (true: %s)", popt[1], cen_true)
-    logger.info("    wid = %.6g (true: %s)", popt[2], wid_true)
-    logger.info("    phi = %.6g (true: %s)", popt[3], phi_true)
+    logger.debug("  Fitted parameters:")
+    logger.debug("    amp = %.6g (true: %s)", popt[0], amp_true)
+    logger.debug("    cen = %.6g (true: %s)", popt[1], cen_true)
+    logger.debug("    wid = %.6g (true: %s)", popt[2], wid_true)
+    logger.debug("    phi = %.6g (true: %s)", popt[3], phi_true)
 
     # Calculate relative errors
     rel_err_amp = abs(popt[0] - amp_true) / amp_true * 100
     rel_err_cen = abs(popt[1] - cen_true) / cen_true * 100
     rel_err_wid = abs(popt[2] - wid_true) / wid_true * 100
 
-    logger.info("  Relative errors:")
-    logger.info("    amp: %.4f%%", rel_err_amp)
-    logger.info("    cen: %.4f%%", rel_err_cen)
-    logger.info("    wid: %.4f%%", rel_err_wid)
+    logger.debug("  Relative errors:")
+    logger.debug("    amp: %.4f%%", rel_err_amp)
+    logger.debug("    cen: %.4f%%", rel_err_cen)
+    logger.debug("    wid: %.4f%%", rel_err_wid)
 
     if rel_err_cen < 0.1 and rel_err_wid < 0.1:
         logger.info("  SUCCESS: Fitting accuracy within 0.1%% tolerance!")
