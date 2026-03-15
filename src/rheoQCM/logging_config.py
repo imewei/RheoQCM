@@ -79,7 +79,7 @@ def configure_logging(
 
     # Determine log level from environment or argument
     if level is None:
-        level = os.environ.get("RHEOQCM_LOG_LEVEL", DEFAULT_LOG_LEVEL).upper()  # type: ignore
+        level = os.environ.get("RHEOQCM_LOG_LEVEL", DEFAULT_LOG_LEVEL).upper()
         if level not in ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"):
             level = DEFAULT_LOG_LEVEL
 
