@@ -85,12 +85,14 @@ from rheoQCM.gui.dialogs import (  # noqa: E402
     BayesianProgressDialog,
     DiagnosticViewerDialog,
 )
+from rheoQCM.gui.styles import StyleManager  # noqa: E402
 from rheoQCM.gui.widgets import (  # noqa: E402
     ConfidenceLevelSpinBox,
     ConvergenceStatusWidget,
     UncertaintyBandToggle,
 )
 from rheoQCM.io.data_store import DataStore  # noqa: E402
+from rheoQCM.services.settings import JSONSettingsRepository  # noqa: E402
 
 logger.info("Version: %s", _version.__version__)
 
@@ -140,6 +142,14 @@ class QCMApp(QMainWindow):
         # Set minimum window size to prevent UI elements becoming too small
         self.setMinimumSize(800, 600)
 
+        # Initialize theme system (before any UI setup)
+        self._style_manager = StyleManager.instance()
+        self._display_settings = JSONSettingsRepository()
+        self._saved_theme = self._display_settings.get("display.theme", "system")
+        self._style_manager.set_theme(self._saved_theme)
+        self._style_manager.apply_to_app()
+        self._style_manager.register_callback(self._on_theme_changed)
+
         # Store injected services (for testability)
         self._plot_manager = plot_manager
         self._settings_repo = settings_repo
@@ -188,6 +198,9 @@ class QCMApp(QMainWindow):
 
         # hide widgets not for analysis mode
         self.hide_widgets("analysis_mode_disable_list")
+
+        # Hide acquisition-only tree items and rename "Hardwares" tab
+        self._hide_acquisition_tree_items()
 
         self.load_settings()
 
@@ -403,20 +416,14 @@ class QCMApp(QMainWindow):
         # endregion
 
         # region settings_control
-        # set lineEdit_startf<n> & lineEdit_endf<n> & lineEdit_startf<n>_r & lineEdit_endf<n>_r background
+        # Frequency display line edits: mark as read-only so global stylesheet
+        # applies transparent background automatically
         for harm in self.all_harm_list(as_str=True):
-            getattr(self.ui, "lineEdit_startf" + harm).setStyleSheet(
-                "QLineEdit { background: transparent; }"
-            )
-            getattr(self.ui, "lineEdit_endf" + harm).setStyleSheet(
-                "QLineEdit { background: transparent; }"
-            )
-            getattr(self.ui, "lineEdit_startf" + harm + "_r").setStyleSheet(
-                "QLineEdit { background: transparent; }"
-            )
-            getattr(self.ui, "lineEdit_endf" + harm + "_r").setStyleSheet(
-                "QLineEdit { background: transparent; }"
-            )
+            for suffix in ("lineEdit_startf", "lineEdit_endf"):
+                for chn in (harm, harm + "_r"):
+                    widget = getattr(self.ui, suffix + chn, None)
+                    if widget is not None:
+                        widget.setReadOnly(True)
 
         # dateTimeEdit_reftime on dateTimeChanged
         self.ui.dateTimeEdit_reftime.dateTimeChanged.connect(
@@ -485,10 +492,8 @@ class QCMApp(QMainWindow):
             self.on_clicked_checkBox_fitfactorbyharm
         )
 
-        # set lineEdit_datafilestr background
-        self.ui.lineEdit_datafilestr.setStyleSheet(
-            "QLineEdit { background: transparent; }"
-        )
+        # datafilestr: mark read-only for theme-aware transparent background
+        self.ui.lineEdit_datafilestr.setReadOnly(True)
 
         # endregion
 
@@ -760,41 +765,13 @@ class QCMApp(QMainWindow):
             "Temperature",
         )
 
-        # set tabWidget_settings background
-        self.ui.tabWidget_settings.setStyleSheet(
-            # "QTabWidget, QTabWidget::pane, QTabBar { background: transparent; }"
-            "QTabWidget::pane { border: 0;}"
-            # "QTabWidget, QTabWidget::pane, QTabBar { border-width: 5px; border-color: red; }"
-            # "QTabBar::tab-bar { background: transparent; }"
-        )
+        # Tree widget and tab pane backgrounds are now handled by the
+        # global stylesheet via StyleManager (transparent backgrounds,
+        # borderless panes). No per-widget setStyleSheet calls needed.
 
-        # set treeWidget_settings_settings_harmtree background
-        self.ui.treeWidget_settings_settings_harmtree.setStyleSheet(
-            "QTreeWidget { background: transparent; }"
-        )
-        # set treeWidget_settings_settings_hardware background
-        self.ui.treeWidget_settings_settings_hardware.setStyleSheet(
-            "QTreeWidget { background: transparent; }"
-        )
-
-        # set treeWidget_settings_settings_plots background
-        self.ui.treeWidget_settings_settings_plots.setStyleSheet(
-            "QTreeWidget { background: transparent; }"
-        )
-
-        # resize the TabBar.Button
+        # resize the TabBar.Button (theme-aware via StyleManager)
         self.ui.tabWidget_settings_settings_harm.setStyleSheet(
-            "QTabWidget::pane { height: 0; border: 0px; }"
-            "QTabWidget {background-color: transparent;}"
-            "QTabWidget::tab-bar { left: 5px; /* move to the right by 5px */ }"
-            "QTabBar::tab { border: 1px solid #9B9B9B; border-top-left-radius: 1px; border-top-right-radius: 1px;}"
-            "QTabBar::tab { height: 20px; width: 42px; padding: 0px; }"
-            "QTabBar::tab:selected, QTabBar::tab:hover { background: white; }"
-            "QTabBar::tab:selected { height: 22px; width: 46px; border-bottom-color: none; }"
-            "QTabBar::tab:selected { margin-left: -2px; margin-right: -2px; }"
-            "QTabBar::tab:first:selected { margin-left: 0; width: 42px; }"
-            "QTabBar::tab:last:selected { margin-right: 0; width: 42px; }"
-            "QTabBar::tab:!selected { margin-top: 2px; }"
+            self._style_manager.get_harmtab_stylesheet()
         )
 
         self.ui.lineEdit_scan_harmstart.setValidator(QDoubleValidator(1, math.inf, 6))
@@ -870,10 +847,7 @@ class QCMApp(QMainWindow):
 
         # region settings_data
 
-        # set treeWidget_settings_data_refs background
-        self.ui.treeWidget_settings_data_refs.setStyleSheet(
-            "QTreeWidget { background: transparent; }"
-        )
+        # treeWidget_settings_data_refs background is handled by global stylesheet
 
         # load opts to combox
         self.build_comboBox(
@@ -1241,8 +1215,7 @@ class QCMApp(QMainWindow):
             )
             # getattr(self.ui, 'mpl_sp' + harm).fig.text(0.01, 0.98, harm, va='top',ha='left') # option: weight='bold'
             getattr(self.ui, "mpl_sp" + harm).update_sp_text_harm(harm)
-            # set mpl_sp<n> border
-            getattr(self.ui, "mpl_sp" + harm).setStyleSheet("border: 0;")
+            # border handled by global stylesheet
             getattr(self.ui, "mpl_sp" + harm).setContentsMargins(0, 0, 0, 0)
             getattr(self.ui, "frame_sp" + harm).setLayout(
                 self.set_frame_layout(getattr(self.ui, "mpl_sp" + harm))
@@ -1333,7 +1306,7 @@ class QCMApp(QMainWindow):
             axtype="legend",
             showtoolbar=False,
         )
-        self.ui.mpl_legend.setStyleSheet("background: transparent;")
+        # legend background handled by global stylesheet
         self.ui.frame_legend.setLayout(self.set_frame_layout(self.ui.mpl_legend))
         # change frame_legend height
         mpl_legend_p = self.ui.mpl_legend.leg.get_window_extent()
@@ -1593,6 +1566,47 @@ class QCMApp(QMainWindow):
         # help manual - open documentation in browser
         self.ui.actionHelp_Manual.triggered.connect(self.on_triggered_help_manual)
 
+        # region View menu (theme switching)
+        self.ui.menuView = QMenu("&View", self.ui.menubar)
+        self.ui.menuView.setObjectName("menuView")
+
+        # Theme submenu with radio-style exclusive actions
+        self.ui.menuTheme = QMenu("Theme", self.ui.menuView)
+        self._theme_action_group = []
+
+        self.actionTheme_light = QAction("Light", self)
+        self.actionTheme_light.setCheckable(True)
+        self.actionTheme_light.triggered.connect(lambda: self._set_theme("light"))
+
+        self.actionTheme_dark = QAction("Dark", self)
+        self.actionTheme_dark.setCheckable(True)
+        self.actionTheme_dark.triggered.connect(lambda: self._set_theme("dark"))
+
+        self.actionTheme_system = QAction("System", self)
+        self.actionTheme_system.setCheckable(True)
+        self.actionTheme_system.triggered.connect(lambda: self._set_theme("system"))
+
+        # Check the saved preference
+        for action in (
+            self.actionTheme_light,
+            self.actionTheme_dark,
+            self.actionTheme_system,
+        ):
+            action.setChecked(action.text().lower() == self._saved_theme)
+
+        self._theme_action_group = [
+            self.actionTheme_light,
+            self.actionTheme_dark,
+            self.actionTheme_system,
+        ]
+
+        self.ui.menuTheme.addAction(self.actionTheme_light)
+        self.ui.menuTheme.addAction(self.actionTheme_dark)
+        self.ui.menuTheme.addAction(self.actionTheme_system)
+        self.ui.menuView.addMenu(self.ui.menuTheme)
+
+        # Insert View menu between Setting and Help
+        self.ui.menubar.insertMenu(self.ui.menuHelp.menuAction(), self.ui.menuView)
         # endregion
 
         # Optimize TreeWidget column sizing so labels are not truncated
@@ -1613,6 +1627,83 @@ class QCMApp(QMainWindow):
         ]:  # link settings_mechanics to spectra_mechanics and data_mechanics
             self.ui.stackedWidget_spectra.setCurrentIndex(2)
             self.ui.stackedWidget_data.setCurrentIndex(1)
+
+    # region theme management
+
+    def _set_theme(self, preference: str) -> None:
+        """Set application theme, update menu checkmarks, and persist.
+
+        Parameters
+        ----------
+        preference : str
+            One of 'light', 'dark', or 'system'.
+        """
+        # Update checkmarks (radio-button behavior)
+        for action in self._theme_action_group:
+            action.setChecked(action.text().lower() == preference)
+
+        self._style_manager.set_theme(preference)
+
+        # Persist to settings.json
+        try:
+            self._display_settings.set("display.theme", preference)
+        except Exception as e:
+            logger.warning("Failed to save theme preference: %s", e)
+
+    def _on_theme_changed(self) -> None:
+        """Callback when StyleManager theme changes.
+
+        Re-applies the global stylesheet to the QApplication and
+        updates Matplotlib figures and theme-dependent widgets.
+        """
+        self._style_manager.apply_to_app()
+
+        # Update harmonic tab bar (has custom compact styling)
+        if hasattr(self.ui, "tabWidget_settings_settings_harm"):
+            self.ui.tabWidget_settings_settings_harm.setStyleSheet(
+                self._style_manager.get_harmtab_stylesheet()
+            )
+
+        # Update all matplotlib widgets
+        self._update_mpl_theme()
+
+    def _update_mpl_theme(self) -> None:
+        """Apply current theme colors to all Matplotlib figures."""
+        try:
+            from rheoQCM.services.theming import ThemeManager
+
+            tm = ThemeManager.instance()
+        except Exception:
+            return
+
+        # Collect all MatplotlibWidget instances
+        mpl_widgets = []
+        for harm in self.all_harm_list(as_str=True):
+            sp = getattr(self.ui, "mpl_sp" + harm, None)
+            if sp is not None:
+                mpl_widgets.append(sp)
+
+        for name in (
+            "mpl_plt1",
+            "mpl_plt2",
+            "mpl_sp_fit",
+            "mpl_legend",
+            "mpl_spectra_mechanics_plt1",
+            "mpl_spectra_mechanics_plt2",
+        ):
+            w = getattr(self.ui, name, None)
+            if w is not None:
+                mpl_widgets.append(w)
+
+        for w in mpl_widgets:
+            if w.axtype == "legend":
+                # Keep legend background transparent
+                w.fig.set_facecolor("none")
+            else:
+                tm.apply_to_figure(w.fig)
+            w.canvas.draw_idle()
+
+    # endregion
 
     def move_to_col(self, obj, parent, row_text, width=None, col=1):
         if width:  # set minimum width of obj (allows growth with window resize)
@@ -2358,6 +2449,26 @@ class QCMApp(QMainWindow):
         for name_list in args:
             for name in config_default[name_list]:
                 getattr(self.ui, name).setEnabled(False)
+
+    def _hide_acquisition_tree_items(self) -> None:
+        """Hide VNA and Temperature tree items from the hardware settings tree.
+
+        These are acquisition-only items that should not be visible in
+        analysis mode. Also renames 'Hardwares' toolbox tab to 'Crystal'.
+        """
+        tree = self.ui.treeWidget_settings_settings_hardware
+        # Hide "VNA" (index 1) and "Temperature" (index 3)
+        # Hide "Analyzer" (index 0) - acquisition-only selector
+        for idx in (3, 1, 0):  # reverse order to keep indices stable
+            item = tree.topLevelItem(idx)
+            if item is not None:
+                item.setHidden(True)
+
+        # Rename "Hardwares" toolbox tab → "Crystal" (the only remaining section)
+        self.ui.toolBox.setItemText(
+            self.ui.toolBox.indexOf(self.ui.page_settings_settings_hardwares),
+            "Crystal",
+        )
 
     def mech_splitter_vis(self):
         """Stub for mechanics splitter visibility toggle (signal handler)."""

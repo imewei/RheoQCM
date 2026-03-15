@@ -146,7 +146,7 @@ class MatplotlibWidget(QWidget):
 
         self.toolbar = NavigationToolbar(self.canvas, self)
         self.toolbar.setMaximumHeight(config_default["max_mpl_toolbar_height"])
-        self.toolbar.setStyleSheet("QToolBar { border: 0px;}")
+        self.toolbar.setStyleSheet("QToolBar { border: 0px; background: transparent; }")
         self.toolbar.isMovable()
         if showtoolbar:
             self.vbox.addWidget(self.toolbar)
@@ -169,6 +169,15 @@ class MatplotlibWidget(QWidget):
 
     def initax_xy(self, *args, **kwargs):
         ax1 = self.fig.add_subplot(111, facecolor="none")
+        # Apply theme colors if ThemeManager is available
+        try:
+            from rheoQCM.services.theming import ThemeManager
+
+            tm = ThemeManager.instance()
+            if self.axtype != "legend":
+                tm.apply_to_axes(ax1)
+        except Exception:
+            pass
         # append to list
         self.ax.append(ax1)
 

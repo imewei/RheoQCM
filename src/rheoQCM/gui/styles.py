@@ -404,12 +404,13 @@ class StyleManager:
     """Manages application-wide styles.
 
     Singleton pattern for consistent styling across the application.
-    Supports light/dark theme switching.
+    Supports light/dark/system theme switching and synchronizes
+    Qt stylesheets with Matplotlib theming via ThemeManager.
 
     Example
     -------
     >>> manager = StyleManager.instance()
-    >>> manager.set_dark_mode(True)
+    >>> manager.set_theme("dark")
     >>> stylesheet = manager.get_full_stylesheet()
     >>> widget.setStyleSheet(stylesheet)
     """
@@ -418,6 +419,7 @@ class StyleManager:
 
     def __init__(self) -> None:
         self._dark_mode = False
+        self._theme_preference = "system"  # "light", "dark", or "system"
         self._config = StyleConfig()
         self._callbacks: list = []
 
@@ -443,6 +445,11 @@ class StyleManager:
         """Check if dark mode is active."""
         return self._dark_mode
 
+    @property
+    def theme_preference(self) -> str:
+        """Current theme preference: 'light', 'dark', or 'system'."""
+        return self._theme_preference
+
     def set_dark_mode(self, enabled: bool) -> None:
         """Set dark mode state.
 
@@ -453,7 +460,54 @@ class StyleManager:
         """
         if self._dark_mode != enabled:
             self._dark_mode = enabled
+            self._sync_theme_manager()
             self._notify_callbacks()
+
+    def set_theme(self, preference: str) -> None:
+        """Set theme preference and resolve actual mode.
+
+        Parameters
+        ----------
+        preference : str
+            One of 'light', 'dark', or 'system'.
+        """
+        self._theme_preference = preference
+        if preference == "system":
+            self._dark_mode = self._detect_system_dark()
+        else:
+            self._dark_mode = preference == "dark"
+        self._sync_theme_manager()
+        self._notify_callbacks()
+
+    def _detect_system_dark(self) -> bool:
+        """Detect system dark mode preference via QPalette luminance."""
+        try:
+            from PyQt6.QtGui import QPalette
+            from PyQt6.QtWidgets import QApplication
+
+            app = QApplication.instance()
+            if app is not None:
+                palette = app.palette()
+                window_color = palette.color(QPalette.ColorRole.Window)
+                luminance = (
+                    0.299 * window_color.red()
+                    + 0.587 * window_color.green()
+                    + 0.114 * window_color.blue()
+                )
+                return luminance < 128
+        except Exception as e:
+            _logger.debug("System theme detection failed: %s", e)
+        return False
+
+    def _sync_theme_manager(self) -> None:
+        """Keep ThemeManager in sync with current dark mode state."""
+        try:
+            from rheoQCM.services.theming import Theme, ThemeManager
+
+            tm = ThemeManager.instance()
+            tm.set_theme(Theme.DARK if self._dark_mode else Theme.LIGHT)
+        except Exception as e:
+            _logger.debug("ThemeManager sync skipped: %s", e)
 
     def register_callback(self, callback) -> None:
         """Register callback for theme changes."""
@@ -871,7 +925,59 @@ class StyleManager:
                 border-radius: {c.border_radius}px;
                 padding: {SPACING.SM}px;
             }}
+
+            /* === RheoQCM: Transparent tree widgets (blend with parent) === */
+            QTreeWidget {{
+                background: transparent;
+                border: none;
+            }}
+
+            /* === RheoQCM: Transparent line edits for frequency displays === */
+            QLineEdit[readOnly="true"] {{
+                background: transparent;
+                border: none;
+            }}
+
+            /* === RheoQCM: Matplotlib canvas container === */
+            QWidget[objectName^="mpl_"] {{
+                border: 0;
+            }}
+
+            /* === RheoQCM: Tab pane border removal (settings tabs) === */
+            QTabWidget::pane {{
+                border: 1px solid {p.border_subtle};
+                border-radius: {c.border_radius}px;
+                background-color: {p.bg_primary};
+            }}
         """
+
+    def get_harmtab_stylesheet(self) -> str:
+        """Get stylesheet for the compact harmonic tab bar.
+
+        This replaces the hardcoded harmonic tab bar styles with
+        theme-aware colors.
+        """
+        p = self.palette
+        selected_bg = p.bg_primary
+        border_color = p.border_default
+
+        return (
+            f"QTabWidget::pane {{ height: 0; border: 0px; }}"
+            f"QTabWidget {{background-color: transparent;}}"
+            f"QTabWidget::tab-bar {{ left: 5px; }}"
+            f"QTabBar::tab {{ border: 1px solid {border_color};"
+            f" border-top-left-radius: 1px; border-top-right-radius: 1px; }}"
+            f"QTabBar::tab {{ height: 20px; width: 42px; padding: 0px;"
+            f" color: {p.text_secondary}; background: {p.bg_tertiary}; }}"
+            f"QTabBar::tab:selected, QTabBar::tab:hover"
+            f" {{ background: {selected_bg}; color: {p.text_primary}; }}"
+            f"QTabBar::tab:selected {{ height: 22px; width: 46px;"
+            f" border-bottom-color: none; }}"
+            f"QTabBar::tab:selected {{ margin-left: -2px; margin-right: -2px; }}"
+            f"QTabBar::tab:first:selected {{ margin-left: 0; width: 42px; }}"
+            f"QTabBar::tab:last:selected {{ margin-right: 0; width: 42px; }}"
+            f"QTabBar::tab:!selected {{ margin-top: 2px; }}"
+        )
 
     def apply_to_widget(self, widget: QWidget) -> None:
         """Apply full stylesheet to a widget.
@@ -882,3 +988,18 @@ class StyleManager:
             Widget to style
         """
         widget.setStyleSheet(self.get_full_stylesheet())
+
+    def apply_to_app(self) -> None:
+        """Apply theme to the QApplication instance.
+
+        Sets the global stylesheet on the QApplication so all
+        widgets inherit theme colors automatically.
+        """
+        try:
+            from PyQt6.QtWidgets import QApplication
+
+            app = QApplication.instance()
+            if app is not None:
+                app.setStyleSheet(self.get_full_stylesheet())
+        except Exception as e:
+            _logger.warning("Failed to apply app stylesheet: %s", e)

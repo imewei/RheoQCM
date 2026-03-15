@@ -49,6 +49,12 @@ config_default = {
         "comboBox_range",
         "checkBox_settings_temp_sensor",
         "comboBox_thrmcpltype",
+        # Acquisition-only widgets (strip-acquisition)
+        "groupBox_2",  # Temperature group in Control tab
+        "checkBox_control_rectemp",
+        "label_temp_devthrmcpl",
+        "pushButton_status_temp_sensor",
+        "pushButton_status_signal_ch",
     ],
     # widget enable/disable lists for file operations
     "pushButton_runstop_disable_list": [
