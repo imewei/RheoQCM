@@ -135,8 +135,6 @@ class DataStore:
             self._chn_keys, False
         )  # flag if the reference has been set
         self.queue_list = []
-        # following attributes will be save in file
-        # self.settings = {}
         self.samp = self._make_df()  # df for data form samp chn
         self.ref = self._make_df()  # df for data from ref chn
         self.samp_ref = self._make_df()  # df for samp chn reference
@@ -378,8 +376,6 @@ class DataStore:
         self.path = path
         # save some keys from config_default for future data manipulation
         self.settings = settings
-
-        # self.exp_ref = self._make_exp_ref() # use the settings_int values to format referene dict
         self.exp_ref["t0"] = t0
 
         # get directory
@@ -438,10 +434,6 @@ class DataStore:
             self.ver = fh.attrs["ver"]
             logger.info(self.ver)
             logger.info(self.exp_ref)
-            # get queue_list
-            # self.queue_list = list(fh['raw/samp'].keys())
-            # self.queue_list = [int(s) for s in fh['raw/samp'].keys()]
-
             logger.info(fh["data/samp"][()])
             for chn_name in self._chn_keys:
                 # df for data from samp/ref chn
@@ -1878,47 +1870,6 @@ class DataStore:
                 col_s = self._norm_by_harm(col_s)
             return col_s
 
-            # if mode['temp'] == 'const': # single crystal and constant temperature
-
-            #     if all(np.isnan(np.array(self.exp_ref[chn_name][self._ref_keys[col]]))): # no reference or no constant reference exist
-            #         logger.warning('ref still not set')
-            #         return col_s.apply(lambda x: list(np.array(x, dtype=np.float) * np.nan)) # return all nan
-            #     else: # use constant ref in self.<chn_name>_ref
-            #         logger.info('constant reference')
-            #         # get ref
-            #         ref = self.exp_ref[chn_name][self._ref_keys[col]] # return a ndarray
-            #         # return
-            #         # logger.info(ref)
-            #         # logger.info(col_s[0])
-
-            #         col_s = col_s.apply(lambda x: list(np.array(x, dtype=np.float) - np.array(ref, dtype=np.float)))
-            #         if norm:
-            #             return self._norm_by_harm(col_s)
-            #         else:
-            #             return col_s
-            # elif mode['temp'] == 'var': # single crystal and constant temperature
-            #     logger.info('single, temp')
-
-            #     ref_s = self.interp_film_ref(chn_name, col=col) # get reference for col (fs or gs)
-
-            #     logger.info('ref_s\n%s', ref_s)
-
-            #     # convert series value to ndarray
-            #     col_arr = np.array(col_s.values.tolist())
-            #     ref_arr = np.array(ref_s.values.tolist())
-
-            #     # subtract ref from col elemental wise
-            #     col_arr = col_arr - ref_arr
-
-            #     # save it back to col_s
-            #     col_s.values[:] = col_arr.tolist()
-
-            #     if norm: # normalize the data by harmonics
-            #         col_s = self._norm_by_harm(col_s)
-            #     return col_s
-            # else:
-            #     pass
-
         elif mode["cryst"] == "dual":  # TODO
             if mode["temp"] == "const":  # dual crystal and constant temperature
                 pass
@@ -3324,55 +3275,53 @@ class DataStore:
         df["queue_id"] = list(df.index.astype(int))
         # marks
         single_marks = [0 for _ in harm_list]
-        # for i in range(1, settings['max_harmonic']+2, 2):
-        #     if str(i) not in harm_list: # tested harmonic
-        #         single_marks.insert(int((i-1)/2), np.nan)
-        # logger.info(harm_list)
-        # logger.info(single_marks)
-        # df['marks'] = [single_marks] * df.shape[0]
-
-        ## save to self.samp
-        # self.samp = self.samp.append(df, ignore_index=True, sort=False)
-
-        logger.info("df before dynamic_save %s", df.head())
-        ## ANOTHER WAY to save is use self.dynamic_save and save the data to self.samp row by row
 
         # convert harm_list from list of int to list of str
         harm_list = [str(harm) for harm in harm_list]
-        for i in df.index:  # loop each row
-            self.dynamic_save(
-                ["samp"],
-                harm_list,
-                t={"samp": df.t[i]},
-                temp={"samp": df.temp[i]},
-                f=fGB,
-                G=fGB,
-                B=fGB,
-                fs={"samp": df.fs[i]},
-                gs={"samp": df.gs[i]},
-                marks=single_marks,
-            )
 
-        # logger.info(self.samp.head())
+        # Build samp rows directly — dynamic_save() was removed in DataStore migration.
+        # Construct each row as a single-row DataFrame and concat into self.samp.
+        logger.info("df before import %s", df.head())
+        samp_rows = []
+        for i in df.index:
+            samp_rows.append(
+                pd.DataFrame(
+                    [
+                        {
+                            "queue_id": i,
+                            "t": df.t[i],
+                            "temp": df.temp[i],
+                            "marks": list(single_marks),
+                            "fs": df.fs[i],
+                            "gs": df.gs[i],
+                            "ps": self.nan_harm_list(),
+                        }
+                    ]
+                )
+            )
+        if samp_rows:
+            self.samp = pd.concat([self.samp, *samp_rows], ignore_index=True)
+
         logger.info(self.samp.fs[0])
         logger.info(self.samp["marks"][0])
 
         self.queue_list = list(self.samp.index)
 
-        # set ref
-        # save ref_fs ref_gs to self.ref as reference
-        self.dynamic_save(
-            ["ref"],
-            harm_list,
-            t={"ref": t0_str},
-            temp={"ref": np.nan},
-            f=fGB,
-            G=fGB,
-            B=fGB,
-            fs=ref_fs,
-            gs=ref_gs,
-            marks=single_marks,
+        # set ref — build a single reference row
+        ref_row = pd.DataFrame(
+            [
+                {
+                    "queue_id": 0,
+                    "t": t0_str,
+                    "temp": np.nan,
+                    "marks": list(single_marks),
+                    "fs": ref_fs["ref"],
+                    "gs": ref_gs["ref"],
+                    "ps": self.nan_harm_list(),
+                }
+            ]
         )
+        self.ref = pd.concat([self.ref, ref_row], ignore_index=True)
         logger.info(self.ref.head())
         logger.info(self.ref["marks"][0])
 
