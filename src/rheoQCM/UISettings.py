@@ -927,10 +927,8 @@ for harm in range(1, config_default["max_harmonic"] + 2, 2):
 
 def get_config():
     config = config_default.copy()  # make a copy
-    # file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), config_default['default_config_file_name'])
     file_path = config_default["default_config_file_name"]
     logger.info("user config file_path %s", file_path)
-    # print(file_path)
 
     config, complete = update_dict(file_path, config)
     if complete:
@@ -943,10 +941,8 @@ def get_config():
 
 def get_settings():
     settings = settings_default.copy()  # make a copy
-    # file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), config_default['default_settings_file_name'])
     file_path = config_default["default_settings_file_name"]
     logger.info("user settings file_path %s", file_path)
-    # print(file_path)
 
     settings, complete = update_dict(file_path, settings)
     if complete:
@@ -981,10 +977,5 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     config_default = get_config()
     settings_default = get_settings()
-    # print('to get config')
-    # cfg = get_config()
-    # print(cfg['vna_cal_file_path'])
-
-    # print('to get settings')
-    # stt = get_settings()
-    # print(stt['checkBox_harm1'])
+    logger.info("config: %s", config_default)
+    logger.info("settings: %s", settings_default)

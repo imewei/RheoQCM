@@ -4090,7 +4090,6 @@ class QCMApp(QMainWindow):
         for harm in plt_harms:
             harm = str(harm)
             logger.info("harm: %s", harm)
-            # print(mpl.get_data(ls=['ls'+harm]))
             (harm_sel_data,) = mpl.get_data(ls=["ls" + harm])  # (xdata, ydata)
             logger.info(harm_sel_data)
             logger.info(harm_sel_data[0])
