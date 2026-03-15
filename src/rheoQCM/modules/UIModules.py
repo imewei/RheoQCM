@@ -68,10 +68,6 @@ def list_modules(module):
     # [m[0] for m in inspect.getmembers(module, inspect.isclass) if m[1].__module__ == 'module']
 
 
-def split_path(path):
-    pass
-
-
 def index_from_str(idx_str, chn_idx, join_segs=True):
     """
     convert str to indices
@@ -184,8 +180,6 @@ def sel_ind_dict(harms, sel_idx_dict, mode, marks):
     elif mode == "selharm":
         for harm in sel_idx_dict.keys():
             sel_idx_dict[harm] = data_idx_dict[harm]
-    else:
-        pass
     return sel_idx_dict
 
 

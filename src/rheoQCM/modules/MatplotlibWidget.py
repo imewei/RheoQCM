@@ -1085,8 +1085,6 @@ class MatplotlibWidget(QWidget):
                 xscale=xscale,
                 yscale=yscale,
             )
-        else:
-            pass
 
     def _update_errorbar_plot(self, key, x, y, xerr, yerr):
         """Update an ErrorbarContainer plot with new data and error bars."""
