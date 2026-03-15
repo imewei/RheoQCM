@@ -1763,6 +1763,16 @@ class DataStore:
             col_arr = np.array(col_s.values.tolist())
             ref_arr = np.array(ref_s.values.tolist())
 
+            # align harmonic dimensions: data may have fewer harmonics than ref
+            if (
+                col_arr.ndim > 1
+                and ref_arr.ndim > 1
+                and col_arr.shape[1] != ref_arr.shape[1]
+            ):
+                n = min(col_arr.shape[1], ref_arr.shape[1])
+                col_arr = col_arr[:, :n]
+                ref_arr = ref_arr[:, :n]
+
             # subtract ref from col elemental wise
             col_arr = col_arr - ref_arr
 
@@ -2198,8 +2208,8 @@ class DataStore:
                     gs_list = np.transpose(np.array(g_list)).tolist()
 
                     # save to df
-                    cols.fs[ind_list] = fs_list
-                    cols.gs[ind_list] = gs_list
+                    cols.loc[ind_list, "fs"] = fs_list
+                    cols.loc[ind_list, "gs"] = gs_list
 
                 logger.debug(cols[col].head())
 
@@ -2244,8 +2254,8 @@ class DataStore:
                     gs_list = np.transpose(np.array(g_list)).tolist()
 
                     # save to df
-                    cols.fs[ind_list] = fs_list
-                    cols.gs[ind_list] = gs_list
+                    cols.loc[ind_list, "fs"] = fs_list
+                    cols.loc[ind_list, "gs"] = gs_list
 
                 logger.debug("cols[ind_list]\n%s", cols.iloc[ind_list])
                 logger.debug(cols[col].head())
