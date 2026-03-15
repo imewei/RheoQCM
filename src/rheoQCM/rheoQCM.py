@@ -750,16 +750,6 @@ class QCMApp(QMainWindow):
         # set treeWidget_settings_settings_plots expanded
         self.ui.treeWidget_settings_settings_plots.expandToDepth(0)
 
-        # move center pushButton_settings_harm_cntr to treeWidget_settings_settings_harmtree
-        # comment it for now, this button is not using
-        # move it to other place will disable the hide function ran above
-        # self.move_to_col(
-        #     self.ui.pushButton_settings_harm_cntr,
-        #     self.ui.treeWidget_settings_settings_harmtree,
-        #     'Scan',
-        #     50
-        # )
-
         # move center checkBox_settings_temp_sensor to treeWidget_settings_settings_hardware
         self.move_to_col(
             self.ui.checkBox_settings_temp_sensor,
@@ -1286,12 +1276,6 @@ class QCMApp(QMainWindow):
             0
         ].callbacks.connect("ylim_changed", self.on_fit_lims_change)
 
-        # disconnect signal while dragging
-        # self.ui.mpl_spectra_fit.canvas.mpl_connect('button_press_event', self.spectra_fit_axesevent_disconnect)
-        # # reconnect signal after dragging (mouse release)
-        # self.ui.mpl_spectra_fit.canvas.mpl_connect('button_release_event', self.spectra_fit_axesevent_connect)
-
-        #
         self.ui.pushButton_manual_refit.clicked.connect(self.init_manual_refit)
         # hide widget for manual refit
         self.hide_widgets("manual_refit_enable_disable_list")
@@ -1513,16 +1497,10 @@ class QCMApp(QMainWindow):
         self.ui.actionRegenerate_allsamp.triggered.connect(
             lambda: self.regenerate_from_raw(chn_name="samp", mode="all")
         )
-        # self.ui.menu_settings_data_refit.addAction(self.ui.actionFit_markedsamp)
-        # self.ui.actionFit_markedsamp.triggered.connect(lambda: self.regenerate_from_raw(chn_name='samp', mode='marked'))
         self.ui.menu_settings_data_refit.addAction(self.ui.actionRegenerate_allref)
         self.ui.actionRegenerate_allref.triggered.connect(
             lambda: self.regenerate_from_raw(chn_name="ref", mode="all")
         )
-        # self.ui.menu_settings_data_refit.addAction(self.ui.actionFit_markedref)
-        # self.ui.actionFit_markedref.triggered.connect(lambda: self.regenerate_from_raw(chn_name='ref', mode='marked'))
-        # self.ui.menu_settings_data_refit.addAction(self.ui.actionFit_selected)
-        # self.ui.actionFit_all.triggered.connect(self.)
         # add menu to toolbutton
         self.ui.toolButton_settings_data_regenerate_from_raw.setMenu(
             self.ui.menu_settings_data_refit
@@ -1607,15 +1585,6 @@ class QCMApp(QMainWindow):
         )
         # about QCM_py
         self.ui.actionAbout_QCM_py.triggered.connect(self.msg_about)
-
-        # endregion
-
-        # region ###### add Matplotlib figures in to frames ##########
-
-        # # create an empty figure and move its toolbar to TopToolBarArea of main window
-        # self.ui.mpl_dummy_fig = MatplotlibWidget()
-        # self.addToolBar(Qt.TopToolBarArea, self.ui.mpl_dummy_fig.toolbar)
-        # self.ui.mpl_dummy_fig.hide() # hide the figure
 
         # endregion
 
@@ -1819,12 +1788,7 @@ class QCMApp(QMainWindow):
 
         self.update_refsource()
 
-        # # save to data_saver
-        # self.data_saver.exp_ref[chn_name + '_ref'][0] = ref_source
-        # self.data_saver.exp_ref[chn_name + '_ref'][1] = ref_idx
-
-        # save to data_saver and
-        # update and set reference
+        # save to data store and update reference
         self.data_saver.set_ref_set(
             chn_name, ref_source, ref_idx, df=None
         )  # TODO add df if ref_source == exp
@@ -1928,13 +1892,6 @@ class QCMApp(QMainWindow):
         else:
             fileName = ""
         return fileName
-
-    # def openFileNamesDialog(self, title, path=''):
-    #     options = QFileDialog.Options()
-    #     options |= QFileDialog.DontUseNativeDialog
-    #     files, _ = QFileDialog.getOpenFileNames(self,title, "","All Files (*);;Python Files (*.py)", options=options)
-    #     if files:
-    #         logger.info(files)
 
     def saveFileDialog(
         self, title, path="", filetype=config_default["default_datafiletype"]
@@ -2338,7 +2295,6 @@ class QCMApp(QMainWindow):
         """
         set status bar label_status_pts
         """
-        # self.ui.label_status_pts.setText(str(self.data_saver.get_npts()))
         logger.info(str(self.data_saver.get_npts()))
         try:
             self.ui.label_status_pts.setText(str(self.data_saver.get_npts()))
@@ -2360,7 +2316,6 @@ class QCMApp(QMainWindow):
                     name not in config_default["version_hide_list"]
                     or name_list == "version_hide_list"
                 ):
-                    # getattr(self.ui, name).show()
                     getattr(self.ui, name).setVisible(True)
 
     def hide_widgets(self, *args):
@@ -2377,7 +2332,6 @@ class QCMApp(QMainWindow):
                     name not in config_default["version_hide_list"]
                     or name_list == "version_hide_list"
                 ):
-                    # getattr(self.ui, name).hide()
                     getattr(self.ui, name).setVisible(False)
 
     def enable_widgets(self, *args):
@@ -2571,9 +2525,8 @@ class QCMApp(QMainWindow):
         if self.get_spectraTab_mode() == "refit":  # for refitting
             # get
 
-            # get raw of active queue_id from data_saver
+            # get raw of active queue_id
             f, G, B = self.get_active_raw()
-            # get the vna reset flag
             freq_span = self.get_freq_span(
                 harm=self.active["harm"], chn_name=self.active["chn_name"]
             )
@@ -2612,7 +2565,7 @@ class QCMApp(QMainWindow):
             self.ui.mpl_spectra_fit.ax[1].set_ylim(
                 min(B) - 0.05 * (max(B) - min(B)), max(B) + 0.05 * (max(B) - min(B))
             )
-        elif f is None or (not f.any()):  # vna error or f is all 0s
+        elif f is None or (not f.any()):  # no data or f is all 0s
             self.ui.mpl_spectra_fit.ax[0].autoscale()
             self.ui.mpl_spectra_fit.ax[1].autoscale()
 
@@ -2709,20 +2662,6 @@ class QCMApp(QMainWindow):
             )  # in kHz
         else:
             self.ui.lineEdit_spectra_fit_span.setText("")
-
-    # def spectra_fit_axesevent_disconnect(self, event):
-    #     logger.info('disconnect')
-    #     self.mpl_disconnect_cid(self.ui.mpl_spectra_fit)
-
-    # def spectra_fit_axesevent_connect(self, event):
-    #     logger.info('connect')
-    #     self.mpl_connect_cid(self.ui.mpl_spectra_fit, self.on_fit_lims_change)
-    #     # since pan changes xlim before button up, change ylim a little to trigger ylim_changed
-    #     ax = self.ui.mpl_spectra_fit.ax[0]
-    #     logger.info('cn: %s', ax.get_navigate_mode())
-    #     if ax.get_navigate_mode() == 'PAN':
-    #         ylim = ax.get_ylim()
-    #         ax.set_ylim(ylim[0], ylim[1] * 1.01)
 
     def mpl_disconnect_cid(self, mpl, axis="xy"):
         if "x" in axis:
@@ -3886,18 +3825,6 @@ class QCMApp(QMainWindow):
 
             self.ui.mpl_plt1.canvas.draw()
             self.ui.mpl_plt2.canvas.draw()
-
-    # def set_plt2_on_plt1_xlim_change(self):
-    #     # get mpl_plt1 xlims
-    #     xlim = self.ui.mpl_plt1.ax[0].get_xlim()
-    #     # set mpl_plt2 xlim
-    #     self.ui.mpl_plt2.ax[0].set_xlim(xlim)
-
-    # def set_plt1_on_plt2_xlim_change(self):
-    #     # get mpl_plt2 xlims
-    #     xlim = self.ui.mpl_plt2.ax[0].get_xlim()
-    #     # set mpl_plt1 xlim
-    #     self.ui.mpl_plt1.ax[0].set_xlim(xlim)
 
     def show_marked_data(self):
         """
@@ -5242,9 +5169,6 @@ class QCMApp(QMainWindow):
                 pass
 
         logger.info("%s calculation finished.", nhcalc)
-
-        # # save back to data_saver
-        # self.data_saver.update_mech_df_in_prop(chn_name, nhcalc, refh, mech_df)
 
         if not self.settings["checkBox_settings_mech_liveupdate"]:
             # update table
@@ -7434,7 +7358,6 @@ class QCMApp(QMainWindow):
             [
                 # update crystalcut
                 "comboBox_crystalcut",
-                # load default VNA settings
                 "comboBox_samp_channel",
                 "comboBox_ref_channel",
             ]

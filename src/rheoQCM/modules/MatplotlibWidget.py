@@ -48,12 +48,6 @@ def _get_color_with_alpha(color, alpha=MARKER_ALPHA):
     return mcolors.to_rgba(color, alpha=alpha)
 
 
-# class NavigationToolbar(NavigationToolbar2QT):
-# set buttons to show in toolbar
-# toolitems = [t for t in NavigationToolbar2QT.toolitems if t[0] in ('Home', 'Back', 'Forward', 'Pan', 'Zoom')]
-# pass
-
-
 class AxesLockY(Axes):
     """
     cutomized axes with constrained pan to x only
