@@ -1721,12 +1721,12 @@ class DataStore:
             idx = s.index
             # convert s and m to ndarray
             arr_s = np.array(
-                s.values.tolist(), dtype=np.float
-            )  # the dtype=np.float replace None with np.nan
+                s.values.tolist(), dtype=float
+            )  # the dtype=float replace None with np.nan
             # logger.info(arr_s)
             arr_m = np.array(
-                m.values.tolist(), dtype=np.float
-            )  # the dtype=np.float replace None with np.nan
+                m.values.tolist(), dtype=float
+            )  # the dtype=float replace None with np.nan
             # logger.info(arr_m)
             # logger.info(np.any(arr_m == 1))
             if np.any(arr_m == 1):  # there are marks (1)
@@ -1796,12 +1796,12 @@ class DataStore:
             idx = s.index
             # convert s and m to ndarray
             arr_s = np.array(
-                s.values.tolist(), dtype=np.float
-            )  # the dtype=np.float replace None with np.nan
+                s.values.tolist(), dtype=float
+            )  # the dtype=float replace None with np.nan
             # logger.info(arr_s)
             arr_m = np.array(
-                m.values.tolist(), dtype=np.float
-            )  # the dtype=np.float replace None with np.nan
+                m.values.tolist(), dtype=float
+            )  # the dtype=float replace None with np.nan
             # logger.info(arr_m)
             # logger.info(np.any(arr_m == 1))
             if np.any(arr_m == 1):  # there are marks (1)
@@ -1869,9 +1869,7 @@ class DataStore:
         this function doesn't change the column name of series
         """
         return s.apply(
-            lambda x: list(
-                np.array(x, dtype=np.float) / np.arange(1, len(x) * 2 + 1, 2)
-            )
+            lambda x: list(np.array(x, dtype=float) / np.arange(1, len(x) * 2 + 1, 2))
         )
 
     def minus_columns(self, df):
