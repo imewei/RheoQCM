@@ -45,7 +45,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rheoQCM"
-version = "0.1.0"
+version = "0.1.1"
 description = "QCM-D data analysis software with rheological modeling"
 readme = "README.md"
 license = {file = "LICENSE"}
@@ -81,7 +81,7 @@ dependencies = [
     "optimistix>=0.0.6",  # JAX-native optimization (replaces deprecated jaxopt)
 
     # Curve fitting (replaces lmfit)
-    "nlsq>=0.4.1",
+    "nlsq>=0.6.8",
 
     # Bayesian inference and diagnostics
     "numpyro>=0.14.0",

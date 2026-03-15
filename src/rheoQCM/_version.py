@@ -1,4 +1,4 @@
-__version_info__ = (0, 1, 0)  # major, minor, micro
+__version_info__ = (0, 1, 1)  # major, minor, micro
 
 __projectname__ = "rheoQCM"
 __authors__ = ["Qifeng Wang", "Megan Yang", "Kenneth R. Shull", "Wei Chen"]
