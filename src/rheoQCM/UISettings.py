@@ -40,7 +40,6 @@ config_default = {
     ],
     "analysis_mode_disable_list": [
         "pushButton_runstop",
-        # 'actionOpen_MyVNA',
         # 'actionNew_Exp',
         # 'actionClear_All',
         # 'actionLoad_Settings',

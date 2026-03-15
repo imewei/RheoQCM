@@ -2,18 +2,6 @@
 matplotlibwidget.py
 """
 
-# fig.delaxes(ax)
-# ax.set_visible(False)
-# ax.change_geometry(2,2,i+1)
-
-# import matplotlib
-# matplotlib.use('QTAgg')
-# matplotlib.rcParams['toolbar'] = 'toolmanager'
-# matplotlib.rcParams['font.size'] = 10
-
-# import matplotlib.rcParams
-# rcParams['font.size'] = 9
-
 import logging
 import types
 
@@ -131,25 +119,17 @@ class MatplotlibWidget(QWidget):
         # set padding size
         if axtype == "sp":
             self.fig = Figure(tight_layout={"pad": 0.05}, dpi=dpi)
-            # self.fig = Figure(tight_layout={'pad': 0.05}, dpi=dpi, facecolor='none')
         elif axtype == "legend":
             self.fig = Figure(dpi=dpi, facecolor="none")
-
         else:
             self.fig = Figure(tight_layout={"pad": 0.2}, dpi=dpi)
-            # self.fig = Figure(tight_layout={'pad': 0.2}, dpi=dpi, facecolor='none')
-        ### set figure background transparsent
-        # self.setStyleSheet("background: transparent;")
 
-        # FigureCanvas.__init__(self, fig)
         self.canvas = FigureCanvas(self.fig)
         self.canvas.setSizePolicy(
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
         )
         self.canvas.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
         self.canvas.setFocus()
-        # connect with resize function
-        # self.canvas.mpl_connect("resize_event", self.resize)
 
         # layout
         self.vbox = QVBoxLayout()
@@ -173,20 +153,13 @@ class MatplotlibWidget(QWidget):
         self.toolbar = NavigationToolbar(self.canvas, self)
         self.toolbar.setMaximumHeight(config_default["max_mpl_toolbar_height"])
         self.toolbar.setStyleSheet("QToolBar { border: 0px;}")
-        # if isinstance(showtoolbar, tuple):
-        #     logger.info(self.toolbar.toolitems)
-        #     NavigationToolbar.toolitems = (t for t in NavigationToolbar2QT.toolitems if t[0] in showtoolbar)
-        #     logger.info(self.toolbar.toolitems)
-
-        # self.toolbar.hide() # hide toolbar (or setHidden(bool))
         self.toolbar.isMovable()
         if showtoolbar:
             self.vbox.addWidget(self.toolbar)
             if self.axtype == "sp_fit":
                 self.toolbar.press_zoom = types.MethodType(press_zoomX, self.toolbar)
         else:
-            # pass
-            self.toolbar.hide()  # hide toolbar. remove this will make every figure with shwotoolbar = False show tiny short toolbar
+            self.toolbar.hide()  # hide toolbar to prevent ghost toolbar on figures with showtoolbar=False
 
         self.initial_axes(
             title=title,
@@ -209,26 +182,8 @@ class MatplotlibWidget(QWidget):
 
         self.canvas_draw()
 
-        # self.fig.set_constrained_layout_pads(w_pad=0., h_pad=0., hspace=0., wspace=0.) # for python >= 3.6
-        # self.fig.tight_layout()
-
     def initax_xy(self, *args, **kwargs):
-        # axes
         ax1 = self.fig.add_subplot(111, facecolor="none")
-        # ax1 = self.fig.add_subplot(111)
-
-        # if self.axtype == 'sp_fit':
-        #     # setattr(ax1, 'drag_pan', AxesLockY.drag_pan)
-        #     ax1 = self.fig.add_subplot(111, facecolor='none', projection='AxesLockY')
-        # else:
-        #     ax1 = self.fig.add_subplot(111, facecolor='none')
-
-        # ax1.autoscale()
-        # logger.info(ax.format_coord)
-        # logger.info(ax.format_cursor_data)
-        # plt.tight_layout()
-        # plt.tight_layout(pad=None, w_pad=None, h_pad=None,  rect=None)
-
         # append to list
         self.ax.append(ax1)
 
@@ -245,7 +200,6 @@ class MatplotlibWidget(QWidget):
         ax2.tick_params(axis="y", labelcolor=color[1], color=color[1])
         ax2.yaxis.label.set_color(color[1])
         ax2.spines["right"].set_color(color[1])
-        # ax2.autoscale()
         ax2.spines["left"].set_visible(False)
 
         # change axes color
@@ -282,36 +236,12 @@ class MatplotlibWidget(QWidget):
         self.ax[0].margins(y=0.05)
         self.ax[1].margins(y=0.05)
 
-        # self.ax[0].autoscale()
-        # self.ax[1].autoscale()
-
         self.l["lG"] = self.ax[0].plot(
             [], [], marker=".", linestyle="none", markerfacecolor="none", color=color[0]
         )  # G
         self.l["lB"] = self.ax[1].plot(
             [], [], marker=".", linestyle="none", markerfacecolor="none", color=color[1]
         )  # B
-        # self.l['lGpre'] = self.ax[0].plot(
-        #     [], [],
-        #     marker='.',
-        #     linestyle='none',
-        #     markerfacecolor='none',
-        #     color='gray'
-        # ) # previous G
-        # self.l['lBpre'] = self.ax[1].plot(
-        #     [], [],
-        #     marker='.',
-        #     linestyle='none',
-        #     markerfacecolor='none',
-        #     color='gray'
-        # ) # previous B
-        # self.l['lPpre'] = self.ax[1].plot(
-        #     [], [],
-        #     marker='.',
-        #     linestyle='none',
-        #     markerfacecolor='none',
-        #     color='gray'
-        # ) # previous polar
         self.l["lGfit"] = self.ax[0].plot([], [], color="k")  # G fit
         self.l["lBfit"] = self.ax[1].plot([], [], color="k")  # B fit
         self.l["strk"] = self.ax[0].plot(
@@ -340,10 +270,6 @@ class MatplotlibWidget(QWidget):
         )  # center of recording peak
 
         self.l["lsp"] = self.ax[0].plot([], [], color=color[2])  # peak freq span
-
-        # self.ax[0].xaxis.set_major_locator(plt.AutoLocator())
-        # self.ax[0].xaxis.set_major_locator(plt.LinearLocator())
-        # self.ax[0].xaxis.set_major_locator(plt.MaxNLocator(3))
 
         # add text
         self.txt["sp_harm"] = self.fig.text(
@@ -395,20 +321,6 @@ class MatplotlibWidget(QWidget):
         self.l["lB"] = self.ax[1].plot(
             [], [], marker=".", linestyle="none", markerfacecolor="none", color=color[1]
         )  # B
-        # self.l['lGpre'] = self.ax[0].plot(
-        #     [], [],
-        #     marker='.',
-        #     linestyle='none',
-        #     markerfacecolor='none',
-        #     color='gray'
-        # ) # previous G
-        # self.l['lBpre'] = self.ax[1].plot(
-        #     [], [],
-        #     marker='.',
-        #     linestyle='none',
-        #     markerfacecolor='none',
-        #     color='gray'
-        # ) # previous B
         self.l["lGfit"] = self.ax[0].plot([], [], color="k")  # G fit
         self.l["lBfit"] = self.ax[1].plot([], [], color="k")  # B fit
         self.l["strk"] = self.ax[0].plot(
@@ -426,18 +338,10 @@ class MatplotlibWidget(QWidget):
 
         self.ax[0].xaxis.set_major_locator(ticker.LinearLocator(3))
 
-        # self.ax[0].xaxis.set_major_locator(plt.AutoLocator())
-        # self.ax[0].xaxis.set_major_locator(plt.LinearLocator())
-        # self.ax[0].xaxis.set_major_locator(plt.MaxNLocator(3))
-
         self.ax[0].margins(x=0)
         self.ax[1].margins(x=0)
         self.ax[0].margins(y=0.05)
         self.ax[1].margins(y=0.05)
-        # self.ax[1].sharex = self.ax[0]
-
-        # self.ax[0].autoscale()
-        # self.ax[1].autoscale()
 
         # add span selector
         self.span_selector_zoomin = SpanSelector(
@@ -481,11 +385,6 @@ class MatplotlibWidget(QWidget):
         new_fc = curr_fc * (1 + ratio) - sel_fc * ratio
         # center/span to f1/f2
         new_f1, new_f2 = UIModules.converter_centerspan_to_startstop(new_fc, new_fs)
-        # logger.info('curr_fs %s', curr_fs)
-        # logger.info('sel_fs %s', sel_fs)
-        # logger.info('new_fs %s', new_fs)
-        # logger.info('curr %s %s', curr_f1, curr_f2)
-        # logger.info('new %s', new_f1, new_f2)
         # set new xlim
         self.ax[0].set_xlim(new_f1, new_f2)
 
@@ -517,7 +416,6 @@ class MatplotlibWidget(QWidget):
         # set label of ax[1]
         self.set_ax(self.ax[0], xlabel=r"$G_P$ (mS)", ylabel=r"$B_P$ (mS)")
 
-        # self.ax[0].autoscale()
         self.ax[0].set_aspect("equal")
 
     def init_data(
@@ -611,8 +509,6 @@ class MatplotlibWidget(QWidget):
         # set label of ax[1]
         self.set_ax(self.ax[0], xlabel="Time (s)", ylabel=ylabel)
 
-        # self.ax[0].autoscale()
-
         # add rectangle_selector
         self.rect_selector = RectangleSelector(
             self.ax[0],
@@ -653,15 +549,7 @@ class MatplotlibWidget(QWidget):
         # add it to toolbar
         self.toolbar.addWidget(self.pushButton_selectorswitch)
         toolbar_children = self.toolbar.children()
-        # toolbar_children.insert(6, toolbar_children.pop(-1)) # this does not move the icon position
         toolbar_children[4].clicked.connect(self.data_show_all)  # 4 is the home button
-
-        # below does not work
-        # add selector switch button to toolbar
-        # self.fig.canvas.manager.toolmanager.add_tool('Data Selector', SelectorSwitch, selector=self.rect_selector)
-
-        # add button to toolbar
-        # self.canvas.manager.toolbar.add_tool(self.fig.canvas.manager.toolmanager.get_tool('DataSelector'), 'toolgroup')
 
     def data_rectsleector_picker_switch(self, checked):
         if checked:
@@ -700,27 +588,21 @@ class MatplotlibWidget(QWidget):
         # clear pick data .l['lp']
         self.clr_lines(l_list=["lp"])
 
-        # logger.info(dir(eclick))
         logger.info(eclick)
         logger.info(erelease)
         x1, x2 = sorted([eclick.xdata, erelease.xdata])  # x1 < x2
         y1, y2 = sorted([eclick.ydata, erelease.ydata])  # y1 < y2
 
-        # # dict for storing the selected indices
-        # sel_idx_dict = {}
         # list for updating selected data
         sel_list = []
         # find the points in rect
         for l_str in ["l", "lm"]:  # only one will be not empty
             for harm in range(1, config_default["max_harmonic"] + 2, 2):
                 harm = str(harm)
-                # logger.info(harm)
                 # get data from current plotted lines
                 # clear .l['ls<n>']
                 self.clr_lines(l_list=["ls" + harm])
 
-                # logger.info(l_str)
-                # logger.info(self.l[l_str + harm][0].get_data())
                 harm_x, harm_y = self.l[l_str + harm][0].get_data()
 
                 if isinstance(harm_x, pd.Series):  # if data is series (not empty)
@@ -735,21 +617,14 @@ class MatplotlibWidget(QWidget):
                         }
                     )
 
-                    # # save indices for later process
-                    # sel_idx = harm_x[sel_bool].index
-                    # logger.info(sel_idx)
-                    # # update selected indices
-                    # sel_idx_dict[harm] = sel_idx
             if (l_str == "l") and sel_list:  # UI mode showall
                 break
-                # TODO It can also set the display mode from UI (showall/showmarked) and do the loop by the mode
 
         if sel_list:  # there is data selected
             self.sel_mode = "selector"
         else:
             self.sel_mode = "none"
 
-        # logger.info(sel_list)
         # plot the selected data
         self.update_data(*sel_list)
 
@@ -765,20 +640,15 @@ class MatplotlibWidget(QWidget):
             ]
         )
 
-        # logger.info(dir(event))
         thisline = event.artist
         x_p = thisline.get_xdata()
         y_p = thisline.get_ydata()
         ind = event.ind[0]
         logger.info(thisline)
-        # logger.info(dir(thisline))
         logger.info(thisline.get_label())
         logger.info(x_p.name)
         logger.info(y_p.name)
         logger.info(ind)
-        # logger.info('onpick1 line: %s %s', zip(np.take(xdata, ind), np.take(ydata, ind)))
-
-        # plot
         logger.info("x_p %s", x_p)
         logger.info("%s %s", x_p.iloc[ind], y_p.iloc[ind])
         self.l["lp"][0].set_data(x_p.iloc[ind], y_p.iloc[ind])
@@ -814,8 +684,6 @@ class MatplotlibWidget(QWidget):
         logger.info("self.l.get('C'): %s", self.l.get("C"))
         logger.info("kwargs: %s", kwargs.keys())
 
-        # if self.l.get('colorbar'):
-        #     self.l['colorbar'].remove()
         if self.ax:
             self.ax[0].cla()
             self.ax[1].clear()
@@ -899,7 +767,6 @@ class MatplotlibWidget(QWidget):
                 markerfacecolor="none",
                 linestyle="none",
                 color=base_color,  # Already has alpha
-                # picker=5, # 5 points tolerance
                 label=str(i),
                 capsize=config_default["mpl_capsize"],
             )  # prop
@@ -915,7 +782,6 @@ class MatplotlibWidget(QWidget):
                 marker="o",
                 linestyle="none",
                 color=base_color,  # Already has alpha
-                # picker=5, # 5 points tolerance
                 label=str(i),
                 capsize=config_default["mpl_capsize"],
             )  # prop marked
@@ -967,13 +833,6 @@ class MatplotlibWidget(QWidget):
 
         self.ax[0].set_axis_off()  # turn off the axis
 
-        # logger.info(dir(self.leg))
-        # p = self.leg.get_window_extent() #Bbox of legend
-        # # set window height
-        # dpi = self.fig.get_dpi()
-        # # logger.info(dir(self.fig))
-        # fsize = self.fig.get_figheight()
-
     def init_prop(
         self,
         title="",
@@ -998,10 +857,9 @@ class MatplotlibWidget(QWidget):
             self.l["l" + str(i)] = self.ax[0].plot(
                 [],
                 [],
-                # marker='o',
                 markerfacecolor="none",
-                picker=True,  # 5 points tolerance
-                pickradius=5,  # 5 points tolerance
+                picker=True,
+                pickradius=5,
                 label="l" + str(i),
             )  # l
             # Apply alpha via RGBA for cross-platform consistency (Linux fix)
@@ -1009,16 +867,6 @@ class MatplotlibWidget(QWidget):
             rgba_color = _get_color_with_alpha(base_color)
             self.l["l" + str(i)][0].set_color(rgba_color)
             self.l["l" + str(i)][0].set_markeredgecolor(rgba_color)
-
-        # for i in range(1, int(config_default['max_harmonic']+2), 2):
-        #     self.l['lm' + str(i)] = self.ax[0].plot(
-        #         [], [],
-        #         # marker='o',
-        #         color=self.l['l' + str(i)][0].get_color(), # set the same color as .l
-        #         picker=5, # 5 points tolerance
-        #         label='lm'+str(i),
-        #         alpha=0.75,
-        #     ) # maked points of line
 
         for i in range(1, int(config_default["max_harmonic"] + 2), 2):
             # Use RGBA color with alpha for cross-platform consistency
@@ -1032,7 +880,6 @@ class MatplotlibWidget(QWidget):
                 markerfacecolor="none",
                 linestyle="none",
                 color=base_color,  # Already has alpha
-                # picker=5, # 5 points tolerance
                 label=str(i),
                 capsize=config_default["mpl_capsize"],
             )  # prop
@@ -1048,7 +895,6 @@ class MatplotlibWidget(QWidget):
                 marker="o",
                 linestyle="none",
                 color=base_color,  # Already has alpha
-                # picker=5, # 5 points tolerance
                 label=str(i),
                 capsize=config_default["mpl_capsize"],
             )  # prop marked
@@ -1159,29 +1005,7 @@ class MatplotlibWidget(QWidget):
                 self.txt[key].set_fontsize(txtfontsize)
 
     def resize(self, event):
-        # on resize reposition the navigation toolbar to (0,0) of the axes.
-        # require connect
-        # self.canvas.mpl_connect("resize_event", self.resize)
-
-        # borders = [60, 40, 10, 5] # left, bottom, right, top in px
-        # figw, figh = self.fig.get_size_inches()
-        # dpi = self.fig.dpi
-        # borders = [
-        #     borders[0] / int(figw * dpi), # left
-        #     borders[1] / int(figh * dpi), # bottom
-        #     (int(figw * dpi) - borders[2]) / int(figw * dpi), # right
-        #     (int(figh * dpi) - borders[3]) / int(figh * dpi), # top
-        # ]
-        # logger.info('%s %s', figw, figh)
-        # logger.info(borders)
-        # self.fig.subplots_adjust(left=borders[0], bottom=borders[1], right=borders[2], top=borders[3], wspace=0, hspace=0)
-
         self.fig.tight_layout(pad=1.08)
-        # x,y = self.ax[0].transAxes.transform((0,0))
-        # logger.info('%s %s', x, y)
-        # figw, figh = self.fig.get_size_inches()
-        # ynew = figh*self.fig.dpi-y - self.toolbar.frameGeometry().height()
-        # self.toolbar.move(x,ynew)
 
     def initial_axes(
         self,
