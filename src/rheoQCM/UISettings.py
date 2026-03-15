@@ -486,14 +486,6 @@ config_default = {
             ("2", "2 MHz"),
         ]
     ),
-    # # reference type for showing delta f and delta gamma
-    # # key: number; val: for display in combobox
-    # 'ref_type_opts': OrderedDict([
-    #     ('t0',  'First point'),
-    #     ('t1t2',  'Selected range'),
-    #     # ('input',  'Input value'),
-    #     ('file', 'Other file'),
-    # ]),
     # minimum/maximum layer for mechanic property calculation
     "min_mech_layers": 0,
     "max_mech_layers": 2,
@@ -501,7 +493,6 @@ config_default = {
     "qcm_model_opts": {
         "onelayer": "no medium",
         "twolayers": "in medium",
-        # 'bulk': 'Bulk material',
     },
     # doubleSpinBox_settings_mechanics_bulklimit
     "mech_bulklimit": {

@@ -52,20 +52,10 @@ def list_modules(module):
     """
     return a dict of available temp modules stored in path
     """
-    # # from package
-    # from os import listdir
-    # from os.path import isfile
-
-    # modules = {f.replace('.py', ''): f.replace('.py', '') for f in listdir(path) if isfile and '__' not in f}
-    # return modules
-
-    # from subclass
     logger.debug(dir(module))
     subcls_list = inspect.getmembers(module, inspect.isclass)
 
     return {subcls[0]: subcls[0] for subcls in subcls_list}
-
-    # [m[0] for m in inspect.getmembers(module, inspect.isclass) if m[1].__module__ == 'module']
 
 
 def index_from_str(idx_str, chn_idx, join_segs=True):
