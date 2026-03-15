@@ -189,17 +189,20 @@ COLORS_DARK = ColorPalette(
 class StyleConfig:
     """Style configuration parameters."""
 
-    border_radius: int = 6
-    button_height: int = 36
-    button_height_sm: int = 28
-    button_height_lg: int = 44
-    input_height: int = 36
-    icon_size: int = 20
-    icon_size_sm: int = 16
-    font_family: str = "Segoe UI, system-ui, sans-serif"
-    font_size: int = 13
-    font_size_sm: int = 11
-    font_size_lg: int = 15
+    border_radius: int = 4
+    button_height: int = 28
+    button_height_sm: int = 24
+    button_height_lg: int = 36
+    input_height: int = 28
+    icon_size: int = 18
+    icon_size_sm: int = 14
+    # Cross-platform font stack: Inter (Linux), IBM Plex Sans (opt-in),
+    # Segoe UI (Windows), Noto Sans (Linux fallback), system sans-serif
+    font_family: str = '"Inter", "IBM Plex Sans", "Segoe UI", "Noto Sans", sans-serif'
+    font_size: int = 12
+    font_size_sm: int = 10
+    font_size_lg: int = 14
+    font_size_header: int = 13
     transition_duration: str = "150ms"
 
 
@@ -265,7 +268,7 @@ def get_button_stylesheet(
             color: {text};
             border: none;
             border-radius: {config.border_radius}px;
-            padding: {SPACING.SM}px {SPACING.MD}px;
+            padding: {SPACING.XS}px {SPACING.SM}px;
             min-height: {config.button_height}px;
             font-family: {config.font_family};
             font-size: {config.font_size}px;
@@ -366,7 +369,7 @@ def get_input_stylesheet(
             color: {palette.text_primary};
             border: 1px solid {palette.border_default};
             border-radius: {config.border_radius}px;
-            padding: {SPACING.XS}px {SPACING.SM}px;
+            padding: 2px {SPACING.XS}px;
             min-height: {config.input_height}px;
             font-family: {config.font_family};
             font-size: {config.font_size}px;
@@ -556,10 +559,10 @@ class StyleManager:
                 background-color: {p.bg_primary};
                 color: {p.text_primary};
                 border-bottom: 1px solid {p.border_subtle};
-                padding: {SPACING.XS}px;
+                padding: 2px {SPACING.XS}px;
             }}
             QMenuBar::item {{
-                padding: {SPACING.XS}px {SPACING.SM}px;
+                padding: 3px {SPACING.SM}px;
                 border-radius: {c.border_radius}px;
             }}
             QMenuBar::item:selected {{
@@ -569,11 +572,11 @@ class StyleManager:
                 background-color: {p.bg_elevated};
                 border: 1px solid {p.border_subtle};
                 border-radius: {c.border_radius}px;
-                padding: {SPACING.XS}px;
+                padding: 2px;
             }}
             QMenu::item {{
-                padding: {SPACING.SM}px {SPACING.MD}px;
-                border-radius: {c.border_radius - 2}px;
+                padding: {SPACING.XS}px {SPACING.MD}px;
+                border-radius: {c.border_radius - 1}px;
             }}
             QMenu::item:selected {{
                 background-color: {p.selection};
@@ -581,21 +584,21 @@ class StyleManager:
             QMenu::separator {{
                 height: 1px;
                 background-color: {p.border_subtle};
-                margin: {SPACING.XS}px {SPACING.SM}px;
+                margin: 2px {SPACING.SM}px;
             }}
 
             /* === Tool Bar === */
             QToolBar {{
                 background-color: {p.bg_primary};
                 border-bottom: 1px solid {p.border_subtle};
-                spacing: {SPACING.XS}px;
-                padding: {SPACING.XS}px;
+                spacing: 2px;
+                padding: 2px {SPACING.XS}px;
             }}
             QToolButton {{
                 background-color: transparent;
                 border: none;
                 border-radius: {c.border_radius}px;
-                padding: {SPACING.SM}px;
+                padding: {SPACING.XS}px;
             }}
             QToolButton:hover {{
                 background-color: {p.bg_tertiary};
@@ -636,8 +639,8 @@ class StyleManager:
                 background-color: {p.bg_tertiary};
                 color: {p.text_secondary};
                 border: none;
-                padding: {SPACING.SM}px {SPACING.MD}px;
-                margin-right: 2px;
+                padding: {SPACING.XS}px {SPACING.SM}px;
+                margin-right: 1px;
                 border-top-left-radius: {c.border_radius}px;
                 border-top-right-radius: {c.border_radius}px;
             }}
@@ -655,9 +658,9 @@ class StyleManager:
                 background-color: {p.bg_secondary};
                 border: 1px solid {p.border_subtle};
                 border-radius: {c.border_radius}px;
-                margin-top: 16px;
-                padding: {SPACING.MD}px;
-                padding-top: {SPACING.LG}px;
+                margin-top: 12px;
+                padding: {SPACING.SM}px;
+                padding-top: {SPACING.MD}px;
             }}
             QGroupBox::title {{
                 subcontrol-origin: margin;
@@ -665,6 +668,7 @@ class StyleManager:
                 left: {SPACING.SM}px;
                 padding: 0 {SPACING.XS}px;
                 color: {p.text_primary};
+                font-size: {c.font_size_header}px;
                 font-weight: 600;
                 background-color: {p.bg_secondary};
             }}
@@ -675,7 +679,7 @@ class StyleManager:
                 color: {p.text_inverse};
                 border: none;
                 border-radius: {c.border_radius}px;
-                padding: {SPACING.SM}px {SPACING.MD}px;
+                padding: {SPACING.XS}px {SPACING.SM}px;
                 min-height: {c.button_height}px;
                 font-weight: 500;
             }}
@@ -705,7 +709,7 @@ class StyleManager:
                 color: {p.text_primary};
                 border: 1px solid {p.border_default};
                 border-radius: {c.border_radius}px;
-                padding: {SPACING.SM}px;
+                padding: 2px {SPACING.XS}px;
                 selection-background-color: {p.selection};
             }}
             QLineEdit:focus, QTextEdit:focus, QPlainTextEdit:focus {{
@@ -722,7 +726,7 @@ class StyleManager:
                 color: {p.text_primary};
                 border: 1px solid {p.border_default};
                 border-radius: {c.border_radius}px;
-                padding: {SPACING.XS}px {SPACING.SM}px;
+                padding: 2px {SPACING.XS}px;
             }}
             QSpinBox:focus, QDoubleSpinBox:focus {{
                 border-color: {p.focus_ring};
@@ -744,8 +748,7 @@ class StyleManager:
                 color: {p.text_primary};
                 border: 1px solid {p.border_default};
                 border-radius: {c.border_radius}px;
-                padding: {SPACING.SM}px;
-                min-height: {c.button_height}px;
+                padding: 2px {SPACING.XS}px;
             }}
             QComboBox:focus {{
                 border-color: {p.focus_ring};
@@ -763,14 +766,14 @@ class StyleManager:
 
             /* === Check Box === */
             QCheckBox {{
-                spacing: {SPACING.SM}px;
+                spacing: {SPACING.XS}px;
                 color: {p.text_primary};
             }}
             QCheckBox::indicator {{
-                width: 18px;
-                height: 18px;
-                border: 2px solid {p.border_default};
-                border-radius: 4px;
+                width: 16px;
+                height: 16px;
+                border: 1px solid {p.border_default};
+                border-radius: 3px;
                 background-color: {p.bg_primary};
             }}
             QCheckBox::indicator:hover {{
@@ -783,14 +786,14 @@ class StyleManager:
 
             /* === Radio Button === */
             QRadioButton {{
-                spacing: {SPACING.SM}px;
+                spacing: {SPACING.XS}px;
                 color: {p.text_primary};
             }}
             QRadioButton::indicator {{
-                width: 18px;
-                height: 18px;
-                border: 2px solid {p.border_default};
-                border-radius: 9px;
+                width: 16px;
+                height: 16px;
+                border: 1px solid {p.border_default};
+                border-radius: 8px;
                 background-color: {p.bg_primary};
             }}
             QRadioButton::indicator:hover {{
@@ -801,18 +804,18 @@ class StyleManager:
                 border-color: {p.primary};
             }}
 
-            /* === Scroll Bar === */
+            /* === Scroll Bar (slim for data-dense layout) === */
             QScrollBar:vertical {{
                 background-color: {p.bg_secondary};
-                width: 12px;
-                border-radius: 6px;
+                width: 8px;
+                border-radius: 4px;
                 margin: 0;
             }}
             QScrollBar::handle:vertical {{
                 background-color: {p.border_default};
-                border-radius: 6px;
-                min-height: 30px;
-                margin: 2px;
+                border-radius: 4px;
+                min-height: 24px;
+                margin: 1px;
             }}
             QScrollBar::handle:vertical:hover {{
                 background-color: {p.border_strong};
@@ -822,15 +825,15 @@ class StyleManager:
             }}
             QScrollBar:horizontal {{
                 background-color: {p.bg_secondary};
-                height: 12px;
-                border-radius: 6px;
+                height: 8px;
+                border-radius: 4px;
                 margin: 0;
             }}
             QScrollBar::handle:horizontal {{
                 background-color: {p.border_default};
-                border-radius: 6px;
-                min-width: 30px;
-                margin: 2px;
+                border-radius: 4px;
+                min-width: 24px;
+                margin: 1px;
             }}
             QScrollBar::handle:horizontal:hover {{
                 background-color: {p.border_strong};
@@ -848,7 +851,7 @@ class StyleManager:
                 border-radius: {c.border_radius}px;
             }}
             QTableWidget::item, QTableView::item {{
-                padding: {SPACING.SM}px;
+                padding: 2px {SPACING.XS}px;
             }}
             QTableWidget::item:selected, QTableView::item:selected {{
                 background-color: {p.selection};
@@ -856,11 +859,12 @@ class StyleManager:
             QHeaderView::section {{
                 background-color: {p.bg_tertiary};
                 color: {p.text_primary};
+                font-size: {c.font_size_sm}px;
                 font-weight: 600;
                 border: none;
                 border-bottom: 1px solid {p.border_subtle};
                 border-right: 1px solid {p.border_subtle};
-                padding: {SPACING.SM}px;
+                padding: 2px {SPACING.XS}px;
             }}
 
             /* === List Widget === */
@@ -871,8 +875,8 @@ class StyleManager:
                 border-radius: {c.border_radius}px;
             }}
             QListWidget::item {{
-                padding: {SPACING.SM}px;
-                border-radius: {c.border_radius - 2}px;
+                padding: 2px {SPACING.XS}px;
+                border-radius: {c.border_radius - 1}px;
             }}
             QListWidget::item:selected {{
                 background-color: {p.selection};
