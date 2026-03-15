@@ -8,6 +8,7 @@ Maintains backward compatibility with existing .h5 files.
 
 import json
 import logging
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -18,6 +19,174 @@ import pandas as pd
 from rheoQCM.io.base import FormatHandler
 
 logger = logging.getLogger(__name__)
+
+# --- Type-dispatch registry for HDF5 serialization ---
+_SAVE_HANDLERS: dict[type, Callable] = {}
+
+
+def _register_save_handler(*types: type) -> Callable:
+    """Register a handler function for one or more Python types."""
+
+    def decorator(fn: Callable) -> Callable:
+        for t in types:
+            _SAVE_HANDLERS[t] = fn
+        return fn
+
+    return decorator
+
+
+def _get_handler(value_type: type) -> Callable | None:
+    """Look up a save handler, checking MRO for subclass matches."""
+    handler = _SAVE_HANDLERS.get(value_type)
+    if handler is not None:
+        return handler
+    # Fall back to MRO-based lookup for subclasses (e.g., np.int64 → np.integer)
+    for base in value_type.__mro__:
+        handler = _SAVE_HANDLERS.get(base)
+        if handler is not None:
+            return handler
+    return None
+
+
+def _ensure_key(parent: h5py.Group, key: str) -> None:
+    """Delete existing key from group if present."""
+    if key in parent:
+        del parent[key]
+
+
+@_register_save_handler(dict)
+def _save_dict_value(
+    parent: h5py.Group,
+    key: str,
+    value: dict,
+    compression: str,
+    compression_opts: int,
+    save_dict_fn: Callable,
+) -> None:
+    _ensure_key(parent, key)
+    group = parent.create_group(key)
+    save_dict_fn(group, value, compression, compression_opts)
+
+
+@_register_save_handler(pd.DataFrame)
+def _save_dataframe_value(
+    parent: h5py.Group,
+    key: str,
+    value: pd.DataFrame,
+    compression: str,
+    compression_opts: int,
+    save_dict_fn: Callable,
+) -> None:
+    json_str = value.to_json()
+    _save_string_value_static(parent, key, json_str)
+
+
+@_register_save_handler(np.ndarray)
+def _save_ndarray_value(
+    parent: h5py.Group,
+    key: str,
+    value: np.ndarray,
+    compression: str,
+    compression_opts: int,
+    save_dict_fn: Callable,
+) -> None:
+    _ensure_key(parent, key)
+    parent.create_dataset(
+        key,
+        data=value,
+        compression=compression,
+        compression_opts=compression_opts,
+    )
+
+
+@_register_save_handler(list, tuple)
+def _save_sequence_value(
+    parent: h5py.Group,
+    key: str,
+    value: list | tuple,
+    compression: str,
+    compression_opts: int,
+    save_dict_fn: Callable,
+) -> None:
+    try:
+        arr = np.array(value)
+        if arr.dtype.kind in ["U", "O"]:
+            _save_string_value_static(parent, key, json.dumps(value))
+        else:
+            _ensure_key(parent, key)
+            parent.create_dataset(
+                key,
+                data=arr,
+                compression=compression,
+                compression_opts=compression_opts,
+            )
+    except (ValueError, TypeError):
+        _save_string_value_static(parent, key, json.dumps(value))
+
+
+@_register_save_handler(str, bytes)
+def _save_str_bytes_value(
+    parent: h5py.Group,
+    key: str,
+    value: str | bytes,
+    compression: str,
+    compression_opts: int,
+    save_dict_fn: Callable,
+) -> None:
+    _save_string_value_static(parent, key, value)
+
+
+@_register_save_handler(int, float, np.integer, np.floating)
+def _save_scalar_value(
+    parent: h5py.Group,
+    key: str,
+    value: int | float,
+    compression: str,
+    compression_opts: int,
+    save_dict_fn: Callable,
+) -> None:
+    _ensure_key(parent, key)
+    parent.create_dataset(key, data=value)
+
+
+def _save_none_value(
+    parent: h5py.Group,
+    key: str,
+    value: None,
+    compression: str,
+    compression_opts: int,
+    save_dict_fn: Callable,
+) -> None:
+    _ensure_key(parent, key)
+    ds = parent.create_dataset(key, data="", dtype=h5py.special_dtype(vlen=str))
+    ds.attrs["_is_none"] = True
+
+
+def _save_json_fallback(
+    parent: h5py.Group,
+    key: str,
+    value: Any,
+    compression: str,
+    compression_opts: int,
+    save_dict_fn: Callable,
+) -> None:
+    try:
+        _save_string_value_static(parent, key, json.dumps(value))
+    except (TypeError, ValueError):
+        logger.warning("Could not serialize %s of type %s", key, type(value))
+
+
+def _save_string_value_static(
+    parent: h5py.Group,
+    key: str,
+    value: str | bytes,
+) -> None:
+    """Save string/bytes to HDF5 (standalone helper for handlers)."""
+    if key in parent:
+        del parent[key]
+    if isinstance(value, bytes):
+        value = value.decode("utf-8")
+    parent.create_dataset(key, data=value, dtype=h5py.special_dtype(vlen=str))
 
 
 class HDF5Handler(FormatHandler):
@@ -123,88 +292,37 @@ class HDF5Handler(FormatHandler):
     ) -> None:
         """Recursively save dictionary to HDF5 group."""
         for key, value in data.items():
-            # Clean key for HDF5 (remove problematic characters)
             safe_key = str(key).replace("/", "_")
 
-            if isinstance(value, dict):
-                # Create subgroup for nested dicts
-                if safe_key in parent:
-                    del parent[safe_key]
-                group = parent.create_group(safe_key)
-                self._save_dict(group, value, compression, compression_opts)
-
-            elif isinstance(value, pd.DataFrame):
-                # Store DataFrame as JSON string
-                json_str = value.to_json()
-                self._save_string(parent, safe_key, json_str)
-
-            elif isinstance(value, np.ndarray):
-                # Store numpy arrays with compression
-                if safe_key in parent:
-                    del parent[safe_key]
-                parent.create_dataset(
+            if value is None:
+                _save_none_value(
+                    parent,
                     safe_key,
-                    data=value,
-                    compression=compression,
-                    compression_opts=compression_opts,
+                    value,
+                    compression,
+                    compression_opts,
+                    self._save_dict,
                 )
-
-            elif isinstance(value, (list, tuple)):
-                # Convert to numpy array if possible
-                try:
-                    arr = np.array(value)
-                    if arr.dtype.kind in ["U", "O"]:
-                        # String or object array - store as JSON
-                        self._save_string(parent, safe_key, json.dumps(value))
-                    else:
-                        if safe_key in parent:
-                            del parent[safe_key]
-                        parent.create_dataset(
-                            safe_key,
-                            data=arr,
-                            compression=compression,
-                            compression_opts=compression_opts,
-                        )
-                except (ValueError, TypeError):
-                    # Fall back to JSON for complex objects
-                    self._save_string(parent, safe_key, json.dumps(value))
-
-            elif isinstance(value, (str, bytes)):
-                self._save_string(parent, safe_key, value)
-
-            elif isinstance(value, (int, float, np.integer, np.floating)):
-                # Store scalars as simple datasets
-                if safe_key in parent:
-                    del parent[safe_key]
-                parent.create_dataset(safe_key, data=value)
-
-            elif value is None:
-                # Store None as empty string with attribute marker
-                if safe_key in parent:
-                    del parent[safe_key]
-                ds = parent.create_dataset(
-                    safe_key, data="", dtype=h5py.special_dtype(vlen=str)
-                )
-                ds.attrs["_is_none"] = True
-
             else:
-                # Fall back to JSON for unknown types
-                try:
-                    self._save_string(parent, safe_key, json.dumps(value))
-                except (TypeError, ValueError):
-                    logger.warning(
-                        "Could not serialize %s of type %s", key, type(value)
+                handler = _get_handler(type(value))
+                if handler is not None:
+                    handler(
+                        parent,
+                        safe_key,
+                        value,
+                        compression,
+                        compression_opts,
+                        self._save_dict,
                     )
-
-    def _save_string(self, parent: h5py.Group, key: str, value: str | bytes) -> None:
-        """Save string value to HDF5."""
-        if key in parent:
-            del parent[key]
-
-        if isinstance(value, bytes):
-            value = value.decode("utf-8")
-
-        parent.create_dataset(key, data=value, dtype=h5py.special_dtype(vlen=str))
+                else:
+                    _save_json_fallback(
+                        parent,
+                        safe_key,
+                        value,
+                        compression,
+                        compression_opts,
+                        self._save_dict,
+                    )
 
     def _load_group(self, group: h5py.Group) -> dict[str, Any]:
         """Recursively load HDF5 group to dictionary."""

@@ -31,7 +31,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import arviz as az
 import jax
@@ -45,6 +45,14 @@ import pandas as pd
 from nlsq import curve_fit
 from numpyro.infer import MCMC, NUTS
 from numpyro.infer.initialization import init_to_value
+
+from rheoQCM.core.constants import (
+    BFMI_MIN,
+    ESS_BULK_MIN,
+    MCMC_PRODUCTION,
+    POSTERIOR_N_DRAWS,
+    RHAT_WARN,
+)
 
 if TYPE_CHECKING:
     from matplotlib.figure import Figure
@@ -312,12 +320,12 @@ class BayesianFitter:
 
     def __init__(
         self,
-        n_chains: int = 4,
-        n_samples: int = 2000,
-        n_warmup: int = 1000,
-        target_accept_prob: float = 0.8,
+        n_chains: int = MCMC_PRODUCTION.n_chains,
+        n_samples: int = MCMC_PRODUCTION.n_samples,
+        n_warmup: int = MCMC_PRODUCTION.n_warmup,
+        target_accept_prob: float = MCMC_PRODUCTION.target_accept_prob,
         seed: int | None = None,
-        chain_method: str = "sequential",
+        chain_method: str = MCMC_PRODUCTION.chain_method,
     ) -> None:
         if n_chains < 2:
             msg = f"n_chains must be >= 2 for R-hat diagnostics, got {n_chains}"
@@ -424,6 +432,210 @@ class BayesianFitter:
 
         return numpyro_model
 
+    def _prepare_fit_inputs(
+        self,
+        model: ModelFunc,
+        x: Float64Array,
+        y: Float64Array,
+        param_names: list[str] | None,
+        priors: PriorDict | None,
+        nlsq_result: tuple[Float64Array, Float64Array] | None,
+    ) -> tuple[
+        Float64Array, Float64Array, list[str], PriorDict, Float64Array, dict[str, float]
+    ]:
+        """Normalize inputs, run NLSQ warm-start, and construct priors.
+
+        Returns
+        -------
+        tuple of (x_f64, y_f64, param_names, priors, popt, nlsq_warmstart)
+        """
+        x = np.asarray(x, dtype=np.float64)
+        y = np.asarray(y, dtype=np.float64)
+
+        if nlsq_result is None:
+            popt, pcov = self._run_nlsq_warmstart(model, x, y)
+        else:
+            popt, pcov = nlsq_result
+            popt = np.asarray(popt, dtype=np.float64)
+            pcov = np.asarray(pcov, dtype=np.float64)
+
+        n_params = len(popt)
+        if param_names is None:
+            param_names = [f"p{i}" for i in range(n_params)]
+
+        if len(param_names) != n_params:
+            msg = f"param_names length ({len(param_names)}) != n_params ({n_params})"
+            raise ValueError(msg)
+
+        if priors is None:
+            priors = self._create_default_priors(popt, param_names)
+
+        nlsq_warmstart = dict(zip(param_names, popt.tolist(), strict=True))
+        return x, y, param_names, priors, popt, nlsq_warmstart
+
+    def _run_mcmc(
+        self,
+        numpyro_model: Callable,
+        y: Float64Array,
+        popt: Float64Array,
+        param_names: list[str],
+    ) -> MCMC:
+        """Execute NUTS MCMC with NLSQ-initialized values.
+
+        Returns
+        -------
+        MCMC
+            Completed NumPyro MCMC object.
+        """
+        init_values = {
+            name: float(val) for name, val in zip(param_names, popt, strict=True)
+        }
+        init_strategy = init_to_value(values=init_values)
+
+        kernel = NUTS(
+            numpyro_model,
+            target_accept_prob=self.target_accept_prob,
+            init_strategy=init_strategy,
+        )
+
+        mcmc = MCMC(
+            kernel,
+            num_warmup=self.n_warmup,
+            num_samples=self.n_samples,
+            num_chains=self.n_chains,
+            chain_method=self.chain_method,
+            progress_bar=False,
+        )
+
+        seed = self.seed if self.seed is not None else 0
+        rng_key = jax.random.PRNGKey(seed)
+        y_jax = jnp.asarray(y)
+        mcmc.run(rng_key, y_obs=y_jax)
+        return mcmc
+
+    def _extract_posterior(
+        self,
+        mcmc: MCMC,
+        param_names: list[str],
+    ) -> tuple[Any, SamplesDict, pd.DataFrame]:
+        """Convert MCMC output to ArviZ InferenceData and extract summaries.
+
+        Returns
+        -------
+        tuple of (inference_data, samples, summary_df)
+        """
+        inference_data = az.from_numpyro(mcmc)
+
+        samples: SamplesDict = {}
+        for name in param_names:
+            samples[name] = np.asarray(inference_data.posterior[name].values)
+
+        summary_df = az.summary(
+            inference_data,
+            var_names=param_names,
+            ci_prob=0.95,
+        )
+
+        return inference_data, samples, summary_df
+
+    def _compute_diagnostics(
+        self,
+        inference_data: Any,
+        summary_df: pd.DataFrame,
+        param_names: list[str],
+    ) -> MCMCDiagnostics:
+        """Compute MCMC convergence diagnostics from inference data.
+
+        Returns
+        -------
+        MCMCDiagnostics
+            Structured diagnostics with R-hat, ESS, divergences, BFMI.
+        """
+        rhat = {name: float(summary_df.loc[name, "r_hat"]) for name in param_names}
+        ess_bulk = {
+            name: float(summary_df.loc[name, "ess_bulk"]) for name in param_names
+        }
+        ess_tail = {
+            name: float(summary_df.loc[name, "ess_tail"]) for name in param_names
+        }
+
+        sample_stats = inference_data.sample_stats
+        if "diverging" in sample_stats:
+            divergences = int(np.sum(sample_stats["diverging"].values))
+        else:
+            divergences = 0
+
+        # Compute BFMI (Bayesian Fraction of Missing Information) per chain
+        bfmi_values: list[float] = []
+        if "energy" in sample_stats:
+            energy = sample_stats["energy"].values  # shape: (n_chains, n_samples)
+            for chain_idx in range(energy.shape[0]):
+                chain_energy = energy[chain_idx, :]
+                energy_diff = np.diff(chain_energy)
+                bfmi = float(np.var(energy_diff) / np.var(chain_energy))
+                bfmi_values.append(bfmi)
+        else:
+            bfmi_values = [1.0] * self.n_chains
+
+        # Compute max tree depth fraction
+        max_tree_depth_fraction = 0.0
+        if "tree_depth" in sample_stats:
+            tree_depth = sample_stats["tree_depth"].values
+            max_tree_depth_fraction = float(np.mean(tree_depth >= 10))
+
+        seed = self.seed if self.seed is not None else 0
+        software_versions = {
+            "numpyro": numpyro.__version__,
+            "jax": jax.__version__,
+            "arviz": az.__version__,
+            "numpy": np.__version__,
+        }
+
+        return MCMCDiagnostics(
+            rhat=rhat,
+            ess_bulk=ess_bulk,
+            ess_tail=ess_tail,
+            divergences=divergences,
+            bfmi=bfmi_values,
+            max_tree_depth_fraction=max_tree_depth_fraction,
+            seed=seed,
+            software_versions=software_versions,
+        )
+
+    @staticmethod
+    def _warn_on_diagnostics(diagnostics: MCMCDiagnostics) -> None:
+        """Issue warnings for MCMC convergence issues."""
+        if not all(r < RHAT_WARN for r in diagnostics.rhat.values()):
+            warnings.warn(
+                f"Some R-hat values >= {RHAT_WARN}: {diagnostics.rhat}. Chains may not have converged.",
+                UserWarning,
+                stacklevel=3,
+            )
+
+        if not all(e >= ESS_BULK_MIN for e in diagnostics.ess_bulk.values()):
+            warnings.warn(
+                f"Some ESS values < {ESS_BULK_MIN}: {diagnostics.ess_bulk}. Consider more samples.",
+                UserWarning,
+                stacklevel=3,
+            )
+
+        if diagnostics.divergences > 0:
+            warnings.warn(
+                f"{diagnostics.divergences} divergent transitions detected. Check priors/model.",
+                UserWarning,
+                stacklevel=3,
+            )
+
+        low_bfmi_chains = [i for i, b in enumerate(diagnostics.bfmi) if b < BFMI_MIN]
+        if low_bfmi_chains:
+            warnings.warn(
+                f"Low BFMI (<{BFMI_MIN}) in chains {low_bfmi_chains}: "
+                f"{[diagnostics.bfmi[i] for i in low_bfmi_chains]}. "
+                "Consider reparameterization or more informative priors.",
+                UserWarning,
+                stacklevel=3,
+            )
+
     def fit(
         self,
         model: ModelFunc,
@@ -461,154 +673,21 @@ class BayesianFitter:
         """
         del sigma  # reserved for future use
 
-        x = np.asarray(x, dtype=np.float64)
-        y = np.asarray(y, dtype=np.float64)
-
-        if nlsq_result is None:
-            popt, pcov = self._run_nlsq_warmstart(model, x, y)
-        else:
-            popt, pcov = nlsq_result
-            popt = np.asarray(popt, dtype=np.float64)
-            pcov = np.asarray(pcov, dtype=np.float64)
-
-        n_params = len(popt)
-        if param_names is None:
-            param_names = [f"p{i}" for i in range(n_params)]
-
-        if len(param_names) != n_params:
-            msg = f"param_names length ({len(param_names)}) != n_params ({n_params})"
-            raise ValueError(msg)
-
-        if priors is None:
-            priors = self._create_default_priors(popt, param_names)
-
-        nlsq_warmstart = dict(zip(param_names, popt.tolist(), strict=True))
+        x, y, param_names, priors, popt, nlsq_warmstart = self._prepare_fit_inputs(
+            model,
+            x,
+            y,
+            param_names,
+            priors,
+            nlsq_result,
+        )
 
         numpyro_model = self._build_numpyro_model(model, x, priors, param_names)
+        mcmc = self._run_mcmc(numpyro_model, y, popt, param_names)
 
-        init_values = {
-            name: float(val) for name, val in zip(param_names, popt, strict=True)
-        }
-        init_strategy = init_to_value(values=init_values)
-
-        kernel = NUTS(
-            numpyro_model,
-            target_accept_prob=self.target_accept_prob,
-            init_strategy=init_strategy,
-        )
-
-        mcmc = MCMC(
-            kernel,
-            num_warmup=self.n_warmup,
-            num_samples=self.n_samples,
-            num_chains=self.n_chains,
-            chain_method=self.chain_method,
-            progress_bar=False,
-        )
-
-        seed = self.seed if self.seed is not None else 0
-        rng_key = jax.random.PRNGKey(seed)
-        y_jax = jnp.asarray(y)
-        mcmc.run(rng_key, y_obs=y_jax)
-
-        inference_data = az.from_numpyro(mcmc)
-
-        samples: SamplesDict = {}
-        for name in param_names:
-            samples[name] = np.asarray(inference_data.posterior[name].values)
-
-        summary_df = az.summary(
-            inference_data,
-            var_names=param_names,
-            ci_prob=0.95,
-        )
-
-        rhat = {name: float(summary_df.loc[name, "r_hat"]) for name in param_names}
-        ess_bulk = {
-            name: float(summary_df.loc[name, "ess_bulk"]) for name in param_names
-        }
-        ess_tail = {
-            name: float(summary_df.loc[name, "ess_tail"]) for name in param_names
-        }
-
-        sample_stats = inference_data.sample_stats
-        if "diverging" in sample_stats:
-            divergences = int(np.sum(sample_stats["diverging"].values))
-        else:
-            divergences = 0
-
-        # Compute BFMI (Bayesian Fraction of Missing Information) per chain
-        bfmi_values: list[float] = []
-        if "energy" in sample_stats:
-            energy = sample_stats["energy"].values  # shape: (n_chains, n_samples)
-            for chain_idx in range(energy.shape[0]):
-                chain_energy = energy[chain_idx, :]
-                energy_diff = np.diff(chain_energy)
-                # BFMI = Var(E[n] - E[n-1]) / Var(E[n])
-                bfmi = float(np.var(energy_diff) / np.var(chain_energy))
-                bfmi_values.append(bfmi)
-        else:
-            # Fallback if energy not available
-            bfmi_values = [1.0] * self.n_chains
-
-        # Compute max tree depth fraction
-        max_tree_depth_fraction = 0.0
-        if "tree_depth" in sample_stats:
-            tree_depth = sample_stats["tree_depth"].values
-            # NUTS default max tree depth is 10
-            max_tree_depth_fraction = float(np.mean(tree_depth >= 10))
-
-        # Get software versions for reproducibility
-        software_versions = {
-            "numpyro": numpyro.__version__,
-            "jax": jax.__version__,
-            "arviz": az.__version__,
-            "numpy": np.__version__,
-        }
-
-        # Create structured diagnostics
-        diagnostics = MCMCDiagnostics(
-            rhat=rhat,
-            ess_bulk=ess_bulk,
-            ess_tail=ess_tail,
-            divergences=divergences,
-            bfmi=bfmi_values,
-            max_tree_depth_fraction=max_tree_depth_fraction,
-            seed=seed,
-            software_versions=software_versions,
-        )
-
-        # Issue warnings for diagnostic failures
-        if not all(r < 1.01 for r in rhat.values()):
-            warnings.warn(
-                f"Some R-hat values >= 1.01: {rhat}. Chains may not have converged.",
-                UserWarning,
-                stacklevel=2,
-            )
-
-        if not all(e >= 400 for e in ess_bulk.values()):
-            warnings.warn(
-                f"Some ESS values < 400: {ess_bulk}. Consider more samples.",
-                UserWarning,
-                stacklevel=2,
-            )
-
-        if divergences > 0:
-            warnings.warn(
-                f"{divergences} divergent transitions detected. Check priors/model.",
-                UserWarning,
-                stacklevel=2,
-            )
-
-        # BFMI warning (low BFMI indicates poor exploration of posterior tails)
-        low_bfmi_chains = [i for i, b in enumerate(bfmi_values) if b < 0.3]
-        if low_bfmi_chains:
-            warnings.warn(
-                f"Low BFMI (<0.3) in chains {low_bfmi_chains}: {[bfmi_values[i] for i in low_bfmi_chains]}. "
-                "Consider reparameterization or more informative priors.",
-                UserWarning,
-                stacklevel=2,
-            )
+        inference_data, samples, summary_df = self._extract_posterior(mcmc, param_names)
+        diagnostics = self._compute_diagnostics(inference_data, summary_df, param_names)
+        self._warn_on_diagnostics(diagnostics)
 
         return BayesianFitResult(
             samples=samples,
@@ -619,10 +698,10 @@ class BayesianFitter:
             n_chains=self.n_chains,
             n_samples=self.n_samples,
             n_warmup=self.n_warmup,
-            rhat=rhat,
-            ess=ess_bulk,
-            divergences=divergences,
-            bfmi=bfmi_values,
+            rhat=diagnostics.rhat,
+            ess=diagnostics.ess_bulk,
+            divergences=diagnostics.divergences,
+            bfmi=diagnostics.bfmi,
             diagnostics=diagnostics,
         )
 
@@ -690,7 +769,7 @@ class BayesianFitter:
 
         plot_funcs = {
             DiagnosticPlot.PAIR: lambda: az.plot_pair(
-                idata, var_names=var_names, divergences=True
+                idata, var_names=var_names, visuals={"divergence": True}
             ),
             DiagnosticPlot.FOREST: lambda: az.plot_forest(
                 idata, var_names=var_names, combined=True
@@ -740,7 +819,7 @@ class BayesianFitter:
         ax: plt.Axes | None = None,
         credible_level: float = 0.95,
         show_nlsq: bool = False,
-        n_draws: int = 100,
+        n_draws: int = POSTERIOR_N_DRAWS,
     ) -> Figure:
         """Plot fit with posterior predictive credible intervals.
 
@@ -833,7 +912,7 @@ def plot_comparison(
     nlsq_color: str = "blue",
     bayesian_color: str = "red",
     band_alpha: float = 0.25,
-    n_draws: int = 100,
+    n_draws: int = POSTERIOR_N_DRAWS,
 ) -> Figure:
     """Generate comparison plot of frequentist CI vs Bayesian credible interval.
 

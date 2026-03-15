@@ -9,6 +9,8 @@ from typing import TYPE_CHECKING
 
 from PyQt6.QtCore import QThread, pyqtSignal
 
+from rheoQCM.core.constants import MCMC_PRODUCTION
+
 if TYPE_CHECKING:
     from collections.abc import Callable
 
@@ -52,9 +54,9 @@ class BayesianFitWorker(QThread):
         param_names: list[str],
         *,
         priors: dict[str, PriorSpec] | None = None,
-        n_chains: int = 4,
-        n_samples: int = 2000,
-        n_warmup: int = 1000,
+        n_chains: int = MCMC_PRODUCTION.n_chains,
+        n_samples: int = MCMC_PRODUCTION.n_samples,
+        n_warmup: int = MCMC_PRODUCTION.n_warmup,
         seed: int | None = None,
         parent=None,
     ) -> None:

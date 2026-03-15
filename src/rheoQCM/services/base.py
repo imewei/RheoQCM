@@ -11,9 +11,18 @@ Provides:
 - ServiceContainer for dependency injection
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Protocol
+from typing import TYPE_CHECKING, Any, Protocol
+
+if TYPE_CHECKING:
+    import numpy as np
+    import pandas as pd
+
+    from rheoQCM.core.model import SolveResult
+    from rheoQCM.services.bayesian import BayesianService
 
 # =============================================================================
 # Protocol Definitions
@@ -57,6 +66,47 @@ class ExportService(Protocol):
 
     def get_supported_formats(self) -> list[str]:
         """Get list of supported export format extensions."""
+        ...
+
+
+class DataRepository(Protocol):
+    """Subset of DataStore API needed by the analysis layer.
+
+    Defines the minimal interface that QCMApp's analysis code requires
+    from a data store, enabling mock-based testing without the full
+    DataStore implementation.
+    """
+
+    def get_queue_id(self, chn_name: str) -> np.ndarray:
+        """Get queue IDs for a channel."""
+        ...
+
+    def get_marked_harm_idx(self, harmonic: int, chn_name: str) -> np.ndarray:
+        """Get indices of marked points for a harmonic and channel."""
+        ...
+
+    def df_qcm(self, chn_name: str) -> pd.DataFrame:
+        """Get QCM data DataFrame for a channel."""
+        ...
+
+    def save_data(self, chn_name: str, props_dict: dict[str, Any]) -> None:
+        """Save computed properties to the data store."""
+        ...
+
+
+class PhysicsModel(Protocol):
+    """Interface for QCM physics calculations.
+
+    Enables swapping physics implementations (e.g., for testing
+    or alternative models) without changing the analysis pipeline.
+    """
+
+    def solve_properties(self, nh: list[int]) -> SolveResult:
+        """Solve for material properties given harmonics."""
+        ...
+
+    def load_delfstars(self, delfstars: dict[int, complex]) -> None:
+        """Load experimental frequency shifts."""
         ...
 
 
@@ -180,6 +230,8 @@ class ServiceContainer:
     analysis: AnalysisService | None = field(default=None)
     settings: Any | None = field(default=None)
     export: ExportService | None = field(default=None)
+    bayesian: BayesianService | None = field(default=None)
+    data_repo: DataRepository | None = field(default=None)
 
     @classmethod
     def create(
@@ -187,7 +239,7 @@ class ServiceContainer:
         config: dict[str, Any] | None = None,
         *,
         use_defaults: bool = True,
-    ) -> "ServiceContainer":
+    ) -> ServiceContainer:
         """Factory method to create configured service container.
 
         Parameters
@@ -213,6 +265,8 @@ class ServiceContainer:
         analysis = config.get("analysis")
         export = config.get("export")
         settings = config.get("settings")
+        bayesian = config.get("bayesian")
+        data_repo = config.get("data_repo")
 
         if use_defaults:
             if data is None:
@@ -227,4 +281,6 @@ class ServiceContainer:
             analysis=analysis,
             settings=settings,
             export=export,
+            bayesian=bayesian,
+            data_repo=data_repo,
         )

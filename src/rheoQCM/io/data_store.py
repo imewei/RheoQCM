@@ -2956,13 +2956,6 @@ class DataStore:
                         col_s.values.tolist()
                     )  # convert series to array of array ??
 
-                    # col_l = col_s.values.tolist()
-                    # for i in range(len(col_l)):
-                    #     try:
-                    #         logger.info(len(col_l[i]))
-                    #     except:
-                    #         logger.info(i, col_l[i])
-
                     if (
                         mode["temp"] == "const"
                     ):  # single crystal and constant temperature

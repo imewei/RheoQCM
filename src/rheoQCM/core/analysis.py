@@ -56,6 +56,7 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 
+from rheoQCM.core.constants import MCMC_ANALYSIS
 from rheoQCM.core.jax_config import configure_jax, get_jax_backend, is_gpu_available
 from rheoQCM.core.model import (
     BatchResult,
@@ -362,8 +363,8 @@ class QCMAnalyzer:
         self,
         nh: list[int],
         initial_params: dict[str, Any] | None = None,
-        num_samples: int = 1000,
-        num_warmup: int = 500,
+        num_samples: int = MCMC_ANALYSIS.n_samples,
+        num_warmup: int = MCMC_ANALYSIS.n_warmup,
         **kwargs: Any,
     ) -> dict[str, Any]:
         """

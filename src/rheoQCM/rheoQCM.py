@@ -15,8 +15,6 @@ logger = logging.getLogger(__name__)
 # logger = logging.getLogger('fileLogger')
 # logger.setLevel(logging.ERROR)
 
-# import csv
-# import importlib
 import datetime  # noqa: E402
 import json  # noqa: E402
 import math  # noqa: E402
@@ -29,9 +27,6 @@ import UISettings  # UI basic settings module  # noqa: E402
 
 # packages
 from MainWindow import Ui_MainWindow  # UI from QT5  # noqa: E402
-
-# from collections import OrderedDict
-# import types
 from PyQt6.QtCore import (  # noqa: E402
     QT_VERSION,
     QCoreApplication,
@@ -82,6 +77,7 @@ from modules import QCM as QCM  # noqa: E402
 from modules import PeakTracker, UIModules  # noqa: E402
 from modules.MatplotlibWidget import MatplotlibWidget  # noqa: E402
 
+from rheoQCM.core.constants import MCMC_INTERACTIVE, POSTERIOR_N_DRAWS  # noqa: E402
 from rheoQCM.gui.dialogs import (  # noqa: E402
     BayesianProgressDialog,
     DiagnosticViewerDialog,
@@ -192,6 +188,147 @@ class QCMApp(QMainWindow):
 
         self.load_settings()
 
+    def _create_harmonic_frequency_widgets(self, harm, i, _translate):
+        """Create checkbox and frequency LineEdit widgets for a harmonic."""
+        if getattr(self.ui, "checkBox_harm" + harm, None):
+            return
+
+        setattr(
+            self.ui,
+            "checkBox_harm" + harm,
+            QCheckBox(self.ui.groupBox_settings_harmonics),
+        )
+        sizePolicy = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(
+            getattr(self.ui, "checkBox_harm" + harm).sizePolicy().hasHeightForWidth()
+        )
+        getattr(self.ui, "checkBox_harm" + harm).setSizePolicy(sizePolicy)
+        getattr(self.ui, "checkBox_harm" + harm).setObjectName("checkBox_harm" + harm)
+        getattr(self.ui, "checkBox_harm" + harm).setText(_translate("MainWindow", harm))
+
+        for st1 in ["start", "end"]:
+            for st2 in ["", "_r"]:
+                widget_name = "lineEdit_" + st1 + "f" + harm + st2
+                setattr(
+                    self.ui,
+                    widget_name,
+                    QLineEdit(self.ui.groupBox_settings_harmonics),
+                )
+                getattr(self.ui, widget_name).setReadOnly(True)
+                getattr(self.ui, widget_name).setObjectName(widget_name)
+
+        row = int((i + 1) / 2)
+        grid = self.ui.gridLayout_settings_control_harms
+        grid.addWidget(getattr(self.ui, "checkBox_harm" + harm), row, 0, 1, 1)
+        grid.addWidget(getattr(self.ui, "lineEdit_startf" + harm), row, 1, 1, 1)
+        grid.addWidget(getattr(self.ui, "lineEdit_endf" + harm), row, 2, 1, 1)
+        grid.addWidget(getattr(self.ui, "lineEdit_startf" + harm + "_r"), row, 4, 1, 1)
+        grid.addWidget(getattr(self.ui, "lineEdit_endf" + harm + "_r"), row, 5, 1, 1)
+
+    def _create_harmonic_spectra_frame(self, harm, _translate):
+        """Create spectra frame, plot checkboxes, settings tab, and nhplot checkbox."""
+        # frame_sp<n>
+        if not getattr(self.ui, "frame_sp" + harm, None):
+            setattr(self.ui, "frame_sp" + harm, QFrame(self.ui.page_spectra_show))
+            sizePolicy = QSizePolicy(
+                QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Expanding
+            )
+            sizePolicy.setHorizontalStretch(0)
+            sizePolicy.setVerticalStretch(1)
+            sizePolicy.setHeightForWidth(
+                getattr(self.ui, "frame_sp" + harm).sizePolicy().hasHeightForWidth()
+            )
+            getattr(self.ui, "frame_sp" + harm).setSizePolicy(sizePolicy)
+            getattr(self.ui, "frame_sp" + harm).setMaximumSize(QSize(16777215, 400))
+            getattr(self.ui, "frame_sp" + harm).setFrameShape(QFrame.Shape.StyledPanel)
+            getattr(self.ui, "frame_sp" + harm).setFrameShadow(QFrame.Shadow.Sunken)
+            getattr(self.ui, "frame_sp" + harm).setObjectName("frame_sp" + harm)
+            self.ui.verticalLayout_sp.addWidget(getattr(self.ui, "frame_sp" + harm))
+
+        # checkBox_plt<1/2>_h<n>
+        for plt_str in ["plt1", "plt2"]:
+            cb_name = "checkBox_" + plt_str + "_h" + harm
+            if not getattr(self.ui, cb_name, None):
+                setattr(
+                    self.ui,
+                    cb_name,
+                    QCheckBox(getattr(self.ui, "frame_" + plt_str + "set")),
+                )
+                getattr(self.ui, cb_name).setObjectName(cb_name)
+                getattr(self.ui, "horizontalLayout_" + plt_str + "set_harm").addWidget(
+                    getattr(self.ui, cb_name)
+                )
+                getattr(self.ui, cb_name).setText(_translate("MainWindow", harm))
+
+        # tab_settings_settings_harm<n>
+        tab_name = "tab_settings_settings_harm" + harm
+        if not getattr(self.ui, tab_name, None):
+            setattr(self.ui, tab_name, QWidget())
+            getattr(self.ui, tab_name).setObjectName(tab_name)
+            layout_name = "verticalLayout_tab_settings_settings_harm" + harm
+            setattr(
+                self.ui,
+                layout_name,
+                QVBoxLayout(getattr(self.ui, tab_name)),
+            )
+            getattr(self.ui, layout_name).setContentsMargins(0, 0, 0, 0)
+            getattr(self.ui, layout_name).setSpacing(0)
+            getattr(self.ui, layout_name).setObjectName(layout_name)
+            self.ui.tabWidget_settings_settings_harm.addTab(
+                getattr(self.ui, tab_name), ""
+            )
+            self.ui.tabWidget_settings_settings_harm.setTabText(
+                self.ui.tabWidget_settings_settings_harm.indexOf(
+                    getattr(self.ui, tab_name)
+                ),
+                _translate("MainWindow", harm),
+            )
+
+        # checkBox_nhplot<n>
+        nhplot_name = "checkBox_nhplot" + harm
+        if not getattr(self.ui, nhplot_name, None):
+            setattr(
+                self.ui,
+                nhplot_name,
+                QCheckBox(self.ui.groupBox_nhplot),
+            )
+            getattr(self.ui, nhplot_name).setObjectName(nhplot_name)
+            self.ui.horizontalLayout_nhplot_harms.addWidget(
+                getattr(self.ui, nhplot_name)
+            )
+            getattr(self.ui, nhplot_name).setText(_translate("MainWindow", harm))
+
+    def _connect_harmonic_signals(self, harm):
+        """Connect signals for harmonic checkbox visibility and updates."""
+        getattr(self.ui, "frame_sp" + harm).setVisible(False)
+
+        # Tab bar checkbox for harmonic selection
+        setattr(self.ui, "checkBox_tree_harm" + harm, QCheckBox())
+        self.ui.tabWidget_settings_settings_harm.tabBar().setTabButton(
+            self.ui.tabWidget_settings_settings_harm.indexOf(
+                getattr(self.ui, "tab_settings_settings_harm" + harm)
+            ),
+            QTabBar.ButtonPosition.LeftSide,
+            getattr(self.ui, "checkBox_tree_harm" + harm),
+        )
+
+        # Bidirectional sync between tree and settings checkboxes
+        getattr(self.ui, "checkBox_tree_harm" + harm).toggled["bool"].connect(
+            getattr(self.ui, "checkBox_harm" + harm).setChecked
+        )
+        getattr(self.ui, "checkBox_harm" + harm).toggled["bool"].connect(
+            getattr(self.ui, "checkBox_tree_harm" + harm).setChecked
+        )
+        getattr(self.ui, "checkBox_harm" + harm).toggled["bool"].connect(
+            getattr(self.ui, "frame_sp" + harm).setVisible
+        )
+        getattr(self.ui, "checkBox_harm" + harm).toggled["bool"].connect(
+            self.update_widget
+        )
+        getattr(self.ui, "checkBox_nhplot" + harm).toggled.connect(self.update_widget)
+
     def init_ui(self):
         # region ###### initiate UI #################################
 
@@ -222,212 +359,13 @@ class QCMApp(QMainWindow):
 
         # region cross different sections
         ##### harmonic widgets #####
-        # Add widgets related number of harmonics here
-
         # loop for setting harmonics
         _translate = QCoreApplication.translate
         for i in self.all_harm_list():
             harm = str(i)
-            if not getattr(
-                self.ui, "checkBox_harm" + harm, None
-            ):  # check if the item exist
-                # check box_harm<n>, lineEdit_<start/end>f<n></_r> all come togeter. So, only check one
-                ## create widget check box_harm<n>
-                setattr(
-                    self.ui,
-                    "checkBox_harm" + harm,
-                    QCheckBox(self.ui.groupBox_settings_harmonics),
-                )
-                sizePolicy = QSizePolicy(
-                    QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed
-                )
-                sizePolicy.setHorizontalStretch(0)
-                sizePolicy.setVerticalStretch(0)
-                sizePolicy.setHeightForWidth(
-                    getattr(self.ui, "checkBox_harm" + harm)
-                    .sizePolicy()
-                    .hasHeightForWidth()
-                )
-                getattr(self.ui, "checkBox_harm" + harm).setSizePolicy(sizePolicy)
-                getattr(self.ui, "checkBox_harm" + harm).setObjectName(
-                    "checkBox_harm" + harm
-                )
-                getattr(self.ui, "checkBox_harm" + harm).setText(
-                    _translate("MainWindow", harm)
-                )
-
-                for st1 in ["start", "end"]:
-                    for st2 in ["", "_r"]:
-                        setattr(
-                            self.ui,
-                            "lineEdit_" + st1 + "f" + harm + st2,
-                            QLineEdit(self.ui.groupBox_settings_harmonics),
-                        )
-                        getattr(
-                            self.ui, "lineEdit_" + st1 + "f" + harm + st2
-                        ).setReadOnly(True)
-                        getattr(
-                            self.ui, "lineEdit_" + st1 + "f" + harm + st2
-                        ).setObjectName("lineEdit_" + st1 + "f" + harm + st2)
-
-                # add to layout
-                self.ui.gridLayout_settings_control_harms.addWidget(
-                    getattr(self.ui, "checkBox_harm" + harm), int((i + 1) / 2), 0, 1, 1
-                )
-                self.ui.gridLayout_settings_control_harms.addWidget(
-                    getattr(self.ui, "lineEdit_startf" + harm),
-                    int((i + 1) / 2),
-                    1,
-                    1,
-                    1,
-                )
-                self.ui.gridLayout_settings_control_harms.addWidget(
-                    getattr(self.ui, "lineEdit_endf" + harm), int((i + 1) / 2), 2, 1, 1
-                )
-                self.ui.gridLayout_settings_control_harms.addWidget(
-                    getattr(self.ui, "lineEdit_startf" + harm + "_r"),
-                    int((i + 1) / 2),
-                    4,
-                    1,
-                    1,
-                )
-                self.ui.gridLayout_settings_control_harms.addWidget(
-                    getattr(self.ui, "lineEdit_endf" + harm + "_r"),
-                    int((i + 1) / 2),
-                    5,
-                    1,
-                    1,
-                )
-
-            ## create frame_sp<n>
-            if not getattr(self.ui, "frame_sp" + harm, None):  # check if the item exist
-                setattr(self.ui, "frame_sp" + harm, QFrame(self.ui.page_spectra_show))
-                sizePolicy = QSizePolicy(
-                    QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Expanding
-                )
-                sizePolicy.setHorizontalStretch(0)
-                sizePolicy.setVerticalStretch(1)
-                sizePolicy.setHeightForWidth(
-                    getattr(self.ui, "frame_sp" + harm).sizePolicy().hasHeightForWidth()
-                )
-                getattr(self.ui, "frame_sp" + harm).setSizePolicy(sizePolicy)
-                # getattr(self.ui, 'frame_sp'+harm).setMinimumSize(QSize(0, 100))
-                getattr(self.ui, "frame_sp" + harm).setMaximumSize(QSize(16777215, 400))
-                getattr(self.ui, "frame_sp" + harm).setFrameShape(
-                    QFrame.Shape.StyledPanel
-                )
-                getattr(self.ui, "frame_sp" + harm).setFrameShadow(QFrame.Shadow.Sunken)
-                getattr(self.ui, "frame_sp" + harm).setObjectName("frame_sp" + harm)
-                self.ui.verticalLayout_sp.addWidget(getattr(self.ui, "frame_sp" + harm))
-
-            ## create checkBox_plt<1/2>_h<n>
-            for plt_str in ["plt1", "plt2"]:
-                if not getattr(
-                    self.ui, "checkBox_" + plt_str + "_h" + harm, None
-                ):  # check if the item exist
-                    setattr(
-                        self.ui,
-                        "checkBox_" + plt_str + "_h" + harm,
-                        QCheckBox(getattr(self.ui, "frame_" + plt_str + "set")),
-                    )
-                    getattr(self.ui, "checkBox_" + plt_str + "_h" + harm).setObjectName(
-                        "checkBox_" + plt_str + "_h" + harm
-                    )
-                    getattr(
-                        self.ui, "horizontalLayout_" + plt_str + "set_harm"
-                    ).addWidget(getattr(self.ui, "checkBox_" + plt_str + "_h" + harm))
-                    getattr(self.ui, "checkBox_" + plt_str + "_h" + harm).setText(
-                        _translate("MainWindow", harm)
-                    )
-
-            ## create tab_settings_settings_harm<n>
-            if not getattr(
-                self.ui, "tab_settings_settings_harm" + harm, None
-            ):  # check if the item exist
-                setattr(self.ui, "tab_settings_settings_harm" + harm, QWidget())
-                getattr(self.ui, "tab_settings_settings_harm" + harm).setObjectName(
-                    "tab_settings_settings_harm" + harm
-                )
-                setattr(
-                    self.ui,
-                    "verticalLayout_tab_settings_settings_harm" + harm,
-                    QVBoxLayout(getattr(self.ui, "tab_settings_settings_harm" + harm)),
-                )
-                getattr(
-                    self.ui, "verticalLayout_tab_settings_settings_harm" + harm
-                ).setContentsMargins(0, 0, 0, 0)
-                getattr(
-                    self.ui, "verticalLayout_tab_settings_settings_harm" + harm
-                ).setSpacing(0)
-                getattr(
-                    self.ui, "verticalLayout_tab_settings_settings_harm" + harm
-                ).setObjectName("verticalLayout_tab_settings_settings_harm" + harm)
-                self.ui.tabWidget_settings_settings_harm.addTab(
-                    getattr(self.ui, "tab_settings_settings_harm" + harm), ""
-                )
-                self.ui.tabWidget_settings_settings_harm.setTabText(
-                    self.ui.tabWidget_settings_settings_harm.indexOf(
-                        getattr(self.ui, "tab_settings_settings_harm" + harm)
-                    ),
-                    _translate("MainWindow", harm),
-                )
-
-            ## creat checkBox_nhplot<n>
-            if not getattr(
-                self.ui, "checkBox_nhplot" + harm, None
-            ):  # check if the item exist
-                setattr(
-                    self.ui,
-                    "checkBox_nhplot" + harm,
-                    QCheckBox(self.ui.groupBox_nhplot),
-                )
-                getattr(self.ui, "checkBox_nhplot" + harm).setObjectName(
-                    "checkBox_nhplot" + harm
-                )
-                self.ui.horizontalLayout_nhplot_harms.addWidget(
-                    getattr(self.ui, "checkBox_nhplot" + harm)
-                )
-                getattr(self.ui, "checkBox_nhplot" + harm).setText(
-                    _translate("MainWindow", harm)
-                )
-
-            # set to visable which is default. nothing to do
-
-            # set all frame_sp<n> hided
-            getattr(self.ui, "frame_sp" + harm).setVisible(False)
-
-            # add checkbox to tabWidget_ham for harmonic selection
-            setattr(self.ui, "checkBox_tree_harm" + harm, QCheckBox())
-            self.ui.tabWidget_settings_settings_harm.tabBar().setTabButton(
-                self.ui.tabWidget_settings_settings_harm.indexOf(
-                    getattr(self.ui, "tab_settings_settings_harm" + harm)
-                ),
-                QTabBar.ButtonPosition.LeftSide,
-                getattr(self.ui, "checkBox_tree_harm" + harm),
-            )
-
-            # set signal
-            getattr(self.ui, "checkBox_tree_harm" + harm).toggled["bool"].connect(
-                getattr(self.ui, "checkBox_harm" + harm).setChecked
-            )
-            getattr(self.ui, "checkBox_harm" + harm).toggled["bool"].connect(
-                getattr(self.ui, "checkBox_tree_harm" + harm).setChecked
-            )
-            # getattr(self.ui, 'checkBox_tree_harm' + harm).toggled['bool'].connect(
-            #     getattr(self.ui, 'frame_sp' +harm).setVisible
-            # )
-            getattr(self.ui, "checkBox_harm" + harm).toggled["bool"].connect(
-                getattr(self.ui, "frame_sp" + harm).setVisible
-            )
-
-            getattr(self.ui, "checkBox_harm" + harm).toggled["bool"].connect(
-                self.update_widget
-            )
-
-            # checkBox_nhplot<n>
-            getattr(self.ui, "checkBox_nhplot" + harm).toggled.connect(
-                self.update_widget
-            )
+            self._create_harmonic_frequency_widgets(harm, i, _translate)
+            self._create_harmonic_spectra_frame(harm, _translate)
+            self._connect_harmonic_signals(harm)
 
         ########
 
@@ -484,14 +422,7 @@ class QCMApp(QMainWindow):
         # set pushButton_resetreftime
         self.ui.pushButton_resetreftime.clicked.connect(self.reset_reftime)
 
-        # set recording time value
-        self.ui.spinBox_recordinterval.valueChanged.connect(self.update_widget)
         self.ui.spinBox_refreshresolution.valueChanged.connect(self.update_widget)
-        self.ui.spinBox_scaninterval.valueChanged.connect(self.update_widget)
-        # # set spinBox_scaninterval background
-        # self.ui.spinBox_scaninterval.setStyleSheet(
-        #     "QLineEdit { background: transparent; }"
-        # )
 
         # add value to the comboBox_settings_control_dispmode
         self.build_comboBox(self.ui.comboBox_settings_control_dispmode, "display_opts")
@@ -763,32 +694,6 @@ class QCMApp(QMainWindow):
             self.update_widget
         )
 
-        # add comBox_tempmodule to treeWidget_settings_settings_hardware
-        config_default["temp_class_opts_list"] = (
-            None  # temp modules not available in analysis-only mode
-        )
-        self.create_combobox(
-            "comboBox_tempmodule",
-            config_default["temp_class_opts_list"],
-            100,
-            "Module",
-            self.ui.treeWidget_settings_settings_hardware,
-        )
-        self.settings["comboBox_tempmodule"] = self.ui.comboBox_tempmodule.itemData(
-            self.ui.comboBox_tempmodule.currentIndex()
-        )
-        self.ui.comboBox_tempmodule.activated.connect(self.update_widget)
-
-        # add comboBox_tempdevice to treeWidget_settings_settings_hardware
-        self.create_combobox(
-            "comboBox_tempdevice",
-            [],  # an empty list (analysis-only mode)
-            100,
-            "Device",
-            self.ui.treeWidget_settings_settings_hardware,
-        )
-        self.settings["comboBox_tempdevice"] = None  # set to None
-
         # insert thrmcpl type
         self.create_combobox(
             "comboBox_thrmcpltype",
@@ -797,15 +702,6 @@ class QCMApp(QMainWindow):
             "Thrmcpl Type",
             self.ui.treeWidget_settings_settings_hardware,
         )
-
-        if not self.settings[
-            "comboBox_tempdevice"
-        ]:  # vna or tempdevice are not availabel
-            # set temp related widgets unavailable
-            self.disable_widgets(
-                "temp_device_setting_disable_list",
-                "temp_settings_enable_disable_list",
-            )
 
         # insert time_unit
         self.create_combobox(
@@ -4801,10 +4697,6 @@ class QCMApp(QMainWindow):
 
         if isinstance(self.sender(), QLineEdit):
             self.set_mechchndata(self.sender().objectName(), signal)
-            # try:
-            #     self.set_mechchndata(self.sender().objectName(), float(signal))
-            # except:
-            #     self.set_mechchndata(self.sender().objectName(), 0)
         # if the sender of the signal isA QCheckBox object, update QCheckBox vals in dict
         elif isinstance(self.sender(), QCheckBox):
             self.set_mechchndata(self.sender().objectName(), signal)
@@ -5538,11 +5430,11 @@ class QCMApp(QMainWindow):
         try:
             # Initialize fitter with reasonable defaults for QCM data
             self._bayesian_fitter = BayesianFitter(
-                n_chains=2,  # Minimum for R-hat
-                n_samples=500,  # Reasonable for interactive use
-                n_warmup=250,
-                seed=42,
-                chain_method="sequential",
+                n_chains=MCMC_INTERACTIVE.n_chains,
+                n_samples=MCMC_INTERACTIVE.n_samples,
+                n_warmup=MCMC_INTERACTIVE.n_warmup,
+                seed=MCMC_INTERACTIVE.seed,
+                chain_method=MCMC_INTERACTIVE.chain_method,
             )
 
             progress.update_progress(10, "Extracting data...")
@@ -5741,7 +5633,7 @@ class QCMApp(QMainWindow):
 
             # Get posterior predictions
             samples = self._bayesian_result.samples_array
-            n_draws = min(100, samples.shape[0])
+            n_draws = min(POSTERIOR_N_DRAWS, samples.shape[0])
             indices = np.random.default_rng().choice(
                 samples.shape[0], n_draws, replace=False
             )
@@ -6823,11 +6715,6 @@ class QCMApp(QMainWindow):
                 self.settings[self.sender().objectName()] = float(signal)
             else:
                 self.settings[self.sender().objectName()] = signal
-
-            # try:
-            #     self.settings[self.sender().objectName()] = float(signal)
-            # except:
-            #     self.settings[self.sender().objectName()] = signal
         # if the sender of the signal isA QCheckBox object, update QCheckBox vals in dict
         elif isinstance(self.sender(), QCheckBox):
             self.settings[self.sender().objectName()] = signal
@@ -6928,9 +6815,9 @@ class QCMApp(QMainWindow):
                     "chn": 0,  # not available for test
                 }
 
-        elif (
-            self.sender().objectName() == "comboBox_ref_channel"
-            or "comboBox_samp_channel"
+        elif self.sender().objectName() in (
+            "comboBox_ref_channel",
+            "comboBox_samp_channel",
         ):  # define of samp/ref channel(s) changed
             # reset corrresponding ADC
             logger.info(self.settings["comboBox_samp_channel"])
@@ -7519,7 +7406,6 @@ class QCMApp(QMainWindow):
 
         self.load_normal_widgets(
             [
-                "spinBox_recordinterval",  # load default record interval
                 "spinBox_refreshresolution",  # load default spectra refresh resolution
             ]
         )

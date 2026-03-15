@@ -161,6 +161,7 @@ exclude = ["tests*", "docs*"]
 
 [tool.pytest.ini_options]
 minversion = "8.0"
+qt_api = "pyqt6"
 testpaths = ["tests"]
 addopts = [
     "-v",

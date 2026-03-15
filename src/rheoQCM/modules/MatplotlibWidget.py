@@ -1270,6 +1270,48 @@ class MatplotlibWidget(QWidget):
         else:
             pass
 
+    def _update_errorbar_plot(self, key, x, y, xerr, yerr):
+        """Update an ErrorbarContainer plot with new data and error bars."""
+        line, caplines, barlinecols = self.l[key]
+        line.set_data(x, y)
+        error_positions = (
+            (x - xerr, y),
+            (x + xerr, y),
+            (x, y - yerr),
+            (x, y + yerr),
+        )
+        for i, pos in enumerate(error_positions):
+            caplines[i].set_data(pos)
+        barlinecols[0].set_segments(
+            zip(
+                zip(x - xerr, y, strict=False),
+                zip(x + xerr, y, strict=False),
+                strict=False,
+            )
+        )
+        barlinecols[1].set_segments(
+            zip(
+                zip(x, y - yerr, strict=False),
+                zip(x, y + yerr, strict=False),
+                strict=False,
+            )
+        )
+        return line.axes
+
+    def _clear_errorbar_plot(self, key):
+        """Clear an ErrorbarContainer plot (set all data to empty)."""
+        line, caplines, barlinecols = self.l[key]
+        line.set_data([], [])
+        empty_positions = ([], []), ([], []), ([], []), ([], [])
+        for i, pos in enumerate(empty_positions):
+            caplines[i].set_data(pos)
+        barlinecols[0].set_segments(
+            zip(zip([], [], strict=False), zip([], [], strict=False), strict=False)
+        )
+        barlinecols[1].set_segments(
+            zip(zip([], [], strict=False), zip([], [], strict=False), strict=False)
+        )
+
     def update_data(self, *args):
         """
         update data of given in args (dict)
@@ -1284,72 +1326,20 @@ class MatplotlibWidget(QWidget):
 
         for arg in args:
             keys = arg.keys()
+            ln = arg["ln"]
+            x = arg["x"]
+            y = arg["y"]
 
-            if ("xerr" in keys) or ("yerr" in keys):  # errorbar with caps and barlines
-                if isinstance(self.l[arg["ln"]], ErrorbarContainer):  # type match
-                    # logger.info(arg)
-                    # since we initialize the errorbar plots with xerr and yerr, we don't check if they exist here. If you want, use self.l[ln].has_yerr
-                    ln = arg["ln"]
-                    x = arg["x"]
-                    y = arg["y"]
-                    xerr = arg["xerr"]
-                    yerr = arg["yerr"]
-
-                    line, caplines, barlinecols = self.l[ln]
-                    line.set_data(x, y)
-                    # Find the ending points of the errorbars
-                    error_positions = (
-                        (x - xerr, y),
-                        (x + xerr, y),
-                        (x, y - yerr),
-                        (x, y + yerr),
-                    )
-                    # Update the caplines
-                    for i, pos in enumerate(error_positions):
-                        # logger.info('i %s', i)
-                        # logger.info(caplines)
-                        # logger.info('caplines_len %s', len(caplines))
-                        caplines[i].set_data(pos)
-                    # Update the error bars
-                    barlinecols[0].set_segments(
-                        zip(
-                            zip(x - xerr, y, strict=False),
-                            zip(x + xerr, y, strict=False),
-                            strict=False,
-                        )
-                    )
-                    barlinecols[1].set_segments(
-                        zip(
-                            zip(x, y - yerr, strict=False),
-                            zip(x, y + yerr, strict=False),
-                            strict=False,
-                        )
-                    )
-
-                    # barlinecols[0].set_segments(
-                    #     np.array([[x - xerr, y],
-                    #     [x + xerr, y]]).transpose((2, 0, 1))
-                    # )
-                    axs.add(line.axes)
-            else:  # not errorbar
-                ln = arg["ln"]
-                x = arg["x"]
-                y = arg["y"]
-                # logger.info(len(x: %s), len(y))
-                # self.l[ln][0].set_xdata(x)
-                # self.l[ln][0].set_ydata(y)
+            if ("xerr" in keys) or ("yerr" in keys):
+                if isinstance(self.l[ln], ErrorbarContainer):
+                    ax = self._update_errorbar_plot(ln, x, y, arg["xerr"], arg["yerr"])
+                    axs.add(ax)
+            else:
                 self.l[ln][0].set_data(x, y)
                 axs.add(self.l[ln][0].axes)
 
-            if "label" in keys:  # with label
+            if "label" in keys:
                 self.l[ln][0].set_label(arg["label"])
-
-            # ax = self.l[ln][0].axes
-            # axbackground = self.canvas.copy_from_bbox(ax.bbox)
-            # logger.info(ax)
-            # self.canvas.restore_region(axbackground)
-            # ax.draw_artist(self.l[ln][0])
-            # self.canvas.blit(ax.bbox)
 
         for ax in axs:
             self.reset_ax_lim(ax)
@@ -1397,46 +1387,13 @@ class MatplotlibWidget(QWidget):
         """
         clear all lines in .l (but not .l['temp'][:]) of key in l_list
         """
-        # logger.info(self.l)
         for key in self.l:
-            # logger.info(key)
             if key not in ["temp", "C", "colorbar"]:
-                if l_list is None or key in l_list:  # clear all or key
-                    # self.l[key][0].set_xdata([])
-                    # self.l[key][0].set_ydata([])
-
-                    if isinstance(self.l[key], ErrorbarContainer):  # errorbar plot
-                        # clear errorbar
-                        line, caplines, barlinecols = self.l[key]
-                        line.set_data([], [])
-
-                        error_positions = ([], []), ([], []), ([], []), ([], [])
-                        # Update the caplines
-                        for i, pos in enumerate(error_positions):
-                            # logger.info('i %s', i)
-                            # logger.info(caplines)
-                            # logger.info('caplines_len %s', len(caplines))
-                            caplines[i].set_data(pos)
-                        # Update the error bars
-                        barlinecols[0].set_segments(
-                            zip(
-                                zip([], [], strict=False),
-                                zip([], [], strict=False),
-                                strict=False,
-                            )
-                        )
-                        barlinecols[1].set_segments(
-                            zip(
-                                zip([], [], strict=False),
-                                zip([], [], strict=False),
-                                strict=False,
-                            )
-                        )
+                if l_list is None or key in l_list:
+                    if isinstance(self.l[key], ErrorbarContainer):
+                        self._clear_errorbar_plot(key)
                     else:
-                        self.l[key][0].set_data([], [])  # line plot
-
-                else:
-                    pass
+                        self.l[key][0].set_data([], [])
             elif key == "temp":
                 for ax in self.ax:
                     self.del_templines(ax=ax)
@@ -1457,7 +1414,7 @@ class MatplotlibWidget(QWidget):
         logger.info(self.l.keys())
         for key, val in kwargs.items():
             for line_key in line_list:
-                eval(f"self.l['{line_key}'][0].set_{key}('{val}')")
+                getattr(self.l[line_key][0], f"set_{key}")(val)
 
     def new_plt(
         self,

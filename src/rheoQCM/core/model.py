@@ -82,6 +82,7 @@ _optx_logger.info(
 import numpy as np  # noqa: E402
 
 from rheoQCM.core import physics  # noqa: E402
+from rheoQCM.core.constants import MCMC_ANALYSIS, SOLVER_ATOL, SOLVER_RTOL  # noqa: E402
 from rheoQCM.core.jax_config import configure_jax  # noqa: E402
 
 # Ensure JAX is configured
@@ -911,7 +912,7 @@ class QCMModel:
                 return jnp.array([1e10, 1e10, 1e10])
 
         # Run optimization
-        solver = optx.LevenbergMarquardt(rtol=1e-8, atol=1e-8)
+        solver = optx.LevenbergMarquardt(rtol=SOLVER_RTOL, atol=SOLVER_ATOL)
         x0 = jnp.array([grho_refh, phi, drho])
 
         try:
@@ -1125,7 +1126,9 @@ class QCMModel:
         """Get or create the unified optimistix optimizer."""
         if self._optimizer is None:
             # Create Levenberg-Marquardt optimizer with default settings
-            self._optimizer = optx.LevenbergMarquardt(rtol=1e-8, atol=1e-8)
+            self._optimizer = optx.LevenbergMarquardt(
+                rtol=SOLVER_RTOL, atol=SOLVER_ATOL
+            )
         return self._optimizer
 
     def _fstar_err_calc(self, delfstar: complex) -> complex:
@@ -1286,7 +1289,7 @@ class QCMModel:
         # Pass context via args tuple instead of closure capture
         residual_args = (n1, n2, n3, refh, rh_exp, rd_exp)
 
-        solver = optx.LevenbergMarquardt(rtol=1e-8, atol=1e-8)
+        solver = optx.LevenbergMarquardt(rtol=SOLVER_RTOL, atol=SOLVER_ATOL)
 
         x0 = jnp.array([dlam_refh_init, phi_init])
         result = optx.least_squares(
@@ -1434,7 +1437,7 @@ class QCMModel:
             # Pass context via args tuple instead of closure capture
             bulk_args = (refh, f1, Zq, exp_real, exp_imag)
 
-            solver = optx.LevenbergMarquardt(rtol=1e-8, atol=1e-8)
+            solver = optx.LevenbergMarquardt(rtol=SOLVER_RTOL, atol=SOLVER_ATOL)
 
             x0 = jnp.array([grho_refh, phi])
             result = optx.least_squares(
@@ -1492,7 +1495,7 @@ class QCMModel:
                 exp_imag_n3,
             )
 
-            solver = optx.LevenbergMarquardt(rtol=1e-8, atol=1e-8)
+            solver = optx.LevenbergMarquardt(rtol=SOLVER_RTOL, atol=SOLVER_ATOL)
 
             x0 = jnp.array([grho_refh, phi, drho])
             result = optx.least_squares(
@@ -1747,8 +1750,8 @@ class QCMModel:
         self,
         nh: list[int],
         initial_params: dict[str, Any] | None = None,
-        num_samples: int = 1000,
-        num_warmup: int = 500,
+        num_samples: int = MCMC_ANALYSIS.n_samples,
+        num_warmup: int = MCMC_ANALYSIS.n_warmup,
         **kwargs: Any,
     ) -> dict[str, Any]:
         """
