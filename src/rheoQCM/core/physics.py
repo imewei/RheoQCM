@@ -1527,7 +1527,7 @@ __all__ = [
     "drho_range",
     "grho_refh_range",
     "phi_range",
-    # NaN/Inf handling (T018)
+    # NaN/Inf handling and numerical safety (T018, T036)
     "PhysicsNaNError",
     "PhysicsInfError",
     "check_finite",
@@ -1537,6 +1537,7 @@ __all__ = [
     "safe_sqrt",
     "safe_log",
     "validate_inputs",
+    "clamp_phi",
     # Sauerbrey equations
     "sauerbreyf",
     "sauerbreym",

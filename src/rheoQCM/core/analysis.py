@@ -76,6 +76,8 @@ from rheoQCM.core.physics import (
     calc_deltarho,
     calc_dlam,
     calc_lamrho,
+    # Numerical safety helpers
+    clamp_phi,
     create_interp_func,
     d26,
     deltarho_bulk,
@@ -104,6 +106,7 @@ from rheoQCM.core.physics import (
     kotula_xi,
     normdelfstar,
     phi_range,
+    safe_divide,
     # Sauerbrey equations
     sauerbreyf,
     sauerbreym,
@@ -585,8 +588,11 @@ def _vmap_normdelfstar(
 ) -> jnp.ndarray:
     """Calculate normalized delfstar (vmap-compatible)."""
     dlam_n = dlam_refh * (n / refh) ** (1 - phi / jnp.pi)
-    D = 2 * jnp.pi * dlam_n * (1 - 1j * jnp.tan(phi / 2))
-    return -jnp.sin(D) / D / jnp.cos(D)
+    # Clamp phi to avoid tan(phi/2) singularities at 0 and pi
+    phi_safe = clamp_phi(phi)
+    D = 2 * jnp.pi * dlam_n * (1 - 1j * jnp.tan(phi_safe / 2))
+    # Use sinc (handles D=0) and safe_divide (handles cos(D)=0)
+    return safe_divide(-jnp.sinc(D / jnp.pi), jnp.cos(D))
 
 
 @jax.jit

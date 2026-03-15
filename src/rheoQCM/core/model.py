@@ -352,8 +352,11 @@ def _jax_normdelfstar(
 ) -> jnp.ndarray:
     """Calculate normalized delfstar at harmonic n using JAX."""
     dlam_n = dlam_refh * (n / refh) ** (1 - phi / jnp.pi)
-    D = 2 * jnp.pi * dlam_n * (1 - 1j * jnp.tan(phi / 2))
-    return -jnp.sin(D) / D / jnp.cos(D)
+    # Clamp phi to avoid tan(phi/2) singularities at 0 and pi
+    phi_safe = physics.clamp_phi(phi)
+    D = 2 * jnp.pi * dlam_n * (1 - 1j * jnp.tan(phi_safe / 2))
+    # Use sinc (handles D=0) and safe_divide (handles cos(D)=0)
+    return physics.safe_divide(-jnp.sinc(D / jnp.pi), jnp.cos(D))
 
 
 def _jax_rhcalc(
