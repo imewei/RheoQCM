@@ -6,7 +6,8 @@
         install-jax-gpu install-jax-gpu-cuda13 install-jax-gpu-cuda12 gpu-check env-info \
         test test-fast test-coverage \
         clean clean-all clean-pyc clean-build clean-test clean-venv \
-        format lint type-check check quick docs build info version
+        format lint type-check check quick docs build info version \
+        verify verify-fast
 
 # Configuration
 PYTHON := python
@@ -119,6 +120,10 @@ help:
 	@echo "  $(CYAN)type-check$(RESET)       Run type checking (mypy)"
 	@echo "  $(CYAN)check$(RESET)            Run all checks (format + lint + type)"
 	@echo "  $(CYAN)quick$(RESET)            Fast iteration: format + quick tests"
+	@echo ""
+	@echo "$(BOLD)$(GREEN)PRE-PUSH VERIFICATION$(RESET)"
+	@echo "  $(CYAN)verify$(RESET)           Full local CI verification (lint + type-check + tests)"
+	@echo "  $(CYAN)verify-fast$(RESET)      Quick verification (lint + type-check only, no tests)"
 	@echo ""
 	@echo "$(BOLD)$(GREEN)DOCUMENTATION$(RESET)"
 	@echo "  $(CYAN)docs$(RESET)             Build documentation"
@@ -483,6 +488,44 @@ check: lint type-check
 
 quick: format test-fast
 	@echo "$(BOLD)$(GREEN)Done: Quick iteration complete!$(RESET)"
+
+# ===================
+# Pre-push verification
+# ===================
+verify:
+	@echo "$(BOLD)$(BLUE)======================================$(RESET)"
+	@echo "$(BOLD)$(BLUE)  FULL LOCAL CI VERIFICATION$(RESET)"
+	@echo "$(BOLD)$(BLUE)======================================$(RESET)"
+	@echo ""
+	@echo "$(BOLD)Step 1/3: Linting$(RESET)"
+	@$(RUN_CMD) ruff check $(SRC_DIRS) $(TEST_DIR) || (echo "$(RED)Lint check failed!$(RESET)" && exit 1)
+	@echo ""
+	@echo "$(BOLD)Step 2/3: Type checking (advisory)$(RESET)"
+	@$(RUN_CMD) mypy $(SRC_DIRS) --no-error-summary 2>&1 | tail -1 || true
+	@echo "$(YELLOW)Note: Type checking is advisory. See 'make type-check' for full report.$(RESET)"
+	@echo ""
+	@echo "$(BOLD)Step 3/3: Tests$(RESET)"
+	@$(RUN_CMD) $(PYTEST) $(TEST_DIR) -v --tb=short -x -q || (echo "$(RED)Tests failed!$(RESET)" && exit 1)
+	@echo ""
+	@echo "$(BOLD)$(GREEN)======================================$(RESET)"
+	@echo "$(BOLD)$(GREEN)  ALL CHECKS PASSED - SAFE TO PUSH$(RESET)"
+	@echo "$(BOLD)$(GREEN)======================================$(RESET)"
+
+verify-fast:
+	@echo "$(BOLD)$(BLUE)======================================$(RESET)"
+	@echo "$(BOLD)$(BLUE)  QUICK LOCAL CI VERIFICATION$(RESET)"
+	@echo "$(BOLD)$(BLUE)======================================$(RESET)"
+	@echo ""
+	@echo "$(BOLD)Step 1/2: Linting$(RESET)"
+	@$(RUN_CMD) ruff check $(SRC_DIRS) $(TEST_DIR) || (echo "$(RED)Lint check failed!$(RESET)" && exit 1)
+	@echo ""
+	@echo "$(BOLD)Step 2/2: Type checking (advisory)$(RESET)"
+	@$(RUN_CMD) mypy $(SRC_DIRS) --no-error-summary 2>&1 | tail -1 || true
+	@echo "$(YELLOW)Note: Type checking is advisory. See 'make type-check' for full report.$(RESET)"
+	@echo ""
+	@echo "$(BOLD)$(GREEN)======================================$(RESET)"
+	@echo "$(BOLD)$(GREEN)  QUICK CHECKS PASSED$(RESET)"
+	@echo "$(BOLD)$(GREEN)======================================$(RESET)"
 
 # ===================
 # Documentation targets
