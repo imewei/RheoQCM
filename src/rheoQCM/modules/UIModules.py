@@ -140,7 +140,7 @@ def index_from_str(idx_str, chn_idx, join_segs=True):
         else:  # keep separate
             # return thel list
             return [sorted(set(ind) & set(chn_idx)) for ind in idx]
-    except Exception:
+    except (ValueError, IndexError, TypeError):
         logger.warning("exception in index_from_str")
         return idx
 

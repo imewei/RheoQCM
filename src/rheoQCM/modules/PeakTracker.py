@@ -1209,7 +1209,7 @@ class PeakTracker:
             logger.info("  Chi-squared: %.6g", chisqr)
             logger.info("  Parameters: %s", result.params.valuesdict())
 
-        except Exception:
+        except (RuntimeError, ValueError, np.linalg.LinAlgError):
             result = {}
             logger.exception("fitting error occurred.")
 
@@ -1412,7 +1412,7 @@ class PeakTracker:
         The whole process of peak tracking
         return the predicted span
         """
-        if (chn_name is not None) & (harm is not None):
+        if (chn_name is not None) and (harm is not None):
             self.active_chn = chn_name
             self.active_harm = harm
 
@@ -1434,7 +1434,7 @@ class PeakTracker:
                 list fitted G values by peaks
                 list fitted B values by peaks
         """
-        if (chn_name is not None) & (harm is not None):
+        if (chn_name is not None) and (harm is not None):
             self.active_chn = chn_name
             self.active_harm = harm
 
