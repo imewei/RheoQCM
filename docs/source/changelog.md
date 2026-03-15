@@ -2,24 +2,39 @@
 
 All notable changes to RheoQCM are documented here.
 
-## [Unreleased]
+For the complete changelog with all historical upstream versions, see
+[CHANGELOG.md](https://github.com/imewei/RheoQCM/blob/master/CHANGELOG.md).
+
+## [0.1.1] - 2026-03-15
 
 ### Added
+- `make verify` and `make verify-fast` pre-push verification targets
 - Comprehensive Sphinx documentation with theory, tutorials, and API reference
-- ReadTheDocs configuration for automated documentation builds
-- Bayesian fitting tutorial with NumPyro MCMC examples
-- Batch analysis tutorial with GPU acceleration guidance
+- Structured logging throughout the codebase
 
 ### Changed
-- Reorganized documentation structure into theory, tutorials, and user-guide sections
+- Consolidated all optional dependencies into core `dependencies` in pyproject.toml
+- Replaced deprecated `jaxopt` with `optimistix` for JAX-native least-squares
+- Renamed "About QCMpy" menu item to "About rheoQCM"
 
-## [2.0.0] - 2025-12-28
+### Fixed
+- Wired unconnected `Exit` and `Help Manual` menu actions
+- Fixed `.fromat()` typo, IEEE 754 NaN comparison bug, `dict.pop` loop-variable bug
+- PyQt6 compatibility (scoped enums, exec methods)
+- Numerical stability with `arctan2` and `clamp_phi`
+
+### Removed
+- VNA/hardware acquisition code (analysis-only tool)
+- `QCMFuncs` legacy module
+- Dead menubar items: `Maximum Harmonic`, `Open openQCM`, `Delete Selected`
+
+## [0.1.0] - 2025-12-28
 
 ### Added
 - **JAX Backend**: Complete migration from NumPy/SciPy to JAX for GPU acceleration
 - **Performance Optimizations**: 22-28x speedup for core analysis functions
-  - `thin_film_guess`: 509.7ms → 17.9ms (28.5x speedup)
-  - `solve_properties`: 925.6ms → 41.3ms (22.4x speedup)
+  - `thin_film_guess`: 509.7ms -> 17.9ms (28.5x speedup)
+  - `solve_properties`: 925.6ms -> 41.3ms (22.4x speedup)
 - **batch_analyze_vmap()**: GPU-accelerated batch processing with `jax.vmap`
 - **Optimistix Integration**: Replaced deprecated JAXopt with Optimistix for least-squares
 - **Custom Calculation Types**: Extensible `calctype` system for custom physics models
@@ -35,36 +50,17 @@ All notable changes to RheoQCM are documented here.
   - Use `.grho_refh`, `.phi`, `.drho` attributes instead of dict keys
 
 ### Fixed
-- PyQt6 compatibility issues (scoped enums, exec methods)
-- Linux matplotlib marker rendering with RGBA colors
 - Bare except clauses replaced with specific exception types
 - Mutable default argument patterns (`def f(x=[])`)
-- Numerical stability with `arctan2` and `clamp_phi`
 
 ### Removed
-- `QCMFuncs` module: Replaced by `rheoQCM.core` (see {doc}`migration`)
 - `DataSaver` module: Replaced by `rheoQCM.io.data_store.DataStore`
-
-## [1.x] - Legacy
-
-### Features
-- QCM-D data acquisition via N2PK VNA
-- Single-layer viscoelastic analysis (SLA)
-- Multilayer film calculations
-- Excel import/export
-- HDF5 data storage
-- Real-time plotting during acquisition
-
-### Known Limitations
-- CPU-only computation
-- Sequential processing for batch data
-- Limited uncertainty quantification
 
 ---
 
 ## Migration Guide
 
-### From v1.x to v2.0
+### From legacy to 0.1.x
 
 #### 1. Update Imports
 
@@ -114,5 +110,6 @@ See {doc}`tutorials/scripting-basics` for complete examples.
 
 | Version | Date | Python | JAX |
 |---------|------|--------|-----|
-| 2.0.0 | 2025-12-28 | 3.12+ | 0.8.0+ |
-| 1.x | 2024 | 3.8+ | N/A |
+| 0.1.1 | 2026-03-15 | 3.12+ | 0.8.0+ |
+| 0.1.0 | 2025-12-28 | 3.12+ | 0.8.0+ |
+| 0.21.0 | 2024-01-11 | 3.8+ | N/A |

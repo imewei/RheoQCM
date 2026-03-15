@@ -13,14 +13,8 @@ GPU acceleration for optimal performance.
 
 ### For GUI Usage
 
-- Display with 1024×768 resolution or higher
+- Display with 1024x768 resolution or higher
 - PyQt6-compatible graphics driver
-
-### For Data Acquisition
-
-- Windows operating system
-- 32-bit Python (for myVNA compatibility)
-- myVNA software installed
 
 ## Installation Methods
 
@@ -52,39 +46,11 @@ If you use [uv](https://github.com/astral-sh/uv) for package management:
 uv pip install rheoQCM
 ```
 
-## Optional Dependencies
-
-### Fallback Computation
-
-If JAX is unavailable on your system, install the fallback option:
-
-```bash
-pip install "rheoQCM[fallback]"
-```
-
-This uses mpmath for arbitrary-precision computation (slower but portable).
-
-### Documentation Building
-
-To build the documentation locally:
-
-```bash
-pip install "rheoQCM[docs]"
-```
-
-### Full Development Environment
-
-For all development tools:
-
-```bash
-pip install "rheoQCM[dev]"
-```
-
 ## GPU Acceleration
 
 GPU acceleration provides 20-100x speedup for large datasets. This requires:
 
-- NVIDIA GPU with CUDA Compute Capability ≥ 5.2
+- NVIDIA GPU with CUDA Compute Capability >= 5.2
 - Linux operating system
 - CUDA Toolkit 12.x or 13.x installed
 
@@ -171,7 +137,7 @@ model.load_delfstars({3: -1000+100j, 5: -1700+180j})
 result = model.solve_properties(nh=[3, 5, 3])
 
 print(f"Test successful!")
-print(f"drho = {result.drho:.3e} kg/m²")
+print(f"drho = {result.drho:.3e} kg/m^2")
 ```
 
 ### GUI Launch
@@ -239,14 +205,12 @@ python -m rheoQCM.main
 ### Windows
 
 - Use Windows Terminal or PowerShell for best experience
-- Data acquisition requires 32-bit Python and myVNA software
 - GPU acceleration not supported natively (use WSL2)
 
 ### macOS
 
 - Apple Silicon (M1/M2/M3) uses CPU backend (no NVIDIA GPU)
 - Metal acceleration not yet supported by JAX
-- GUI requires XQuartz for some features
 
 ### Linux
 

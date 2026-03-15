@@ -2,9 +2,9 @@
 [![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-# RheoQCM - QCM Data Collection and Analysis Software
+# RheoQCM - QCM Data Analysis Software
 
-RheoQCM is a Python package for QCM-D (Quartz Crystal Microbalance with Dissipation) data acquisition and rheological analysis. It features a modern JAX-powered computational core for high-performance modeling and a PyQt6-based GUI for data collection and visualization.
+RheoQCM is a Python package for QCM-D (Quartz Crystal Microbalance with Dissipation) rheological analysis. It features a modern JAX-powered computational core for high-performance modeling and a PyQt6-based GUI for visualization and data exploration.
 
 ![](Screenshot.png)
 <p align="center">
@@ -14,12 +14,11 @@ RheoQCM is a Python package for QCM-D (Quartz Crystal Microbalance with Dissipat
 ## Features
 
 - **High-performance modeling** with JAX (GPU-accelerated when available)
-- **QCM data collection and analysis** in one integrated package
 - **Import and analyze** external QCM-D datasets (.xlsx, .mat, .h5)
 - **Multilayer thin-film analysis** using the Small Load Approximation (SLA)
 - **Bayesian parameter estimation** with MCMC (NumPyro backend)
 - **Uncertainty quantification** via autodiff-based covariance propagation
-- **Cross-platform** analysis (Linux/macOS/Windows), data collection on Windows
+- **Cross-platform** (Linux/macOS/Windows)
 
 ## Requirements
 
@@ -27,10 +26,6 @@ RheoQCM is a Python package for QCM-D (Quartz Crystal Microbalance with Dissipat
 - JAX 0.8.0+ with jaxlib 0.8.0+
 - PyQt6 (for GUI)
 - NumPy 2.0+
-
-For data collection with network analyzers:
-- Windows (32-bit Python)
-- myVNA software and AccessMyVNA
 
 ## Installation
 
@@ -78,14 +73,6 @@ make install-jax-gpu-cuda12  # CUDA 12.x + SM >= 5.2
 | Maxwell | GTX 9xx | 5.x | No | Yes |
 
 </details>
-
-### Fallback Mode
-
-If JAX is unavailable, install the fallback dependency:
-
-```bash
-pip install "rheoQCM[fallback]"
-```
 
 ## Quick Start
 
@@ -157,7 +144,6 @@ src/
     io/              # I/O handlers (HDF5, Excel, JSON)
     modules/         # Application modules
     services/        # Service layer
-  QCMFuncs/          # Legacy API (deprecated)
 tests/               # Test suite
 docs/                # Sphinx documentation
 ```
@@ -168,11 +154,11 @@ Please cite as:
 
 ```bibtex
 @software{rheoqcm,
-  author = {Wang, Qifeng and Yang, Megan and Shull, Kenneth R.},
-  title = {RheoQCM: QCM Data Collection and Analysis Software},
+  author = {Wang, Qifeng and Yang, Megan and Shull, Kenneth R. and Chen, Wei},
+  title = {RheoQCM: QCM Data Analysis Software},
   year = {2025},
   publisher = {GitHub},
-  url = {https://github.com/imewei/RheoQCM},
+  url = {https://github.com/shullgroup/rheoQCM},
   doi = {10.5281/zenodo.2486039}
 }
 ```

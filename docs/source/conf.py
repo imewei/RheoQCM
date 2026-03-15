@@ -9,7 +9,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "src"))
 
-os.environ.setdefault("QCMFUNCS_SUPPRESS_DEPRECATION", "1")
 os.environ.setdefault("RHEOQCM_QUIET", "1")
 
 project = "RheoQCM"
@@ -83,8 +82,6 @@ autodoc_mock_imports = [
     "arviz",
     "pymittagleffler",
     "sympy",
-    "nidaqmx",
-    "hdf5storage",
     "openpyxl",
     "xlsxwriter",
     "xlrd",

@@ -2,9 +2,8 @@ RheoQCM Documentation
 =====================
 
 **RheoQCM** is a Python package for Quartz Crystal Microbalance with Dissipation
-(QCM-D) data acquisition and rheological analysis. It combines a modern
-JAX-accelerated computational core with a PyQt6 GUI for data collection and
-visualization.
+(QCM-D) rheological analysis. It combines a modern JAX-accelerated computational
+core with a PyQt6 GUI for visualization and data exploration.
 
 .. image:: _images/screenshot.png
    :alt: RheoQCM User Interface
@@ -15,8 +14,7 @@ Key Features
 ------------
 
 - **High-performance modeling** with JAX (GPU-accelerated when available)
-- **QCM data collection and analysis** in one integrated package
-- **Import and analyze** external QCM-D datasets (.xlsx, .mat, .h5)
+- **Import and analyze** QCM-D datasets (.xlsx, .mat, .h5)
 - **Multilayer thin-film analysis** using the Small Load Approximation (SLA)
 - **Bayesian parameter estimation** with MCMC (NumPyro backend)
 - **Uncertainty quantification** via autodiff-based covariance propagation

@@ -4,12 +4,12 @@
 
 ## Installation
 
-RheoQCM targets Python 3.12+. For analysis-only workflows, Linux/macOS/Windows
-are supported. Hardware acquisition via myVNA is Windows-only.
+RheoQCM targets Python 3.12+. Linux, macOS, and Windows are supported.
 
 ```bash
 git clone https://github.com/imewei/RheoQCM.git
 cd RheoQCM
+pip install -e .
 ```
 
 ### Optional GPU Acceleration (Linux + NVIDIA)
@@ -24,14 +24,6 @@ make install-jax-gpu-cuda13
 make install-jax-gpu-cuda12
 ```
 
-### Fallback Mode
-
-If JAX is unavailable, install the fallback dependency:
-
-```bash
-pip install "rheoQCM[fallback]"
-```
-
 ## Launching the GUI
 
 From the project root:
@@ -39,9 +31,6 @@ From the project root:
 ```bash
 python -m rheoQCM.main
 ```
-
-On Windows, you can also use the bundled `rheoQCM.bat` in `src/rheoQCM/` after
-updating the Python path.
 
 ## Data Import
 

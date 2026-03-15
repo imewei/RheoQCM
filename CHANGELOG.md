@@ -1,9 +1,10 @@
 # Changelog
 
-## [0.22.0] - 2026-03-15
+## [0.1.1] - 2026-03-15
 
 ### Added
 
+- `make verify` and `make verify-fast` pre-push verification targets
 - Structured logging throughout the codebase (replaced print statements with `logging` module)
 
 ### Changed
@@ -15,9 +16,12 @@
 - Replaced deprecated `np.float` alias with builtin `float` for NumPy 2.0+ compatibility (5 sites)
 - Simplified `True if X else False` anti-patterns to direct boolean expressions (4 sites)
 - Replaced TODO markers with descriptive comments throughout the codebase
+- Renamed "About QCMpy" menu item to "About rheoQCM"
 
 ### Fixed
 
+- Wired unconnected `Exit` menu action to `QApplication.quit()`
+- Wired unconnected `Help Manual` menu action to open project URL in browser
 - Fixed `.fromat()` typo in `DataStore._set_ref` that would raise `AttributeError` at runtime
 - Fixed `mark != np.nan` IEEE 754 comparison bug that always evaluated to `True`, causing silent data corruption in `mark_data()` and `mark_all_to()` (3 sites)
 - Fixed `dict.pop(mech_keys)` using list instead of loop variable `mech_key` in `remove_mech_data`, causing silent no-op removals
@@ -37,6 +41,7 @@
 
 - Removed VNA/hardware acquisition code (analysis-only tool)
 - Removed `QCMFuncs` legacy module (deprecated with `FutureWarning` and migration guide)
+- Removed dead menubar items: `Maximum Harmonic`, `Open openQCM`, `Delete Selected`
 - Removed dead `split_path` stub, `datadf_with_data` stub, and redundant `else: pass` branches
 - Removed 147+ commented-out logger lines and 9+ dead code blocks (triple-quoted string literals, commented-out alternative implementations)
 - Removed dead dual-crystal pass-only stubs and unreachable `elif` branches
