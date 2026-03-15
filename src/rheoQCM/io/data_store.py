@@ -638,10 +638,6 @@ class DataStore:
                 data_settings[()] = json.dumps(settings)
             else:
                 fh.create_dataset("settings", data=json.dumps(settings))
-            # delete/create protocal
-            # if 'settings' in fh:
-            #     del fh['settings']
-            # fh.create_dataset('settings', data=json.dumps(settings))
             if "settings_default" in fh:  # saved by version < 0.17.0
                 # it is not necessary, since version >= 0.17.0 saves a copy of information in settings.
                 del fh["settings_default"]
@@ -685,13 +681,6 @@ class DataStore:
                                 dtype=h5py.special_dtype(vlen=str),
                             )
 
-                        # delete/create protocal
-                        # if mech_key in fh['prop/' + chn_name].keys():
-                        #     del fh['prop/' + chn_name + '/' + mech_key]
-                        # else:
-                        # # create data_set for mech_df
-                        # fh.create_dataset('prop/' + chn_name + '/' + mech_key, data=mech_df.to_json(), dtype=h5py.special_dtype(vlen=str))
-
     def save_exp_ref(self):
         with h5py.File(self.path, "a") as fh:
             # save reference
@@ -707,11 +696,6 @@ class DataStore:
                 data_exp_ref[()] = json.dumps(exp_ref)
             else:
                 fh.create_dataset("exp_ref", data=json.dumps(exp_ref))
-
-            # delete/create protocal
-            # if 'exp_ref' in fh:
-            #     del fh['exp_ref']
-            # fh.create_dataset('exp_ref',data=json.dumps(exp_ref))
 
     def _save_ver(self):
         """
@@ -1288,14 +1272,6 @@ class DataStore:
             with pd.ExcelWriter(fileName) as writer:
                 df_raw.to_excel(writer, sheet_name=sheet_name)
         elif ext.lower() == ".csv":  # prop export not yet supported for CSV
-            # add chn_name to samp and ref df
-            # and append ref to samp
-            # with open(fileName, 'w') as file:
-            #     csvwriter = csv.writer(file)
-            #     csvwriter.writerow(['id', queue_id])
-            #     csvwriter.writerow(['t', t])
-            #     csvwriter.writerow(['temp (C)', temp])
-
             df_raw.to_csv(fileName, mode="a")
 
         elif ext.lower() == ".json":  # prop export not yet supported for JSON
@@ -1883,16 +1859,6 @@ class DataStore:
             if len(idx_list) > 0:
                 self.exp_ref[chn_name + "_ref"][1] = idx_list
 
-                # copy data to <chn_name>_ref
-                # both chn can have ref
-                # use average of reference
-                # if mode['temp'] == 'const'and all([isinstance(l, int) for l in idx_list]): # single crystal and constant temperature
-                #     pass
-                # elif mode['temp'] == 'var' or (mode['temp'] == 'const' and any([isinstance(l, list) for l in idx_list])): # single crystal and variable temperature or multi references
-                #     # use fitting of reference
-                #     if mode['temp'] == 'var':
-                #     elif (mode['temp'] == 'const' and any([isinstance(l, list) for l in idx_list])):
-
                 # clear self.<chn_name>_ref
                 if getattr(self, chn_name + "_ref").shape[0] > 0:
                     setattr(self, chn_name + "_ref", self._make_df())
@@ -2380,12 +2346,6 @@ class DataStore:
         # return the marks of given harm
         return df_mark["mark" + harm]
 
-    def datadf_with_data(self, chn_name, tocolumns=False):
-        """
-        df of boolean if corrensponding test with data
-        """
-        pass
-
     def harm_with_data(self, chn_name, harm):
         """
         return a series of booleans to show if the harm has data
@@ -2398,13 +2358,11 @@ class DataStore:
         return a series of booleans of rows with marked (1) harmonics
         if no marked rows, return all
         """
-        marked_rows = getattr(self, chn_name).marks.apply(
-            lambda x: True if 1 in x else False
-        )
+        marked_rows = getattr(self, chn_name).marks.apply(lambda x: 1 in x)
         if marked_rows.any():  # there are marked rows
             logger.debug("There are marked rows")
             return marked_rows
-        else:  # no amrked rows, return all
+        else:  # no marked rows, return all
             logger.debug("There is no marked row.\nReturn all")
             return ~marked_rows
 
@@ -2412,13 +2370,8 @@ class DataStore:
         """
         return if there are marks in data (True/False)
         """
-        marked_rows = getattr(self, chn_name).marks.apply(
-            lambda x: True if 1 in x else False
-        )
-        if marked_rows.any():  # there are marked rows
-            return True
-        else:  # no amrked rows
-            return False
+        marked_rows = getattr(self, chn_name).marks.apply(lambda x: 1 in x)
+        return bool(marked_rows.any())
 
     def rows_all_nan_marks(self, chn_name):
         """
@@ -2426,7 +2379,7 @@ class DataStore:
         This function can be used as ~self.rows_all_nan_marks() to return the rows with data
         """
         return getattr(self, chn_name).marks.apply(
-            lambda x: True if np.isnan(np.array(x)).all() else False
+            lambda x: bool(np.isnan(np.array(x)).all())
         )
 
     def reset_match_marks(self, df, mark_pair=(0, 1)):

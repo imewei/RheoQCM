@@ -2333,9 +2333,6 @@ class QCMApp(QMainWindow):
         for name_list in args:
             for name in config_default[name_list]:
                 getattr(self.ui, name).setEnabled(True)
-                # the following check if is hidden by the version may not be necessary in some case. e.g. hide ref_time widgets need them to be disabled
-                # if name not in config_default['version_hide_list'] or name_list == 'version_hide_list':
-                #     getattr(self.ui, name).setEnabled(True)
 
     def disable_widgets(self, *args):
         """
@@ -2346,18 +2343,9 @@ class QCMApp(QMainWindow):
         for name_list in args:
             for name in config_default[name_list]:
                 getattr(self.ui, name).setEnabled(False)
-                # the following check if is hidden by the version may not be necessary in some case. e.g. hide ref_time widgets need them to be disabled
-                # if name not in config_default['version_hide_list'] or name_list == 'version_hide_list':
-                #     getattr(self.ui, name).setEnabled(False)
 
     def mech_splitter_vis(self):
-        """ """
-        # get the value of sender val True/False
-        # self.sender()
-
-        # set visibility with hide_widget hide_widgets & show_widgets
-
-        # set handle of splitter_spectra_mechanics idx = 0 to hide and idx = 1 (index of layout_mech_table) to show
+        """Stub for mechanics splitter visibility toggle (signal handler)."""
         pass
 
     def set_filename(self, fileName=""):
@@ -2996,9 +2984,7 @@ class QCMApp(QMainWindow):
         logger.debug("self.active['ind']: %s", self.active["ind"])
         logger.debug("self.active['l_str']: %s", self.active["l_str"])
 
-        # return queue_list.loc[self.active['ind']]
         return queue_list.iloc[self.active["ind"]]
-        # return queue_list[self.active['ind']]
 
     def get_active_raw(self):
         """
@@ -5831,7 +5817,7 @@ class QCMApp(QMainWindow):
         for n in range(1, n_layers + 1):
             n = str(n)
             film_dict[n] = {
-                "calc": True if n == "1" else False,
+                "calc": n == "1",
                 "source": "ind",
                 "indchn": getattr(
                     self.ui,
