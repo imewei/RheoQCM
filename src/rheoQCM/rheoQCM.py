@@ -5195,14 +5195,14 @@ class QCMApp(QMainWindow):
                 chn_name, nhcalc
             )  # this also update in data_saver
 
-            logger.info(mech_df)  # mech_df from data_saver is all nan (passed)
+            logger.debug("mech_df shape: %s", mech_df.shape)
 
             # if live update is not needed, use QCM.analyze to replace. the codes should be the same
             nh = QCM.nhcalc2nh(nhcalc)
             for queue_id in queue_ids:  # iterate all ids
                 logger.info("queue_id: %s", queue_id)
                 # logger.info('qcm_df: %s', qcm_df)
-                logger.info(type(qcm_df))
+                logger.debug("qcm_df type: %s", type(qcm_df).__name__)
                 # queue index
                 idx = qcm_df[qcm_df.queue_id == queue_id].index.astype(int)[0]
                 # idx = qcm_df[qcm_df.queue_id == queue_id].index
