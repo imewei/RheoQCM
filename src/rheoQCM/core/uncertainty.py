@@ -217,7 +217,13 @@ class UncertaintyCalculator:
         if self.use_autodiff:
             try:
                 return self._jacobian_autodiff(model, x, params)
-            except Exception:
+            except (
+                TypeError,
+                ValueError,
+                jax.errors.JAXTypeError,
+                jax.errors.ConcretizationTypeError,
+                jax.errors.UnexpectedTracerError,
+            ):
                 pass
 
         return self._jacobian_finite_diff(model, x, params)

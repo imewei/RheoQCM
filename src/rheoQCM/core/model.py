@@ -73,7 +73,7 @@ try:
     import importlib.metadata
 
     _optx_version = importlib.metadata.version("optimistix")
-except Exception:
+except importlib.metadata.PackageNotFoundError:
     _optx_version = "unknown"
 _optx_logger.info(
     f"Optimistix version {_optx_version} loaded for least-squares optimization"

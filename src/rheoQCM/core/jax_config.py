@@ -330,11 +330,14 @@ def check_gpu_availability() -> None:
                 )
                 logger.warning("See README.md GPU Installation section for details.")
 
-    except (subprocess.TimeoutExpired, FileNotFoundError, ImportError):
-        # nvidia-smi not found or JAX not installed - silently skip
-        pass
-    except Exception:
-        # Unexpected error - silently skip to avoid disrupting workflow
+    except (
+        subprocess.TimeoutExpired,
+        FileNotFoundError,
+        ImportError,
+        OSError,
+        RuntimeError,
+    ):
+        # nvidia-smi not found, permission denied, JAX backend init failed, or not installed
         pass
 
 

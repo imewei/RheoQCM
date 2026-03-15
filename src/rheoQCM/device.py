@@ -37,12 +37,10 @@ def get_system_cuda_version() -> tuple[str | None, int | None]:
 
     except subprocess.TimeoutExpired:
         _logger.debug("nvcc timed out")
-    except FileNotFoundError:
+    except (FileNotFoundError, OSError):
         _logger.debug("nvcc not found")
     except (ValueError, IndexError) as e:
         _logger.debug(f"Failed to parse CUDA version: {e}")
-    except Exception as e:
-        _logger.debug(f"CUDA detection failed: {e}")
 
     return None, None
 
@@ -74,12 +72,10 @@ def get_gpu_info() -> tuple[str | None, float | None]:
 
     except subprocess.TimeoutExpired:
         _logger.debug("nvidia-smi timed out")
-    except FileNotFoundError:
+    except (FileNotFoundError, OSError):
         _logger.debug("nvidia-smi not found")
     except (ValueError, IndexError) as e:
         _logger.debug(f"Failed to parse GPU info: {e}")
-    except Exception as e:
-        _logger.debug(f"GPU detection failed: {e}")
 
     return None, None
 
@@ -165,8 +161,8 @@ def check_gpu_availability(warn: bool = True) -> bool:
     except ImportError:
         _logger.debug("JAX not installed")
         return False
-    except Exception as e:
-        _logger.debug(f"GPU check failed: {e}")
+    except RuntimeError as e:
+        _logger.debug(f"JAX backend initialization failed: {e}")
         return False
 
 
