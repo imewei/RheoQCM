@@ -1861,11 +1861,9 @@ class DataStore:
                 col_s = self._norm_by_harm(col_s)
             return col_s
 
-        elif mode["cryst"] == "dual":  # TODO
-            if mode["temp"] == "const":  # dual crystal and constant temperature
-                pass
-            elif mode["temp"] == "var":  # dual crystal and constant temperature
-                pass
+        elif mode["cryst"] == "dual":
+            # Dual-crystal mode is not yet implemented; returns None.
+            pass
 
     def _norm_by_harm(self, s):
         """
@@ -2001,13 +1999,9 @@ class DataStore:
             else:
                 pass
 
-        elif mode["cryst"] == "dual":  # TODO
-            if mode["temp"] == "const":  # dual crystal and constant temperature
-                pass
-            elif mode["temp"] == "var":  # dual crystal and constant temperature
-                pass
-            else:
-                pass
+        elif mode["cryst"] == "dual":
+            # Dual-crystal mode is not yet implemented.
+            pass
 
         # calculate reference
         self.calc_fg_ref(chn_name, mark=False)
@@ -2251,16 +2245,11 @@ class DataStore:
                 # copy to samp_ref
                 setattr(self, chn_name + "_ref", df)
             else:
-                pass
                 self.refflg[chn_name] = False
 
-        elif mode["cryst"] == "dual":  # TODO
-            if mode["temp"] == "const":  # dual crystal and constant temperature
-                pass
-            elif mode["temp"] == "var":  # dual crystal and constant temperature
-                pass
-            else:
-                pass
+        elif mode["cryst"] == "dual":
+            # Dual-crystal mode is not yet implemented; fall through to refflg reset.
+            pass
 
         self.refflg[chn_name] = False
 
@@ -2403,13 +2392,9 @@ class DataStore:
 
                 logger.info("cols[ind_list]\n%s", cols.iloc[ind_list])
                 logger.info(cols[col].head())
-        elif mode["cryst"] == "dual":  # TODO
-            if mode["temp"] == "const":  # dual crystal and constant temperature
-                pass
-            elif mode["temp"] == "var":  # dual crystal and constant temperature
-                pass
-            else:
-                pass
+        elif mode["cryst"] == "dual":
+            # Dual-crystal mode is not yet implemented.
+            pass
 
         if col is None:
             return cols
@@ -3000,13 +2985,9 @@ class DataStore:
 
                             df[col][ind_list] = val_list
 
-                elif mode["cryst"] == "dual":  # TODO
-                    if mode["temp"] == "const":  # dual crystal and constant temperature
-                        pass
-                    elif mode["temp"] == "var":  # dual crystal and constant temperature
-                        pass
-                    else:
-                        pass
+                elif mode["cryst"] == "dual":
+                    # Dual-crystal mode is not yet implemented.
+                    pass
 
         return df
 
