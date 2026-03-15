@@ -2567,16 +2567,6 @@ class DataStore:
             idx = []
         df_new = df.copy()
 
-        def mark_func(row_marks):
-            # logger.info(row_marks)
-            new_marks = []
-            for i, mark in enumerate(row_marks):
-                if str(i * 2 + 1) == harm and mark != np.nan and mark is not None:
-                    new_marks.append(mark_val)
-                else:
-                    new_marks.append(mark)
-                return new_marks
-
         # logger.info(df_new.marks)
         # df_new.marks.loc[idx].apply(mark_func)
         df_new.marks.loc[idx] = df_new.marks.loc[idx].apply(
@@ -2584,14 +2574,13 @@ class DataStore:
                 (
                     mark_val
                     if (str(i * 2 + 1) == harm)
-                    and (mark != np.nan)
+                    and not pd.isna(mark)
                     and (mark is not None)
                     else mark
                 )
                 for i, mark in enumerate(x)
             ]
         )
-        logger.info(df_new.marks)
 
         return df_new
 
@@ -2602,7 +2591,8 @@ class DataStore:
         df_new = df.copy()
         df_new.marks = df_new.marks.apply(
             lambda x: [
-                mark_val if mark != np.nan and mark is not None else mark for mark in x
+                mark_val if not pd.isna(mark) and mark is not None else mark
+                for mark in x
             ]
         )
         # logger.info(df_new.marks)
