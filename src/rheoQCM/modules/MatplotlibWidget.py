@@ -1186,12 +1186,7 @@ class MatplotlibWidget(QWidget):
         if ax is None:
             ax = self.ax[0]
 
-        # logger.info(ax.lines)
-        # logger.info('len temp %s', len(self.l['temp']))
-        # logger.info('temp %s', self.l['temp'])
-
         for l_temp in self.l["temp"]:
-            # logger.info('l_temp %s', l_temp)
             ax.lines.remove(l_temp[0])  # remove from ax
         self.l["temp"] = []  # inintiate
 
@@ -1298,11 +1293,6 @@ class MatplotlibWidget(QWidget):
         if len(label_list) == 0:
             label_list = [""] * len(xlist)  # make up a label_list with all ''
         for x, y, label in zip(xlist, ylist, label_list, strict=False):
-            # logger.info('len x: %s', len(x))
-            # logger.info('len y: %s', len(y))
-            # logger.info(x)
-            # logger.info(y)
-
             if ax is None:
                 ax = self.ax[0]
 

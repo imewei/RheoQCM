@@ -9,11 +9,7 @@ import logging.config
 import os
 import sys
 
-# Get the logger specified in the file
 logger = logging.getLogger(__name__)
-# logger = logging.getLogger('infoLogger')
-# logger = logging.getLogger('fileLogger')
-# logger.setLevel(logging.ERROR)
 
 import datetime  # noqa: E402
 import json  # noqa: E402
@@ -1363,18 +1359,18 @@ class QCMApp(QMainWindow):
             Qt.ContextMenuPolicy.CustomContextMenu
         )
         self.ui.mpl_plt1.canvas.customContextMenuRequested.connect(
-            lambda position,
-            mpl=self.ui.mpl_plt1,
-            plt_str="plt1": self.mpl_data_open_custom_menu(position, mpl, plt_str)
+            lambda position, mpl=self.ui.mpl_plt1, plt_str="plt1": (
+                self.mpl_data_open_custom_menu(position, mpl, plt_str)
+            )
         )
 
         self.ui.mpl_plt2.canvas.setContextMenuPolicy(
             Qt.ContextMenuPolicy.CustomContextMenu
         )
         self.ui.mpl_plt2.canvas.customContextMenuRequested.connect(
-            lambda position,
-            mpl=self.ui.mpl_plt2,
-            plt_str="plt2": self.mpl_data_open_custom_menu(position, mpl, plt_str)
+            lambda position, mpl=self.ui.mpl_plt2, plt_str="plt2": (
+                self.mpl_data_open_custom_menu(position, mpl, plt_str)
+            )
         )
 
         self.ui.radioButton_data_showall.toggled["bool"].connect(self.update_widget)
@@ -2411,7 +2407,6 @@ class QCMApp(QMainWindow):
         """
         disable the actions other than mouse dragging
         """
-        # logger.info(value)
         if value < 7:  # mous dragging == 7
             # reset slider to 1
             self.ui.horizontalSlider_spectra_fit_spanctrl.setValue(0)
@@ -2609,10 +2604,6 @@ class QCMApp(QMainWindow):
         logger.info("on lim changed")
         axG = self.ui.mpl_spectra_fit.ax[0]
 
-        # logger.info('g: %s', axG.get_contains())
-        # logger.info('r: %s', axG.contains('button_release_event')) : %s
-        # logger.info('p: %s', axG.contains('button_press_event'))
-
         # data lims [min, max]
         # df1, df2 = UIModules.datarange(self.ui.mpl_spectra_fit.l['lB'][0].get_xdata())
         # get axes lims
@@ -2777,7 +2768,6 @@ class QCMApp(QMainWindow):
             self.settings_chn["name"], self.settings_harm, components=True
         )
         logger.info(fit_result["v_fit"])
-        # logger.info(fit_result['comp_g'])
         # plot fitted data
         self.ui.mpl_spectra_fit.update_data(
             {"ln": "lGfit", "x": data_lG[0], "y": fit_result["fit_g"]},
@@ -2803,8 +2793,6 @@ class QCMApp(QMainWindow):
             xlist=fit_result["comp_g"],
             ylist=fit_result["comp_b"],
         )
-
-        # logger.info('fit_result.comp_g', fit_result['comp_g'])
 
         # update lsp
         factor_span = self.peak_tracker.get_output(
@@ -2875,8 +2863,6 @@ class QCMApp(QMainWindow):
         self.ui.mpl_spectra_fit.update_data(
             {"ln": "srec", "x": cen_rec_freq, "y": cen_rec_G}
         )
-
-        # fit results display in textBrowser_spectra_fit_result is not yet implemented
 
         if self.get_spectraTab_mode() == "refit":  # refit mode
             # save scan data to data_saver
@@ -3032,7 +3018,6 @@ class QCMApp(QMainWindow):
         f, G, B = self.data_saver.get_raw(
             self.active["chn_name"], queue_id, self.active["harm"]
         )
-        # logger.info('raw', f, G, B)
 
         return f, G, B
 
@@ -3284,7 +3269,6 @@ class QCMApp(QMainWindow):
                         mark_list = (
                             self.data_saver.get_harm_marks(plt_chnname, plt_harm) == 1
                         )
-                        # logger.info('mark_list', mark_list)
                     else:
                         mark_list = []
                     if isinstance(mark_list, pd.Series):
@@ -3305,15 +3289,12 @@ class QCMApp(QMainWindow):
         xdata = self.get_data_by_typestr(plt_opt[1], plt_chnname, mark=mark, unit_t=timeuint, unit_temp=tempunit)
 
         logger.info('------xdata--------')
-        # logger.info(xdata)
         logger.info('-------------------')
         logger.info('------ydata--------')
-        # logger.info(ydata)
         logger.info('-------------------')
 
         # prepare data for plotting
         data_list = self.prepare_harm_data_for_mpl_update(plt_chnname, plt_harms, line_group, xdata, ydata, show_marked_when_all=True)
-        # logger.info('data_list\n', data_list)
         """
 
         # clear .lt lines
@@ -3380,7 +3361,6 @@ class QCMApp(QMainWindow):
                 if self.settings["radioButton_data_showall"]:
                     if self.data_saver.with_marks(plt_chnname):
                         mark_list = mark_df["mark" + harm] == 1
-                        # logger.info('mark_list', mark_list)
                     else:
                         mark_list = []
                     if isinstance(mark_list, pd.Series):
@@ -3475,7 +3455,6 @@ class QCMApp(QMainWindow):
                 if self.settings["radioButton_data_showall"]:
                     if self.data_saver.with_marks(plt_chnname):
                         mark_list = mark_df["mark" + harm] == 1
-                        # logger.info('mark_list', mark_list)
                     else:
                         mark_list = []
                     if isinstance(mark_list, pd.Series):
@@ -3878,9 +3857,6 @@ class QCMApp(QMainWindow):
         logger.info(plt_opt)
         if "temp" not in plt_opt:
             return
-        # idx_temp, = [i for i in range(len(plt_opt)) if plt_opt[i] == 'temp']
-        # logger.info(idx_temp)
-
         if "temp" == plt_opt[0]:  # is y axis
             ylabel = config_default["data_plt_axis_label"].get(
                 plt_opt[0], "label error"
@@ -4904,8 +4880,6 @@ class QCMApp(QMainWindow):
         ]  # use the dissipatione harmonic as reference
         refh = self.qcm.refh  # reference harmonic
 
-        # logger.info('refh', refh)
-
         # get nhcalc
         nhcalc = self.gen_nhcalc_str()
 
@@ -4918,8 +4892,6 @@ class QCMApp(QMainWindow):
         bulklimit = self.settings[
             "doubleSpinBox_settings_mechanics_bulklimit"
         ]  # the rd limit for bulk calculation
-
-        # logger.info('nhcalc_list', nhcalc_list)
 
         # check which is using: model or layers
         if (
@@ -4991,10 +4963,7 @@ class QCMApp(QMainWindow):
                 ]  # overwrite queue_id with queue_id calculated with given idx
                 qcm_df_calc = qcm_df.loc[idx_joined]  # df of calc layer
             else:  # idx_joined = []
-                # logger.info('idx_joined is empty')
                 pass
-            # logger.info('idx', idx)
-            # logger.info('idx_joined', idx_joined)
         elif dic["source"] == "prop":
             # set given prop 'prop_guess'
             film_dict[n]["prop_guess"] = dic["val"]
@@ -5008,7 +4977,6 @@ class QCMApp(QMainWindow):
         logger.info("Calculating %s ...", nhcalc)
 
         # 4. iterate all layers to get props
-        # prop_dict = {}
         prop_dict = {
             ind: {int(n): {"calc": film_dict[n]["calc"]} for n in film_dict.keys()}
             for ind in idx_joined
@@ -5044,9 +5012,6 @@ class QCMApp(QMainWindow):
                         #  prop_dict[ind][n]['calc'] = dic['calc']
                 elif dic["source"] == "name":
                     # get prop_guess from qcm
-                    # logger.info('dic', dic)
-                    # logger.info('dic[val]', dic['val'])
-                    # logger.info('get prop by name:', self.qcm.get_prop_by_name(dic['val']))
                     for ind in idx_joined:
                         prop_dict[ind][n].update(
                             **self.qcm.get_prop_by_name(dic["val"])
@@ -5066,7 +5031,6 @@ class QCMApp(QMainWindow):
                     idx_layer_joined = UIModules.index_from_str(
                         idx_str, layer_chn_idx, join_segs=True
                     )
-                    # logger.info('idx_layer_joined', idx_layer_joined)
                     if idx_layer_joined:
                         layer_queue_ids[idx_layer_joined]
 
@@ -5080,7 +5044,6 @@ class QCMApp(QMainWindow):
                         qcm_df_calc, qcm_df_layer, idx, idx_layer
                     )
                     # get values for each
-                    # logger.info('qcm_df_layer', qcm_df_layer)
 
                     nh = QCM.nhcalc2nh(nhcalc)
                     for ind in idx_joined:
@@ -5107,20 +5070,14 @@ class QCMApp(QMainWindow):
                 else:
                     logger.error("source not defined!")
 
-        # logger.info('prop_dict')
-        # logger.info(prop_dict)
-
         # 5. do calc with each nhcalc
         mech_df = self.data_saver.update_mech_df_shape(
             chn_name, nhcalc
         )  # this also update in data_saver
 
-        # logger.info(mech_df) # mech_df from data_saver is all nan (passed)
-
         # if live update is not needed, use QCM.analyze to replace. the codes should be the same
         nh = QCM.nhcalc2nh(nhcalc)
         for ind in idx_joined:  # iterate all ids
-            # logger.info('ind', ind)
             # qcm data of queue_id
             qcm_queue = qcm_df.loc[[ind], :].copy()  # as a dataframe
             # mechanic data of queue_id
@@ -5145,8 +5102,6 @@ class QCMApp(QMainWindow):
 
                 # save back to mech_df
                 mech_queue.index = [ind]  # not necessary
-                # mech_df.update(mech_queue)
-                # mech_df['queue_id'] = mech_df['queue_id'].astype('int')
                 self.data_saver.update_mech_queue(
                     chn_name, nhcalc, mech_queue
                 )  # update to mech_df in data_saver
@@ -5201,7 +5156,6 @@ class QCMApp(QMainWindow):
             nh = QCM.nhcalc2nh(nhcalc)
             for queue_id in queue_ids:  # iterate all ids
                 logger.info("queue_id: %s", queue_id)
-                # logger.info('qcm_df: %s', qcm_df)
                 logger.debug("qcm_df type: %s", type(qcm_df).__name__)
                 # queue index
                 idx = qcm_df[qcm_df.queue_id == queue_id].index.astype(int)[0]
@@ -5227,8 +5181,6 @@ class QCMApp(QMainWindow):
 
                     # save back to mech_df
                     mech_queue.index = [idx]  # not necessary
-                    # mech_df.update(mech_queue)
-                    # mech_df['queue_id'] = mech_df['queue_id'].astype('int')
                     self.data_saver.update_mech_queue(
                         chn_name, nhcalc, mech_queue
                     )  # update to mech_df in data_saver
@@ -5268,8 +5220,6 @@ class QCMApp(QMainWindow):
         ):  # model mode
             # convert model to mechchndata
             film_dict = self.make_film_dict_by_mechmodel_widgets()
-            # logger.info("self.settings['mechchndata']")
-            # logger.info(self.settings['mechchndata'])
         else:
             film_dict = self.make_film_layers_dict()
         logger.info(film_dict)
@@ -5834,7 +5784,6 @@ class QCMApp(QMainWindow):
 
             logger.info("ind: %s", ind)
             logger.info("chn_name: %s", chn_name)
-            # logger.info('refh', refh)
             logger.info("nhcalc: %s", nhcalc)
 
             # check if solution is in data_saver
@@ -5847,19 +5796,10 @@ class QCMApp(QMainWindow):
 
             mech_df = self.data_saver.get_mech_df_in_prop(chn_name, nhcalc)
 
-            # logger.info('qcm_df: %s', qcm_df)
-            # logger.info('mech_df: %s', mech_df)
-
-            # get queue_id
-            # logger.info(qcm_df.queue_id)
-            qcm_df.queue_id.loc[ind]
-
             # qcm data of queue_id
             qcm_queue = qcm_df.loc[[ind], :].copy()  # as a dataframe
             # mechanic data of queue_id
             mech_queue = mech_df.loc[[ind], :].copy()  # as a dataframe
-            # logger.info('qcm_queue: %s', qcm_queue)
-            # logger.info('mech_queue: %s', mech_queue)
 
             # updaate in mech table
             self.update_spectra_mechanics_table(chn_name, qcm_queue, mech_queue)
@@ -5987,44 +5927,31 @@ class QCMApp(QMainWindow):
         # update table contents
         for tb_row in range(tb_rows):
             vh = table.verticalHeaderItem(tb_row).text()
-            # logger.info('vh: %s', vh)
             # find corresponding key in qcm_queue or mech_queue
             for key, val in config_default["mech_table_rowheaders"].items():
                 if vh == val:
                     df_colname = key
-                    # logger.info(key)
                     if df_colname in qcm_cols:
                         df_queue = qcm_queue
-                        # logger.info(qcm_cols)
                     elif df_colname in mech_cols:
                         df_queue = mech_queue
-                        # logger.info(mech_cols)
                     else:
                         logger.info("did not find %s %s", key, val)
                         df_colname = ""  # not in df
                     break
                 else:
-                    # logger.info(vh.encode('utf-8'))
-                    # logger.info(val.encode('utf-8'))
                     df_colname = ""
             if df_colname:
                 row_data = df_queue[df_colname].iloc[0]
-                # logger.info('type(row_data): %s', type(row_data))
-                # logger.info(df_queue[df_colname]) # (it is a series)
                 for tb_col in range(tb_cols):
-                    # logger.info('r,c: %s %s', tb_row, tb_col)
                     # if df_colname.endswith('s'): # multiple values
                     #     data = df_queue[df_colname].iloc[0][tb_col]
                     # else:
                     #     data = df_queue[df_colname].iloc[0]
                     if isinstance(row_data, list):
-                        # logger.info(df_queue[df_colname].shape)
-                        # logger.info(df_queue[df_colname].iloc[0])
-                        # logger.info(df_queue[df_colname].columns)
                         data = df_queue[df_colname].iloc[0][tb_col]
                     else:
                         data = row_data
-                    # logger.info(data)
 
                     # format data
                     if data is not None:  # the following format does not work with None
@@ -6037,14 +5964,10 @@ class QCMApp(QMainWindow):
                         logger.info("item set")
                         tableitem.setText(data)
                     else:  # item is not set
-                        # logger.info('item not set')
                         self.ui.tableWidget_spectra_mechanics_table.setItem(
                             tb_row, tb_col, QTableWidgetItem(data)
                         )
-        # logger.info(self.ui.tableWidget_spectra_mechanics_table.item(0,0))
-        self.ui.tableWidget_spectra_mechanics_table.viewport().update()  # viewport().update() may not force a full repaint; consider repaint() if stale
-
-        # contour plot refresh after mechanics update is not yet implemented
+        self.ui.tableWidget_spectra_mechanics_table.viewport().update()
 
     def gen_nhcalc_str(self):
         """
@@ -6060,7 +5983,6 @@ class QCMApp(QMainWindow):
         """
         make list from nhcalc strs
         """
-        # currently returns a single nhcalc string; multi-string support not yet implemented
         return [self.gen_nhcalc_str()]
 
     def mechanics_plot_r_time(self):
@@ -6468,8 +6390,6 @@ class QCMApp(QMainWindow):
         contour_type = self.settings["comboBox_settings_mechanics_contourtype"]
         contour_array = config_default["contour_array"]
         contour_lim = self.settings["contour_plot_lim_tab"]
-        # logger.info('contour_array: %s', contour_array)
-        # logger.info('contour_lim: %s', contour_lim)
         cmap = self.settings["comboBox_settings_mechanics_contourcmap"]
         logger.info("cmap %s", cmap)
 
@@ -6601,7 +6521,6 @@ class QCMApp(QMainWindow):
             idx = []
         if diret is None:
             diret = []
-        # logger.info(self)
         if idx:  # if index is not []
             stwgt.setCurrentIndex(idx)  # set index to idx
         elif diret:  # if diret is not []
@@ -6751,7 +6670,6 @@ class QCMApp(QMainWindow):
             return self.settings["comboBox_ref_channel"]
 
     def update_harmonic_tab(self):
-        # logger.info("update_harmonic_tab was called")
         harm = str(2 * self.ui.tabWidget_settings_settings_harm.currentIndex() + 1)
         self.settings_harm = harm
 
@@ -6862,11 +6780,6 @@ class QCMApp(QMainWindow):
         if chn_name is None:
             chn_name = self.settings_chn["name"]
 
-        # logger.info('get_freq_span')
-        # logger.info('harm', harm)
-        # logger.info('chn_name', chn_name)
-        # logger.info('freq_span', self.settings['freq_span'][chn_name][harm])
-
         return self.settings["freq_span"][chn_name][harm]
 
     def set_freq_span(self, span, harm=None, chn_name=None):
@@ -6943,7 +6856,6 @@ class QCMApp(QMainWindow):
         """
         update frequency when lineEdit_scan_harmstart or  lineEdit_scan_harmend edited
         """
-        # logger.info(self.sender().objectName())
         harmstart = float(self.ui.lineEdit_scan_harmstart.text())  # in Hz
         harmend = float(self.ui.lineEdit_scan_harmend.text())  # in Hz
         harm = self.settings_harm
@@ -7076,26 +6988,21 @@ class QCMApp(QMainWindow):
     def update_timeunit(self, timeunit_index):
         value = self.ui.comboBox_timeunit.itemData(timeunit_index)
         self.settings["comboBox_timeunit"] = value
-        # plot refresh after unit/scale change is not yet implemented
 
     def update_tempunit(self, tempunit_index):
         value = self.ui.comboBox_tempunit.itemData(tempunit_index)
         self.settings["comboBox_tempunit"] = value
-        # plot refresh after unit/scale change is not yet implemented
 
     def update_timescale(self, timescale_index):
         value = self.ui.comboBox_xscale.itemData(timescale_index)
         self.settings["comboBox_xscale"] = value
-        # plot refresh after unit/scale change is not yet implemented
 
     def update_yscale(self, yscale_index):
         value = self.ui.comboBox_yscale.itemData(yscale_index)
         self.settings["comboBox_yscale"] = value
-        # plot refresh after unit/scale change is not yet implemented
 
     def update_linkx(self):
         self.settings["checkBox_linkx"] = not self.settings["checkBox_linkx"]
-        # plot refresh after unit/scale change is not yet implemented
 
     def load_comboBox(self, comboBox, val=None, harm=None, mech_chn=None):
         """
@@ -7213,7 +7120,6 @@ class QCMApp(QMainWindow):
             elif name.startswith("comboBox_"):
                 self.load_comboBox(obj)
             elif name.startswith("groupBox_"):
-                # groupBox default-value loading from settings is not yet implemented
                 pass
 
     def load_settings(self):
@@ -7624,7 +7530,6 @@ class QCMApp(QMainWindow):
                 )
                 logger.info(fit_result)
                 logger.info(fit_result["v_fit"])
-                # logger.info(fit_result['comp_g'])
 
                 # save data to fs and gs
                 fs.append(fit_result["v_fit"]["cen_rec"]["value"])  # fs
@@ -7898,7 +7803,6 @@ if __name__ == "__main__":
         sys._excepthook = sys.excepthook
 
         def exception_hook(exctype, value, traceback):
-            # logger.exception('Exception occurred')
             logger.error("Exception error", exc_info=(exctype, value, traceback))
             qFatal("UI error occurred.")
             sys._excepthook(exctype, value, traceback)

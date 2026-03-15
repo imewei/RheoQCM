@@ -295,8 +295,6 @@ class DataStore:
             logger.info(df_mech.columns)
             mech_queue_id = df_mech["queue_id"]
             data_queue_id = getattr(self, chn_name)["queue_id"]
-            # logger.info(mech_queue_id)
-            # logger.info(data_queue_id)
 
             # add missed columns
             # previous version w/ new column in the current list
@@ -314,8 +312,6 @@ class DataStore:
                 ]
                 # add the missed queue_id, this will leave other columns as NA
                 # df_mech = df_mech.append(pd.DataFrame.from_dict(dict(queue_id=list(set(data_queue_id) - set(mech_queue_id)))), ignore_index = True)
-                # logger.info(df_mech)
-                # logger.info(data_queue_id[data_queue_id.isin(set(data_queue_id) - set(mech_queue_id))].to_frame())
                 df_mech = df_mech.merge(
                     data_queue_id[
                         data_queue_id.isin(set(data_queue_id) - set(mech_queue_id))
@@ -419,7 +415,6 @@ class DataStore:
                 self.exp_ref.pop("func", None)
                 for key, val in dump_exp_ref.items():
                     if key not in self.exp_ref:
-                        # logger.info(key, 'does not exist. added.')
                         self.exp_ref[key] = val
                 # set self.exp_ref[chn_name + '_ref']
                 # old version has len == 2 add one to the end
@@ -499,8 +494,6 @@ class DataStore:
             self.raw = {}  # raw data from last queue
 
             self.saveflg = True
-
-            # logger.info(self.samp)
 
     def check_file_format(self, path):
         """
@@ -611,11 +604,8 @@ class DataStore:
         with h5py.File(self.path, "a") as fh:
             for key in self._chn_keys:
                 logger.info(key)
-                # logger.info(fh['data/' + key])
                 if key in fh["data"]:
                     data = fh["data/" + key]
-                    # logger.info(data)
-                    # logger.info(data[()])
                     data[()] = getattr(self, key).to_json()
                 else:
                     fh.create_dataset(
@@ -625,7 +615,6 @@ class DataStore:
                     )
                 if key + "_ref" in fh["data"]:
                     data_ref = fh["data/" + key + "_ref"]
-                    # logger.info(data_ref[()])
                     data_ref[()] = getattr(self, key + "_ref").to_json()
                 else:
                     fh.create_dataset(
@@ -638,7 +627,6 @@ class DataStore:
         """ with h5py.File(self.path, 'a') as fh:
             for key in self._chn_keys:
                 logger.info(key)
-                # logger.info(fh['data/' + key])
                 if key in fh['data']:
                     del fh['data/' + key]
                 if key + '_ref' in fh['data']:
@@ -868,7 +856,6 @@ class DataStore:
 
             # # following .loc works the same as .at
             # ind = getattr(self, chn_name)[getattr(self, chn_name).queue_id == queue_id].index # index array
-            # logger.info(ind)
             # getattr(self, chn_name).loc[ind, col] = getattr(self, chn_name).loc[ind, col].map(lambda x: val)
         else:  # new, append
             getattr(self, chn_name).merge(
@@ -894,13 +881,8 @@ class DataStore:
 
         # set index to int
         queue["queue_id"] = queue.queue_id.astype("int")
-        # logger.info(queue)
         queue_id = queue.queue_id.iloc[0]
         queue_idx = queue.index[0]
-        # logger.info(queue_id)
-        # logger.info(type(queue_id))
-        # logger.info(queue_idx)
-        # logger.info(type(queue_idx))
 
         df = getattr(self, chn_name + "_prop")[mech_key]
 
@@ -922,7 +904,6 @@ class DataStore:
             for ext in ["", "_ref"]:  # samp/ref and samp_ref/ref_ref
                 df = getattr(self, chn_name + ext)
                 col_endswith_s = [col for col in df.columns if col.endswith("s")]
-                # logger.info(col_endswith_s)
 
                 for col in col_endswith_s:
                     df[col] = df[col].apply(
@@ -954,7 +935,6 @@ class DataStore:
                     logger.info(cols)
 
                     for col in cols:
-                        # logger.info('%s \n %s', col, df[col])
                         df[col] = df[col].apply(
                             lambda row: (
                                 self.nan_harm_list()
@@ -970,9 +950,6 @@ class DataStore:
                                 )
                             ]
                         )
-
-                    # logger.info(df['delf_exps'].values)
-                    # logger.info(getattr(self, chn_name + '_prop')[mech_key]['delf_exps'].values)
 
                     # rest index df
                     df = df.reset_index(drop=True)
@@ -1261,7 +1238,6 @@ class DataStore:
         # convert t column to datetime object
         df["t"] = self.get_t_by_unit(chn_name, unit=unit_t)
         df["temp"] = self.get_temp_by_unit(chn_name, unit=unit_temp)
-        # logger.info(df.t)
 
         for col in cols:
             df = df.assign(
@@ -1284,7 +1260,6 @@ class DataStore:
             # select rows with marks
             logger.info("reshape_data_df: dropnanmarkrow = True")
             df = df[self.rows_with_marks(chn_name)][:]
-            # logger.info(df)
             if "marks" in df.columns:
                 df = df.drop(columns="marks")  # drop marks column
         else:
@@ -1308,12 +1283,6 @@ class DataStore:
         this function export the raw data
         """
         f, G, B, t, temp = self.get_raw(chn_name, queue_id, harm, with_t_temp=True)
-
-        # logger.info(f)
-        # logger.info(t)
-        # logger.info(type(f))
-        # logger.info(type(t))
-        # logger.info(type(temp))
 
         df_raw = pd.DataFrame.from_dict(
             {
@@ -1393,7 +1362,6 @@ class DataStore:
         if dropnanmarkrow:  # rows with marks only
             # select rows with marks
             df = df[self.rows_with_marks(chn_name)][:]
-            # logger.info(df)
             if "marks" in df.columns:
                 df = df.drop(columns="marks")  # drop marks column
         else:
@@ -1506,7 +1474,6 @@ class DataStore:
             return t
         else:
             logger.info(self.get_t_ref())
-            # logger.info(t)
             t = t - self.get_t_ref()  # delta t to reference (t0)
             t = t.dt.total_seconds()  # convert to second
             return t
@@ -1702,7 +1669,6 @@ class DataStore:
 
         if deltaval:
             s = self.convert_col_to_delta_val(chn_name, col, norm=norm)
-            # logger.info(s)
             col = "del" + col  # change column names to 'delfs' or 'delgs'
             if norm:
                 col = (
@@ -1717,18 +1683,14 @@ class DataStore:
             )
         else:
             m = getattr(self, chn_name)["marks"].copy()
-            # logger.info('mmmmm', m)
             idx = s.index
             # convert s and m to ndarray
             arr_s = np.array(
                 s.values.tolist(), dtype=float
             )  # the dtype=float replace None with np.nan
-            # logger.info(arr_s)
             arr_m = np.array(
                 m.values.tolist(), dtype=float
             )  # the dtype=float replace None with np.nan
-            # logger.info(arr_m)
-            # logger.info(np.any(arr_m == 1))
             if np.any(arr_m == 1):  # there are marks (1)
                 logger.info("there are marks (1) in df")
                 # replace None with np.nan
@@ -1798,12 +1760,9 @@ class DataStore:
             arr_s = np.array(
                 s.values.tolist(), dtype=float
             )  # the dtype=float replace None with np.nan
-            # logger.info(arr_s)
             arr_m = np.array(
                 m.values.tolist(), dtype=float
             )  # the dtype=float replace None with np.nan
-            # logger.info(arr_m)
-            # logger.info(np.any(arr_m == 1))
             if np.any(arr_m == 1):  # there are marks (1)
                 logger.info("there are marks (1) in df")
                 # replace None with np.nan
@@ -1827,12 +1786,10 @@ class DataStore:
         """
         # check if the reference is set
         if not self.refflg[chn_name]:
-            # logger.info(self.exp_ref[chn_name + '_ref'])
             self.set_ref_set(chn_name, *self.exp_ref[chn_name + "_ref"])
 
         # get a copy
         col_s = getattr(self, chn_name)[col].copy()
-        # logger.info(self.exp_ref[chn_name])
 
         mode = self.exp_ref.get("mode")
 
@@ -1842,8 +1799,6 @@ class DataStore:
             ref_s = self.interp_film_ref(
                 chn_name, col=col
             )  # get reference for col (fs or gs)
-
-            # logger.info('ref_s\n%s', ref_s)
 
             # convert series value to ndarray
             col_arr = np.array(col_s.values.tolist())
@@ -1860,8 +1815,7 @@ class DataStore:
             return col_s
 
         elif mode["cryst"] == "dual":
-            # Dual-crystal mode is not yet implemented; returns None.
-            pass
+            pass  # dual-crystal branch
 
     def _norm_by_harm(self, s):
         """
@@ -1912,7 +1866,6 @@ class DataStore:
 
         df = self.reset_match_marks(df, mark_pair=(0, 1))  # mark 1 to 0
         setattr(self, chn_name + "_ref", df)
-        # logger.info(getattr(self, chn_name+'_ref'))
 
     def set_ref_set(self, chn_name, source, idx_list=None, df=None):
         """
@@ -1921,7 +1874,6 @@ class DataStore:
         """
         if idx_list is None:
             idx_list = []
-        # logger.info('idx_list', idx_list)
         if getattr(self, chn_name).shape[0] == 0:  # data is empty
             logger.warning("no data")
             self.refflg[chn_name] = False
@@ -1956,9 +1908,7 @@ class DataStore:
                 # elif mode['temp'] == 'var' or (mode['temp'] == 'const' and any([isinstance(l, list) for l in idx_list])): # single crystal and variable temperature or multi references
                 #     # use fitting of reference
                 #     if mode['temp'] == 'var':
-                #         logger.info('var temp')
                 #     elif (mode['temp'] == 'const' and any([isinstance(l, list) for l in idx_list])):
-                #         logger.info('const temp with m')
 
                 # clear self.<chn_name>_ref
                 if getattr(self, chn_name + "_ref").shape[0] > 0:
@@ -1980,7 +1930,6 @@ class DataStore:
                 df = getattr(self, source)
                 logger.info("source %s", source)
                 logger.info("idx_list_opened %s", idx_list_opened)
-                # logger.info('df.loc[idx_list_opened, :] %s', df.loc[idx_list_opened, :])
                 logger.info(df)
                 self.copy_to_ref(
                     chn_name, df.loc[idx_list_opened, :]
@@ -1996,8 +1945,7 @@ class DataStore:
                 pass
 
         elif mode["cryst"] == "dual":
-            # Dual-crystal mode is not yet implemented.
-            pass
+            pass  # dual-crystal branch
 
         # calculate reference
         self.calc_fg_ref(chn_name, mark=False)
@@ -2061,10 +2009,6 @@ class DataStore:
                         deltaval=False,
                     )
                     logger.info("chn_ref_source %s", chn_ref_source)
-                    # logger.info('ref_fs_df %s', ref_fs_df)
-                    # logger.info('ref_fs_df.index %s', ref_fs_df.index)
-                    # logger.info('ref_fs_df.loc[ind_list] %s', ref_fs_df.loc[ind_list])
-                    # logger.info('ref_gs_df.loc[ind_list] %s', ref_gs_df.loc[ind_list])
                     func_f_list = (
                         ref_fs_df.loc[ind_list].mean().values.tolist()
                     )  # list of float for now
@@ -2117,7 +2061,6 @@ class DataStore:
                         logger.info('%s %s %s', chn_name, col, key)
                         df = self.get_list_column_to_columns_marked_rows(chn_name + '_ref', col, mark=mark, dropnanmarkrow=False, deltaval=False)
                         logger.info(getattr(self, chn_name + '_ref')[col])
-                        # logger.info(df)
                         self.exp_ref[chn_name][key] = df.mean().values.tolist()
                     self.refflg[chn_name] = True
                 else: # no data saved
@@ -2244,8 +2187,7 @@ class DataStore:
                 self.refflg[chn_name] = False
 
         elif mode["cryst"] == "dual":
-            # Dual-crystal mode is not yet implemented; fall through to refflg reset.
-            pass
+            pass  # dual-crystal branch
 
         self.refflg[chn_name] = False
 
@@ -2275,16 +2217,9 @@ class DataStore:
         set all rows with the same value from self.exp_ref[chn_name]['f0'] and ['g0']
         returned df have the same size of chn_name df
         """
-        # check if the reference is set
-        # if not self.refflg[chn_name]:
-        #     # logger.info(self.exp_ref[chn_name + '_ref'])
-        #     self.set_ref_set(chn_name, *self.exp_ref[chn_name + '_ref'])
-
-        # samp_source = self.exp_ref['samp_ref'][0]
         chn_temp = self.get_temp_by_uint_marked_rows(
             chn_name, dropnanmarkrow=False, unit="C"
         )  # in C. If marked only, set dropnanmarkrow=True
-        # logger.info(chn_temp)
 
         # prepare series fro return
         cols = getattr(self, chn_name)[["fs", "gs", "ps"]].copy()
@@ -2326,7 +2261,6 @@ class DataStore:
                     f_list, g_list = chn_func[seg % len(chn_func)](
                         ind_list
                     )  # dummy values with the same size of data
-                    # logger.info('f_list %s', f_list)
                     # transpose
                     fs_list = np.transpose(np.array(f_list)).tolist()
                     logger.info("len(fs_list) %s", len(fs_list))
@@ -2334,12 +2268,9 @@ class DataStore:
                     gs_list = np.transpose(np.array(g_list)).tolist()
 
                     # save to df
-                    # logger.info('cols.fs[ind_list] %s', cols.fs[ind_list])
-                    # logger.info('fs_list %s', fs_list)
                     cols.fs[ind_list] = fs_list
                     cols.gs[ind_list] = gs_list
 
-                # logger.info('cols[ind_list]\n%s', cols.iloc[ind_list])
                 logger.info(cols[col].head())
 
             elif mode["temp"] == "var":  # single crystal and variable temperature
@@ -2389,8 +2320,7 @@ class DataStore:
                 logger.info("cols[ind_list]\n%s", cols.iloc[ind_list])
                 logger.info(cols[col].head())
         elif mode["cryst"] == "dual":
-            # Dual-crystal mode is not yet implemented.
-            pass
+            pass  # dual-crystal branch
 
         if col is None:
             return cols
@@ -2410,7 +2340,6 @@ class DataStore:
                         self.settings["time_str_format"]
                     )  # convert to string
                 self.exp_ref["t0"] = t0
-                # logger.info(self.exp_ref)
 
         if t0_shifted is not None:
             if isinstance(
@@ -2440,8 +2369,6 @@ class DataStore:
             ].copy()  # make a copy to make sure not change the original one
             ref_dict["f0"] = [val for i, val in enumerate(ref_dict["f0"]) if i in idx]
             ref_dict["g0"] = [val for i, val in enumerate(ref_dict["g0"]) if i in idx]
-            # logger.info(ref_dict)
-            # logger.info(self.exp_ref[chn_name])
             return ref_dict
 
     def get_harm_marked_f1(self, chn_name, harm, mark=False):
@@ -2547,8 +2474,6 @@ class DataStore:
         df_new = df.copy()
         logger.info(type(df_new))
         logger.info(df_new.tail())
-        # logger.info(df_new.fs)
-        # logger.info(df_new.marks)
         df_new.marks = df_new.marks.apply(
             lambda x: [new_mark if mark == old_mark else mark for mark in x]
         )
@@ -2567,8 +2492,6 @@ class DataStore:
             idx = []
         df_new = df.copy()
 
-        # logger.info(df_new.marks)
-        # df_new.marks.loc[idx].apply(mark_func)
         df_new.marks.loc[idx] = df_new.marks.loc[idx].apply(
             lambda x: [
                 (
@@ -2595,7 +2518,6 @@ class DataStore:
                 for mark in x
             ]
         )
-        # logger.info(df_new.marks)
         return df_new
 
     def add_missed_cols_to_df(self, df, col_list):
@@ -2634,7 +2556,6 @@ class DataStore:
         df_chn = getattr(self, chn_name)
         for harm, idx in sel_idx_dict.items():
             df_chn = self.mark_data(df_chn, idx=idx, harm=harm, mark_val=mark_val)
-            # logger.info(df_chn.marks)
         setattr(self, chn_name, df_chn)
 
     def selector_del_sel(self, chn_name, sel_idx_dict):
@@ -2895,7 +2816,6 @@ class DataStore:
 
                         logger.info("col_s %s", col_s.iloc[0])
                         logger.info("col_fs %s", df_b["fs"].iloc[0])
-                        # logger.info('col_arr %s', col_arr)
                         logger.info("col_arr.shape %s", col_arr.shape)
                         # iterate columns in col_arr
                         n_arr_cols = col_arr.shape[1] if len(col_arr.shape) > 1 else 1
@@ -2913,17 +2833,6 @@ class DataStore:
                                 else:  # single column
                                     col_arr_i = col_arr[ind_list]
 
-                                # logger.info(i)
-                                # logger.info(type(col_s.values))
-                                # logger.info(col_s.values.dtype)
-                                # logger.info(col_s.values.tolist())
-                                # logger.info(col_arr)
-                                # logger.info(type(col_arr))
-                                # logger.info(type(col_arr[0]))
-                                # logger.info(type(col_arr_i))
-                                # logger.info(col_arr_i)
-                                # logger.info(type(col_arr_i[0]))
-                                # logger.info(col_arr_i[0])
                                 if np.isnan(
                                     col_arr_i
                                 ).all():  # no data in harm and ind_list
@@ -2972,8 +2881,7 @@ class DataStore:
                             df[col][ind_list] = val_list
 
                 elif mode["cryst"] == "dual":
-                    # Dual-crystal mode is not yet implemented.
-                    pass
+                    pass  # dual-crystal branch
 
         return df
 
@@ -3062,7 +2970,6 @@ class DataStore:
             df = pd.read_csv(path)
         elif ext == ".xlsx":
             df = pd.read_excel(path)
-        # logger.info(df.columns)
         logger.info(df.shape)
         logger.info(df.head())
 
