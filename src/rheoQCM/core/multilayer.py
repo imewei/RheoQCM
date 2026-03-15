@@ -947,12 +947,12 @@ def _solve_ll_delfstar(
         F = jnp.array([jnp.real(Zmot), jnp.imag(Zmot)], dtype=jnp.float64)
 
         # Solve J @ delta = -F
-        try:
-            delta = jnp.linalg.solve(J, -F)
-            delfstar = delfstar + delta[0] + 1j * delta[1]
-        except Exception:
-            # If solve fails, break and return current estimate
+        # jnp.linalg.solve returns nan/inf (never raises) for singular J.
+        delta = jnp.linalg.solve(J, -F)
+        if not jnp.all(jnp.isfinite(delta)):
+            # Singular Jacobian — return current estimate
             break
+        delfstar = delfstar + delta[0] + 1j * delta[1]
 
     return delfstar
 

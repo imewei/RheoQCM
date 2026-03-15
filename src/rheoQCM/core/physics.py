@@ -889,7 +889,7 @@ def bulk_props(
     grho_val = (jnp.pi * Zq * jnp.abs(delfstar) / f1) ** 2
     phi = jnp.minimum(
         jnp.pi / 2,
-        -2 * jnp.arctan(jnp.real(delfstar) / jnp.imag(delfstar)),
+        -2 * jnp.arctan2(jnp.real(delfstar), jnp.imag(delfstar)),
     )
 
     return grho_val, phi
