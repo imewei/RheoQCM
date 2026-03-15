@@ -49,7 +49,6 @@ config_default = {
         "comboBox_base_frequency",
         "comboBox_range",
         "checkBox_settings_temp_sensor",
-        "comboBox_tempdevice",
         "comboBox_thrmcpltype",
     ],
     # widget enable/disable lists for file operations
@@ -68,15 +67,6 @@ config_default = {
     "pushButton_appendfile_disable_list": [
         "dateTimeEdit_reftime",
         "pushButton_resetreftime",
-    ],
-    "temp_settings_enable_disable_list": [
-        "comboBox_tempmodule",
-        "comboBox_tempdevice",
-        "comboBox_thrmcpltype",
-    ],
-    "temp_device_setting_disable_list": [
-        "checkBox_control_rectemp",
-        "checkBox_settings_temp_sensor",
     ],
     # list for disable/hide widges for manual fit
     "manual_refit_enable_disable_list": [
@@ -386,7 +376,6 @@ config_default = {
             ("2", "ADC 2"),
         ]
     ),
-    "vna_wait_time_extra": 0.05,  # extra time adds to wait_time
     "channel_opts": OrderedDict(
         [
             # key: str; val: for display in combobox
@@ -668,25 +657,6 @@ config_default = {
         "rh": r"r$_h$",
         "rd": r"r$_d$",
     },
-    ############ params for temperature modules ###########
-    # # temperature modules path
-    # 'tempmodules_path': r'./modules/temp/',
-    # add NI sensors into the dict and the code will check if the devices in its keys.
-    # the values are the number of samples per test for average
-    "tempdevices_dict": {
-        "USB-TC01": {
-            "nsamples": 1,  # number of points for average,
-            "thrmcpl_chan": "ai0",  # thermocouple channel,
-            "cjc_source": "BUILT_IN",  # channel for cjc,
-        },
-        "PCIe-6321": {
-            "nsamples": 100,  # number of points for average,
-            "thrmcpl_chan": "ai0",  # thermocouple channel,
-            "cjc_source": "",  # channel for cjc,
-        },
-    },
-    "tempdevs_opts": {},  # this key will be updated while running and for the updating of 'comboBox_tempdevice'
-    "temp_class_opts_list": [],  # this key will be updated while running and for the updating of 'comboBox_tempmodule'
     ######## params for PekTracker module #########
     # minium distance between the peakes to be found in Hz
     "peak_min_distance_Hz": 1e3,
@@ -794,15 +764,6 @@ settings_default = {
     # copies of same keys in config_default
     "max_harmonic": config_default["max_harmonic"],
     "time_str_format": config_default["time_str_format"],
-    # add na_path on your computer if it is not in the
-    # default path listed in config_default['vna_path']
-    # add the string as
-    # 'vna_path': r'C:/...../myVNA.exe'.
-    # if this key is empty, the program will look for the file in the default list in config_default['vna_path']
-    "vna_path": r"",
-    # keep key below (vna_wait_time_extra) commented.
-    # it can be actived in user setting file
-    # 'vna_wait_time_extra': 0.05, # in s. This extra time will be added to the calculated value
     # default checkbox harm states (checkbox with False value can be omit from this list)
     "checkBox_harm1": True,
     "checkBox_harm3": True,
@@ -812,9 +773,7 @@ settings_default = {
     # default time settings
     # NOTE: keep this key commented
     # 'dateTimeEdit_reftime': '2000-01-01 00:00:00.000',
-    "spinBox_recordinterval": 60,
     "spinBox_refreshresolution": 1,
-    "spinBox_scaninterval": 60,
     # default fitting and display options
     "checkBox_dynamicfit": True,
     "spinBox_fitfactor": 6,
@@ -855,8 +814,6 @@ settings_default = {
     # default analyzer settings
     "comboBox_samp_channel": "1",
     "comboBox_ref_channel": "1",
-    # default hardware selection
-    "treeWidget_settings_settings_hardware": "none",
     # default crystal settings
     "comboBox_base_frequency": 5,
     "comboBox_range": 0.1,

@@ -415,6 +415,9 @@ def _calc_D_jit(
     return 2 * jnp.pi * (n * f1 + delfstar) * drho / zstar_safe
 
 
+_ZF_TOP_DEFAULT = jnp.array(0.0 + 0.0j)
+
+
 @partial(jax.jit, static_argnames=["num_layers", "calctype", "has_Zf_top"])
 def _calc_ZL_jit(
     n: int,
@@ -426,7 +429,7 @@ def _calc_ZL_jit(
     f1: float,
     num_layers: int,
     calctype: str = "SLA",
-    Zf_top: jnp.ndarray = jnp.array(0.0 + 0.0j),
+    Zf_top: jnp.ndarray = _ZF_TOP_DEFAULT,
     has_Zf_top: bool = False,
 ) -> jnp.ndarray:
     """

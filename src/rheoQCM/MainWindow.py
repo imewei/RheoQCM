@@ -4229,49 +4229,6 @@ class Ui_MainWindow:
         self.actionReset.setObjectName("actionReset")
         self.actionExit = QtGui.QAction(parent=MainWindow)
         self.actionExit.setObjectName("actionExit")
-        self.actionADC_1 = QtGui.QAction(parent=MainWindow)
-        self.actionADC_1.setCheckable(True)
-        self.actionADC_1.setChecked(True)
-        icon10 = QtGui.QIcon()
-        icon10.addPixmap(
-            QtGui.QPixmap(":/icon/rc/signal_ch1.svg"),
-            QtGui.QIcon.Mode.Normal,
-            QtGui.QIcon.State.Off,
-        )
-        self.actionADC_1.setIcon(icon10)
-        self.actionADC_1.setObjectName("actionADC_1")
-        self.actionADC_2 = QtGui.QAction(parent=MainWindow)
-        self.actionADC_2.setCheckable(True)
-        icon11 = QtGui.QIcon()
-        icon11.addPixmap(
-            QtGui.QPixmap(":/icon/rc/signal_ch2.svg"),
-            QtGui.QIcon.Mode.Normal,
-            QtGui.QIcon.State.Off,
-        )
-        self.actionADC_2.setIcon(icon11)
-        self.actionADC_2.setObjectName("actionADC_2")
-        self.actionSet_Temperature_Sensor = QtGui.QAction(parent=MainWindow)
-        icon12 = QtGui.QIcon()
-        icon12.addPixmap(
-            QtGui.QPixmap(":/icon/rc/temp_sensor.svg"),
-            QtGui.QIcon.Mode.Normal,
-            QtGui.QIcon.State.Off,
-        )
-        self.actionSet_Temperature_Sensor.setIcon(icon12)
-        self.actionSet_Temperature_Sensor.setObjectName("actionSet_Temperature_Sensor")
-        self.actionOpen_VNA = QtGui.QAction(parent=MainWindow)
-        icon13 = QtGui.QIcon()
-        icon13.addPixmap(
-            QtGui.QPixmap(":/icon/rc/openvna.svg"),
-            QtGui.QIcon.Mode.Normal,
-            QtGui.QIcon.State.Off,
-        )
-        self.actionOpen_VNA.setIcon(icon13)
-        self.actionOpen_VNA.setObjectName("actionOpen_VNA")
-        self.actionAdd_Temperature_Data = QtGui.QAction(parent=MainWindow)
-        self.actionAdd_Temperature_Data.setCheckable(True)
-        self.actionAdd_Temperature_Data.setIcon(icon12)
-        self.actionAdd_Temperature_Data.setObjectName("actionAdd_Temperature_Data")
         self.actionHelp_Manual = QtGui.QAction(parent=MainWindow)
         self.actionHelp_Manual.setObjectName("actionHelp_Manual")
         self.actionAbout_QCM_py = QtGui.QAction(parent=MainWindow)
@@ -4380,8 +4337,6 @@ class Ui_MainWindow:
         self.menuFile.addAction(self.actionImport_QCM_Z)
         self.menuFile.addSeparator()
         self.menuFile.addAction(self.actionExit)
-        self.menuSetting.addAction(self.actionOpen_VNA)
-        self.menuSetting.addSeparator()
         self.menuSetting.addAction(self.actionReset)
         self.menuSetting.addAction(self.actionMaximum_Harmonic)
         self.menuHelp.addAction(self.actionHelp_Manual)
@@ -4399,7 +4354,6 @@ class Ui_MainWindow:
         self.toolBar.addAction(self.actionClear_All)
         self.toolBar.addAction(self.actionReset)
         self.toolBar.addSeparator()
-        self.toolBar.addAction(self.actionOpen_VNA)
         self.toolBar.addSeparator()
         self.label_9.setBuddy(self.comboBox_settings_control_dispmode)
         self.label_spectra_fit_zoomtimes.setBuddy(self.lineEdit_spectra_fit_span)
@@ -5101,21 +5055,6 @@ class Ui_MainWindow:
         self.actionReset.setShortcut(_translate("MainWindow", "Ctrl+Shift+R"))
         self.actionExit.setText(_translate("MainWindow", "Exit"))
         self.actionExit.setShortcut(_translate("MainWindow", "Ctrl+Q"))
-        self.actionADC_1.setText(_translate("MainWindow", "ADC 1"))
-        self.actionADC_2.setText(_translate("MainWindow", "ADC 2"))
-        self.actionSet_Temperature_Sensor.setText(
-            _translate("MainWindow", "Set Temperature Sensor")
-        )
-        self.actionOpen_VNA.setText(_translate("MainWindow", "Open MyVNA"))
-        self.actionOpen_VNA.setToolTip(
-            _translate(
-                "MainWindow",
-                "Open MyVNA (The changes of setup will work only after the window is closed.)",
-            )
-        )
-        self.actionAdd_Temperature_Data.setText(
-            _translate("MainWindow", "Add Temperature Data")
-        )
         self.actionHelp_Manual.setText(_translate("MainWindow", "Help Manual"))
         self.actionAbout_QCM_py.setText(_translate("MainWindow", "About QCMpy"))
         self.actionAbout_QCM_py.setToolTip(_translate("MainWindow", "About QCMpy"))

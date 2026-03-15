@@ -659,7 +659,7 @@ class PeakTracker:
         chn_name: 'samp' or 'ref'
         harm: int
         """
-        if (chn_name is None) & (harm is None):
+        if chn_name is None and harm is None:
             chn_name = self.active_chn
             harm = self.active_harm
 
@@ -686,7 +686,7 @@ class PeakTracker:
         if key == None:
             return all of the corresponding chn_name and harm
         """
-        if (chn_name is None) & (harm is None):
+        if chn_name is None and harm is None:
             chn_name = self.active_chn
             harm = self.active_harm
 
@@ -701,7 +701,7 @@ class PeakTracker:
         if key == None:
             return all of the corresponding chn_name and harm
         """
-        if (chn_name is None) & (harm is None):
+        if chn_name is None and harm is None:
             chn_name = self.active_chn
             harm = self.active_harm
 
@@ -947,7 +947,7 @@ class PeakTracker:
         """
         get previous calculated values and put them into peak_guess
         """
-        if (chn_name is None) & (harm is None):
+        if chn_name is None and harm is None:
             chn_name = self.active_chn
             harm = self.active_harm
 
@@ -1041,7 +1041,7 @@ class PeakTracker:
         Builds the parameter dictionary with initial values and bounds
         for NLSQ curve_fit.
         """
-        if (chn_name is None) & (harm is None):
+        if chn_name is None and harm is None:
             chn_name = self.active_chn
             harm = self.active_harm
 
@@ -1219,7 +1219,7 @@ class PeakTracker:
         """
         get values from calculated result
         """
-        if (chn_name is None) & (harm is None):
+        if chn_name is None and harm is None:
             chn_name = self.active_chn
             harm = self.active_harm
 
@@ -1323,7 +1323,7 @@ class PeakTracker:
         Evaluate gmod or bmod by f.
         Returns ndarray.
         """
-        if (chn_name is None) & (harm is None):
+        if chn_name is None and harm is None:
             chn_name = self.active_chn
             harm = self.active_harm
 

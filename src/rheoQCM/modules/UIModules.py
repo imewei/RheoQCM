@@ -14,6 +14,16 @@ import numpy as np
 logger = logging.getLogger(__name__)
 
 
+def _safe_slice(data, slice_str):
+    """Apply a slice string (e.g., '1:5', '1:5:2', '3') to data without using code execution."""
+    if ":" in slice_str:
+        parts = slice_str.split(":")
+        args = [int(p) if p else None for p in parts]
+        return data[slice(*args)]
+    else:
+        return data[int(slice_str)]
+
+
 def open_file(path):
     """
     open the folder given by path
@@ -99,9 +109,9 @@ def index_from_str(idx_str, chn_idx, join_segs=True):
             for seg in segs:
                 logger.info("multi")
                 logger.info(seg)
-                logger.info("data" + "[" + seg + "]")
-                logger.info(eval("data" + "[" + seg + "]"))
-                new_idx = eval("data" + "[" + seg + "]")
+                logger.info("data[%s]", seg)
+                new_idx = _safe_slice(data, seg)
+                logger.info(new_idx)
                 logger.info("type(new_idx) %s", type(new_idx))
                 if join_segs:  # True: combine
                     if isinstance(new_idx, int):
@@ -116,8 +126,8 @@ def index_from_str(idx_str, chn_idx, join_segs=True):
 
         else:
             logger.info("single")
-            logger.info("data" + "[" + idx_str + "]")
-            new_idx = eval("data" + "[" + idx_str + "]")
+            logger.info("data[%s]", idx_str)
+            new_idx = _safe_slice(data, idx_str)
             if isinstance(new_idx, int):
                 idx.append(new_idx)
             elif isinstance(new_idx, list):
