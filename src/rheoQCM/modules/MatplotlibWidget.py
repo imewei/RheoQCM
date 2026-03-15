@@ -1249,9 +1249,9 @@ class MatplotlibWidget(QWidget):
         **kwargs,
     ):
         """
-        plot data of in new plots
-        #TODO need to define xdata, ydata structure
-        [[x1], [x2], ...] ?
+        Plot data in new plots.
+
+        Expected xdata/ydata structure: [[x1], [x2], ...]
         """
         if xdata is None:
             xdata = []

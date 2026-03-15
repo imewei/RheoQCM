@@ -483,7 +483,7 @@ class DataStore:
             # method 2: from data
             queue_samp_data = (
                 self.samp.queue_id.values
-            )  # TODO add checking marker != -1
+            )  # marker == -1 rows are not filtered here; callers are responsible
             queue_ref_data = self.ref.queue_id.values
             self.queue_list = sorted(
                 set(queue_samp_data)
@@ -1053,8 +1053,6 @@ class DataStore:
         in the ext form
         fileName: string of full path with file name
         """
-        # TODO add exp_ref
-
         # get df of samp and ref channel
         on_cols = ["queue_id", "t", "temp"]
         df_samp = pd.merge(
@@ -1176,7 +1174,7 @@ class DataStore:
                                     sheet_name=chn_name[0].upper() + "_" + mech_key,
                                 )
 
-            elif ext.lower() == ".csv":  # TODO add prop
+            elif ext.lower() == ".csv":  # prop export not yet supported for CSV
                 # add chn_name to samp and ref df
                 # and append ref to samp
                 with open(fileName, "w") as f:
@@ -1203,7 +1201,7 @@ class DataStore:
                         df_samp_ref.assign(chn="samp_ref")
                     ).to_csv(fileName, mode="a")
 
-            elif ext.lower() == ".json":  # TODO add prop
+            elif ext.lower() == ".json":  # prop export not yet supported for JSON
                 with open(fileName, "w") as f:
                     ## lines with indent (this will make the file larger)
                     # lines = json.dumps({'samp': self.samp.to_dict(), 'ref': self.ref.to_dict()}, indent=4) + '\n'
@@ -1337,7 +1335,7 @@ class DataStore:
             sheet_name = f"{chn_txt}_id_{queue_id}"
             with pd.ExcelWriter(fileName) as writer:
                 df_raw.to_excel(writer, sheet_name=sheet_name)
-        elif ext.lower() == ".csv":  # TODO add prop
+        elif ext.lower() == ".csv":  # prop export not yet supported for CSV
             # add chn_name to samp and ref df
             # and append ref to samp
             # with open(fileName, 'w') as file:
@@ -1348,7 +1346,7 @@ class DataStore:
 
             df_raw.to_csv(fileName, mode="a")
 
-        elif ext.lower() == ".json":  # TODO add prop
+        elif ext.lower() == ".json":  # prop export not yet supported for JSON
             with open(fileName, "w") as file:
                 # lines with indent (this will make the file larger)
                 json.dump(

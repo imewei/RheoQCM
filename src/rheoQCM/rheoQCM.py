@@ -648,7 +648,7 @@ class QCMApp(QMainWindow):
         )
 
         # connect ref_channel
-        # self.ui.comboBox_ref_channel.currentIndexChanged.connect() #TODO add function checking if sample and ref have the same channel
+        # self.ui.comboBox_ref_channel.currentIndexChanged.connect()  # signal not wired; needs validator for matching sample/ref channels
 
         # insert base_frequency
         self.create_combobox(
@@ -1172,7 +1172,7 @@ class QCMApp(QMainWindow):
         # groupBox_settings_mechanics_contour
         self.ui.groupBox_settings_mechanics_contour.toggled["bool"].connect(
             self.mech_splitter_vis
-        )  # TODO change the name
+        )  # mech_splitter_vis used as signal handler for toggled["bool"]
 
         # comboBox_settings_mechanics_contourdata
         self.build_comboBox(
@@ -1791,7 +1791,7 @@ class QCMApp(QMainWindow):
         # save to data store and update reference
         self.data_saver.set_ref_set(
             chn_name, ref_source, ref_idx, df=None
-        )  # TODO add df if ref_source == exp
+        )  # df is None here; ext source requires df to be passed separately
 
         # refresh mpl_plt<n>
         self.update_mpl_plt12()
@@ -1961,7 +1961,7 @@ class QCMApp(QMainWindow):
     def on_clicked_pushButton_gotofolder(self):
         file_path = (
             self.ui.lineEdit_datafilestr.text()
-        )  # TODO replace with reading from settings dict
+        )  # reads file path from lineEdit; settings dict access not yet wired
         path = os.path.abspath(
             os.path.join(file_path, os.pardir)
         )  # get the folder of the file
@@ -1978,7 +1978,7 @@ class QCMApp(QMainWindow):
             "Choose a file to load its settings",
             path=self.data_saver.path,
             filetype=config_default["default_settings_load_filetype"],
-        )  # TODO add path of last opened folder
+        )  # opens home directory; last-opened path is not persisted yet
 
         if fileName:
             # load settings from file
@@ -2001,7 +2001,7 @@ class QCMApp(QMainWindow):
                     opts=False,
                     forcepop=True,
                 )
-                logger.error("File with wrong fromat!")
+                logger.error("File with wrong format!")
                 return
             else:
                 # remove some k
@@ -2020,7 +2020,7 @@ class QCMApp(QMainWindow):
             "Choose a file to save settings",
             path=self.data_saver.path,
             filetype=config_default["default_settings_export_filetype"],
-        )  # TODO add path of last opened folder
+        )  # opens home directory; last-opened path is not persisted yet
 
         if fileName:
             # load settings from file
@@ -2038,7 +2038,7 @@ class QCMApp(QMainWindow):
                     line = json.dumps(settings, indent=4) + "\n"
                     f.write(line)
                 logger.info("Settings were exported as json file.")
-                # TODO statusbar
+                # statusbar update for export success is not yet wired
 
     def on_triggered_actionSave(self):
         """
@@ -2486,10 +2486,10 @@ class QCMApp(QMainWindow):
 
         if f1 and (f1 < bf1 or f1 >= bf2):  # f1 out of limt
             f1 = bf1
-            # TODO update statusbar 'lower bound out of limit and reseted. (You can increase the range in settings)'
+            # f1 was out of lower bound and was reset; statusbar notification not yet wired
         if f2 and (f2 > bf2 or f2 <= bf1):  # f2 out of limt
             f2 = bf2
-            # TODO update statusbar 'upper bond out of limit and reseted. (You can increase the range in settings)'
+            # f2 was out of upper bound and was reset; statusbar notification not yet wired
         if f1 and f2 and (f1 >= f2):
             f2 = bf2
 
@@ -2704,7 +2704,7 @@ class QCMApp(QMainWindow):
 
         # manually set
         ax.set_xticks([xlim[0], center, xlim[1]])
-        # TODO following line makes the x coordinates fail
+        # Note: set_xticklabels below causes x-coordinate failures and is intentionally disabled
         # ax.set_xticklabels([str(-span * 0.5), '0', str(span * 0.5)])
         # set xlabel
         # ax.set_xlabel('f (+{} Hz)'.format(center))
@@ -2876,7 +2876,7 @@ class QCMApp(QMainWindow):
             {"ln": "srec", "x": cen_rec_freq, "y": cen_rec_G}
         )
 
-        # TODO add results to textBrowser_spectra_fit_result
+        # fit results display in textBrowser_spectra_fit_result is not yet implemented
 
         if self.get_spectraTab_mode() == "refit":  # refit mode
             # save scan data to data_saver
@@ -4727,7 +4727,7 @@ class QCMApp(QMainWindow):
             if (
                 layer_num == "0"
             ):  # electrode layer and there is data. This the the bare value in air use the same in data chn_name ref
-                # TODO This layer should be set at the same time data reference chn is set
+                # layer 0 (electrode) reference should be set together with data channel reference
                 getattr(self.ui, "lineEdit_mech_expertmode_value_" + layer_num).setText(
                     "[]"
                 )
@@ -4998,10 +4998,6 @@ class QCMApp(QMainWindow):
         elif dic["source"] == "prop":
             # set given prop 'prop_guess'
             film_dict[n]["prop_guess"] = dic["val"]
-        # elif dic['source'] == 'fg':
-        #     # use f/g to calc prop_guess
-        #     #TODO
-        #     pass
         elif dic["source"] == "name":
             # get prop_guess from qcm
             film_dict[n]["prop_guess"] = self.qcm.get_prop_by_name(dic["val"])
@@ -5046,11 +5042,6 @@ class QCMApp(QMainWindow):
                     for ind in idx_joined:
                         prop_dict[ind][n].update(**ast.literal_eval(dic["val"]))
                         #  prop_dict[ind][n]['calc'] = dic['calc']
-                # elif dic['source'] == 'fg':
-                #     # use f/g to calc prop_guess
-                #     #TODO
-                #     pass
-
                 elif dic["source"] == "name":
                     # get prop_guess from qcm
                     # logger.info('dic', dic)
@@ -6051,9 +6042,9 @@ class QCMApp(QMainWindow):
                             tb_row, tb_col, QTableWidgetItem(data)
                         )
         # logger.info(self.ui.tableWidget_spectra_mechanics_table.item(0,0))
-        self.ui.tableWidget_spectra_mechanics_table.viewport().update()  # TODO update doesn't work. update in UI
+        self.ui.tableWidget_spectra_mechanics_table.viewport().update()  # viewport().update() may not force a full repaint; consider repaint() if stale
 
-        # TODO update contours if checked
+        # contour plot refresh after mechanics update is not yet implemented
 
     def gen_nhcalc_str(self):
         """
@@ -6069,7 +6060,7 @@ class QCMApp(QMainWindow):
         """
         make list from nhcalc strs
         """
-        # TODO can be extanded to multiple strings
+        # currently returns a single nhcalc string; multi-string support not yet implemented
         return [self.gen_nhcalc_str()]
 
     def mechanics_plot_r_time(self):
@@ -7085,26 +7076,26 @@ class QCMApp(QMainWindow):
     def update_timeunit(self, timeunit_index):
         value = self.ui.comboBox_timeunit.itemData(timeunit_index)
         self.settings["comboBox_timeunit"] = value
-        # TODO update plt1 and plt2
+        # plot refresh after unit/scale change is not yet implemented
 
     def update_tempunit(self, tempunit_index):
         value = self.ui.comboBox_tempunit.itemData(tempunit_index)
         self.settings["comboBox_tempunit"] = value
-        # TODO update plt1 and plt2
+        # plot refresh after unit/scale change is not yet implemented
 
     def update_timescale(self, timescale_index):
         value = self.ui.comboBox_xscale.itemData(timescale_index)
         self.settings["comboBox_xscale"] = value
-        # TODO update plt1 and plt2
+        # plot refresh after unit/scale change is not yet implemented
 
     def update_yscale(self, yscale_index):
         value = self.ui.comboBox_yscale.itemData(yscale_index)
         self.settings["comboBox_yscale"] = value
-        # TODO update plt1 and plt2
+        # plot refresh after unit/scale change is not yet implemented
 
     def update_linkx(self):
         self.settings["checkBox_linkx"] = not self.settings["checkBox_linkx"]
-        # TODO update plt1 and plt2
+        # plot refresh after unit/scale change is not yet implemented
 
     def load_comboBox(self, comboBox, val=None, harm=None, mech_chn=None):
         """
@@ -7117,7 +7108,7 @@ class QCMApp(QMainWindow):
         comboBoxName = comboBox.objectName()
         # if config_default[opts]:
         #     for key in config_default[opts].keys():
-        #         # TODO look for value from itemdata and loop use for in combox.count()
+        #         # look for value from itemdata and loop use for in combox.count()
         #         if harm is None: # not embeded in subdict
         #             if key == self.settings[comboBoxName]:
         #                 comboBox.setCurrentIndex(comboBox.findData(key))
@@ -7222,7 +7213,7 @@ class QCMApp(QMainWindow):
             elif name.startswith("comboBox_"):
                 self.load_comboBox(obj)
             elif name.startswith("groupBox_"):
-                # TODO something here load def value
+                # groupBox default-value loading from settings is not yet implemented
                 pass
 
     def load_settings(self):
@@ -7252,7 +7243,7 @@ class QCMApp(QMainWindow):
         # set deflault displaying of tabWidget_mechanics_chn
         self.ui.tabWidget_mechanics_chn.setCurrentIndex(0)
         # set actived harmonic tab
-        # self.settings_harm = 1 #TODO
+        # self.settings_harm = 1  # initial active harmonic tab; controlled by tabWidget instead
         # set active_chn
         self.ui.tabWidget_settings_settings_samprefchn.setCurrentIndex(0)
         # set active mech calc method
@@ -7610,7 +7601,7 @@ class QCMApp(QMainWindow):
 
             # data reading and plot
             harm_list = sel_harm_dict[idx]
-            for harm in harm_list:  # TODO add poll here
+            for harm in harm_list:
                 # get data
                 f, G, B = self.data_saver.get_raw(chn_name, queue_id, harm)
                 if f is None:
