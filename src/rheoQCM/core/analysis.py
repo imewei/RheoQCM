@@ -901,7 +901,7 @@ def batch_analyze_vmap(
     """
     # Log backend information (T043)
     backend = _log_backend_info()
-    logger.info(f"batch_analyze_vmap: Processing {len(delfstars)} measurements")
+    logger.info("batch_analyze_vmap: Processing %d measurements", len(delfstars))
 
     # Parse nhcalc
     n1, n2, n3 = _parse_nhcalc(nhcalc)

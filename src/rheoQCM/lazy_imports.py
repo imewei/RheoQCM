@@ -82,9 +82,9 @@ class LazyModule:
             try:
                 module = importlib.import_module(module_name)
                 elapsed = (time.perf_counter() - start) * 1000
-                logger.debug(f"Lazy loaded {module_name} in {elapsed:.1f}ms")
+                logger.debug("Lazy loaded %s in %.1fms", module_name, elapsed)
             except ImportError as e:
-                logger.error(f"Failed to lazy load {module_name}: {e}")
+                logger.error("Failed to lazy load %s: %s", module_name, e)
                 raise
             object.__setattr__(self, "_module", module)
         return module

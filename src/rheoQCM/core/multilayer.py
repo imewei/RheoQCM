@@ -806,7 +806,7 @@ def calc_delfstar_multilayer(
     try:
         validate_layers(layers)
     except LayerValidationError as e:
-        logger.warning(f"Layer validation failed: {e}")
+        logger.warning("Layer validation failed: %s", e)
         return jnp.array(jnp.nan + 0.0j, dtype=jnp.complex128)
 
     # T051: Make a shallow copy to avoid modifying input (005-jax-perf)

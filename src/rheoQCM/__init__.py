@@ -21,22 +21,22 @@ configure_logging()
 
 # Log startup information
 _logger = logging.getLogger(__name__)
-_logger.info(f"RheoQCM version {__version__}")
-_logger.debug(f"Python {sys.version}")
+_logger.info("RheoQCM version %s", __version__)
+_logger.debug("Python %s", sys.version)
 
 # Log key dependency versions at DEBUG level
 try:
     import jax
 
-    _logger.debug(f"JAX version {jax.__version__}")
-    _logger.debug(f"JAX backend: {jax.default_backend()}")
+    _logger.debug("JAX version %s", jax.__version__)
+    _logger.debug("JAX backend: %s", jax.default_backend())
 except ImportError:
     pass
 
 try:
     import numpy
 
-    _logger.debug(f"NumPy version {numpy.__version__}")
+    _logger.debug("NumPy version %s", numpy.__version__)
 except ImportError:
     pass
 

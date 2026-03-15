@@ -259,14 +259,14 @@ def print_jax_info() -> None:
     - Float64 status
     - Default dtype
     """
-    logger.info(f"JAX version: {jax.__version__}")
-    logger.info(f"Available devices: {jax.devices()}")
-    logger.info(f"Current platform: {get_jax_backend()}")
-    logger.info(f"GPU available: {is_gpu_available()}")
-    logger.info(f"TPU available: {is_tpu_available()}")
-    logger.info(f"Float64 enabled: {jax.config.jax_enable_x64}")
-    logger.info(f"Default dtype: {get_default_dtype()}")
-    logger.info(f"Float64 verified: {verify_float64()}")
+    logger.info("JAX version: %s", jax.__version__)
+    logger.info("Available devices: %s", jax.devices())
+    logger.info("Current platform: %s", get_jax_backend())
+    logger.info("GPU available: %s", is_gpu_available())
+    logger.info("TPU available: %s", is_tpu_available())
+    logger.info("Float64 enabled: %s", jax.config.jax_enable_x64)
+    logger.info("Default dtype: %s", get_default_dtype())
+    logger.info("Float64 verified: %s", verify_float64())
 
 
 def log_platform_status() -> None:
@@ -279,7 +279,7 @@ def log_platform_status() -> None:
     gpu_avail = is_gpu_available()
     tpu_avail = is_tpu_available()
 
-    logger.info(f"JAX platform: {backend}")
+    logger.info("JAX platform: %s", backend)
     if backend == "cpu" and (gpu_avail or tpu_avail):
         logger.info("Note: GPU/TPU available but not in use")
     elif backend == "gpu":
@@ -319,7 +319,7 @@ def check_gpu_availability() -> None:
 
             if not using_gpu:
                 logger.warning("GPU ACCELERATION AVAILABLE")
-                logger.warning(f"NVIDIA GPU detected: {gpu_name}")
+                logger.warning("NVIDIA GPU detected: %s", gpu_name)
                 logger.warning("JAX is currently using: CPU-only")
                 logger.warning("Enable 150-270x speedup with GPU acceleration:")
                 logger.warning("  make install-jax-gpu")

@@ -537,7 +537,7 @@ def register_global_calctype(name: str, residual_fn: CalctypeResidualFn) -> None
     >>> register_global_calctype("MyModel", my_residual)
     """
     _CALCTYPE_REGISTRY[name] = residual_fn
-    logger.info(f"Registered global calctype: {name}")
+    logger.info("Registered global calctype: %s", name)
 
 
 def get_global_calctypes() -> list[str]:
@@ -786,7 +786,7 @@ class QCMModel:
           as the number of fitted data points (typically 3)
         """
         self._instance_calctypes[name] = residual_fn
-        logger.info(f"Registered calctype '{name}' for model instance")
+        logger.info("Registered calctype '%s' for model instance", name)
 
     def get_supported_calctypes(self) -> list[str]:
         """
@@ -901,7 +901,7 @@ class QCMModel:
             except Exception as e:
                 # Record error and return large residuals
                 residual_error[0] = str(e)
-                logger.warning(f"Custom residual error: {e}")
+                logger.warning("Custom residual error: %s", e)
                 return jnp.array([1e10, 1e10, 1e10])
 
         # Run optimization
@@ -953,7 +953,7 @@ class QCMModel:
             )
 
         except Exception as e:
-            logger.error(f"Custom calctype optimization failed: {e}")
+            logger.error("Custom calctype optimization failed: %s", e)
             return SolveResult(
                 success=False,
                 message=f"Custom calctype optimization failed: {e}",
@@ -1387,14 +1387,14 @@ class QCMModel:
         custom_residual = self._get_calctype_residual(effective_calctype)
         if custom_residual is not None:
             # Use custom residual function (US5: Full integration)
-            logger.info(f"Using custom calctype: {effective_calctype}")
+            logger.info("Using custom calctype: %s", effective_calctype)
             return self._solve_with_custom_residual(
                 custom_residual, self.delfstars, nh, bulklimit
             )
         elif effective_calctype not in self.BUILTIN_CALCTYPES:
             # Unknown calctype - warn and fall back
             logger.warning(
-                f"Unknown calctype '{effective_calctype}', falling back to SLA"
+                "Unknown calctype '%s', falling back to SLA", effective_calctype
             )
             effective_calctype = "SLA"
 
@@ -1542,7 +1542,7 @@ class QCMModel:
                             "Jacobian inversion failed, covariance unavailable"
                         )
                 except Exception as e:
-                    logger.warning(f"Error calculation failed: {e}")
+                    logger.warning("Error calculation failed: %s", e)
 
             return SolveResult(
                 drho=drho,

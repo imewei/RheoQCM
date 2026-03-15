@@ -422,7 +422,7 @@ def findpeaks_py(
     sortstr: 'ascend' or 'descend' ordering data by peak height
     """
     if x is None or len(x) == 1:
-        logger.warning(f"findpeaks_py input x is not well assigned!\nx = {x}")
+        logger.warning("findpeaks_py input x is not well assigned!\nx = %s", x)
         exit(0)
 
     logger.debug(threshold)

@@ -40,7 +40,7 @@ def get_system_cuda_version() -> tuple[str | None, int | None]:
     except (FileNotFoundError, OSError):
         _logger.debug("nvcc not found")
     except (ValueError, IndexError) as e:
-        _logger.debug(f"Failed to parse CUDA version: {e}")
+        _logger.debug("Failed to parse CUDA version: %s", e)
 
     return None, None
 
@@ -75,7 +75,7 @@ def get_gpu_info() -> tuple[str | None, float | None]:
     except (FileNotFoundError, OSError):
         _logger.debug("nvidia-smi not found")
     except (ValueError, IndexError) as e:
-        _logger.debug(f"Failed to parse GPU info: {e}")
+        _logger.debug("Failed to parse GPU info: %s", e)
 
     return None, None
 
@@ -105,16 +105,16 @@ def get_recommended_package() -> str | None:
         if sm_version >= 7.5:
             return "jax[cuda13-local]"
         else:
-            _logger.debug(f"GPU SM {sm_version} doesn't support CUDA 13")
+            _logger.debug("GPU SM %s doesn't support CUDA 13", sm_version)
             return None
     elif cuda_major == 12:
         if sm_version >= 5.2:
             return "jax[cuda12-local]"
         else:
-            _logger.debug(f"GPU SM {sm_version} too old for CUDA 12")
+            _logger.debug("GPU SM %s too old for CUDA 12", sm_version)
             return None
     else:
-        _logger.debug(f"CUDA {cuda_major} not supported")
+        _logger.debug("CUDA %s not supported", cuda_major)
         return None
 
 
@@ -149,7 +149,7 @@ def check_gpu_availability(warn: bool = True) -> bool:
         using_gpu = any("cuda" in str(d).lower() for d in devices)
 
         if using_gpu:
-            _logger.debug(f"JAX is using GPU: {devices}")
+            _logger.debug("JAX is using GPU: %s", devices)
             return True
 
         # GPU available but not being used
@@ -162,7 +162,7 @@ def check_gpu_availability(warn: bool = True) -> bool:
         _logger.debug("JAX not installed")
         return False
     except RuntimeError as e:
-        _logger.debug(f"JAX backend initialization failed: {e}")
+        _logger.debug("JAX backend initialization failed: %s", e)
         return False
 
 
