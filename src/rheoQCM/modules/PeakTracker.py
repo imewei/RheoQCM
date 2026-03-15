@@ -1147,7 +1147,6 @@ class PeakTracker:
                 factor_set_list.append(set(np.arange(ind_min, ind_max)))
 
             idx_list = list(set().union(*factor_set_list))
-            [True if i in idx_list else False for i in np.arange(len(f))]
 
             self.update_output(
                 chn_name=chn_name,

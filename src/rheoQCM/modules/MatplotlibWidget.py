@@ -165,15 +165,6 @@ class MatplotlibWidget(QWidget):
             yscale="linear",
         )
 
-        # set figure border
-        # self.resize('draw_event')
-        # if axtype == 'sp':
-        #     plt.tight_layout(pad=1.08)
-        # else:
-        #     self.fig.subplots_adjust(left=0.12, bottom=0.13, right=.97, top=.98, wspace=0, hspace=0)
-        #     # self.fig.tight_layout()
-        #     # self.fig.tight_layout(pad=0.5, h_pad=0, w_pad=0, rect=(0, 0, 1, 1))
-
         self.canvas_draw()
 
     def initax_xy(self, *args, **kwargs):
@@ -905,12 +896,6 @@ class MatplotlibWidget(QWidget):
             yscale=yscale,
         )
 
-    # def sizeHint(self):
-    #     return QSize(*self.get_width_height())
-
-    # def minimumSizeHint(self):
-    #     return QSize(10, 10)
-
     def set_ax(
         self,
         ax,
@@ -1265,8 +1250,7 @@ class MatplotlibWidget(QWidget):
             **kwargs,
         )
 
-        # self.l = {}
-        for i, x, y in enumerate(zip(xdata, ydata, strict=False)):
+        for i, (x, y) in enumerate(zip(xdata, ydata, strict=False)):
             self.l[i] = self.ax[0].plot(
                 x,
                 y,
@@ -1330,23 +1314,8 @@ class MatplotlibWidget(QWidget):
         reset the lim of ax
         this change the display and where home button goes back to
         """
-        # turn off PAN/ZOOM
-        # if self.toolbar._active == "PAN":
-        #     self.toolbar.pan()
-        # elif self.toolbar._active == "ZOOM":
-        #     self.toolbar.zoom()
-
-        # self.canvas.toolbar.update() # reset toolbar memory
-        # self.canvas.toolbar.push_current() # set current to memory
-
-        # ax.set_autoscale_on(True) # this reactive autoscale which might be turnned of by zoom/pan
         ax.relim(visible_only=True)
         ax.autoscale_view(True, True, True)
-        # ax.autoscale(True, 'both', False) # the same as autoscale_view
-        # self.canvas.toolbar.push_current() # set current to memory
-
-        # self.canvas.toolbar._views._elements
-        # self.canvas.toolbar._positions._elements
 
 
 def press_zoomX(obj, event):
