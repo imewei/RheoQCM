@@ -19,7 +19,7 @@ repos:
 
   # Ruff for linting and formatting
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: 5ba58aca0bd5bc7c0e1c0fc45af2e88d6a2bde83  # frozen: v0.14.10
+    rev: 4924b0e01e032fea073ad04a1c5cfa7e4add0afb  # frozen: v0.15.6
     hooks:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix]

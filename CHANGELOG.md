@@ -1,5 +1,48 @@
 # Changelog
 
+## [0.22.0] - 2026-03-15
+
+### Added
+
+- Structured logging throughout the codebase (replaced print statements with `logging` module)
+
+### Changed
+
+- Consolidated all optional dependencies (dev, gui, fallback, docs) into core `dependencies` in pyproject.toml
+- Demoted ~434 diagnostic `logger.info()` calls to `logger.debug()` across 7 modules to reduce production log noise
+- Converted 36 f-string logger calls to %-style lazy formatting for zero-cost when log level is suppressed
+- Replaced deprecated `jaxopt` with `optimistix` for JAX-native least-squares optimization
+- Replaced deprecated `np.float` alias with builtin `float` for NumPy 2.0+ compatibility (5 sites)
+- Simplified `True if X else False` anti-patterns to direct boolean expressions (4 sites)
+- Replaced TODO markers with descriptive comments throughout the codebase
+
+### Fixed
+
+- Fixed `.fromat()` typo in `DataStore._set_ref` that would raise `AttributeError` at runtime
+- Fixed `mark != np.nan` IEEE 754 comparison bug that always evaluated to `True`, causing silent data corruption in `mark_data()` and `mark_all_to()` (3 sites)
+- Fixed `dict.pop(mech_keys)` using list instead of loop variable `mech_key` in `remove_mech_data`, causing silent no-op removals
+- Fixed `for i, x, y in enumerate(zip(...))` unpacking error in `MatplotlibWidget.new_plt()`
+- Fixed `np.isnan().all()` scalar NaN check replaced with `pd.isna()` in data merge
+- Fixed bitwise `&` used as logical `and` and missing parentheses in `np.where` condition
+- Fixed misspelled log messages: "fromat", "Exceptiion", "occured", "triggrued", "does not exists", "amrked"
+- Fixed `KeyError` in `set_harmdata()` silently swallowed at debug level — escalated to `logger.warning`
+- Fixed Bayesian convergence result incorrectly demoted to DEBUG — restored to INFO for R-hat/ESS visibility
+- Fixed stale `DataSaver` references and removed migration markers after `DataStore` rename
+- Fixed stale VNA action references and dead commented-out code from strip-acquisition refactor
+- Fixed deleted `dynamic_save()` calls replaced with `pd.concat` and mutable list aliasing
+- Replaced `arctan` division with `arctan2` for numerical stability
+- Added `clamp_phi()` helper to prevent `tan(phi/2)` singularities in JIT paths
+
+### Removed
+
+- Removed VNA/hardware acquisition code (analysis-only tool)
+- Removed `QCMFuncs` legacy module (deprecated with `FutureWarning` and migration guide)
+- Removed dead `split_path` stub, `datadf_with_data` stub, and redundant `else: pass` branches
+- Removed 147+ commented-out logger lines and 9+ dead code blocks (triple-quoted string literals, commented-out alternative implementations)
+- Removed dead dual-crystal pass-only stubs and unreachable `elif` branches
+- Removed dead `ref_type_opts` config block and unused `bulk` option from `qcm_model_opts`
+- Removed `[project.optional-dependencies]` section from pyproject.toml (consolidated into core deps)
+
 ## [0.21.0] - 2024-01-11
 
 ### Added

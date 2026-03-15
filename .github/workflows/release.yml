@@ -32,7 +32,7 @@ jobs:
     - name: Install dependencies
       run: |
         uv venv --python ${{ matrix.python-version }}
-        uv pip install -e ".[dev]"
+        uv pip install -e .
 
     - name: Run tests (excluding GUI and hardware)
       timeout-minutes: 20
@@ -57,13 +57,13 @@ jobs:
       with:
         version: "latest"
 
-    - name: Set up Python 3.12
-      run: uv python install 3.12
+    - name: Set up Python
+      run: uv python install 3.13
 
     - name: Install dependencies
       run: |
-        uv venv --python 3.12
-        uv pip install -e ".[dev]"
+        uv venv --python 3.13
+        uv pip install -e .
 
     - name: Run Ruff lint
       run: uv run ruff check src tests
@@ -85,14 +85,13 @@ jobs:
       with:
         version: "latest"
 
-    - name: Set up Python 3.12
-      run: uv python install 3.12
+    - name: Set up Python
+      run: uv python install 3.13
 
     - name: Install dependencies
       run: |
-        uv venv --python 3.12
-        uv pip install -e ".[dev]"
-        uv pip install -r docs/requirements.txt
+        uv venv --python 3.13
+        uv pip install -e .
 
     - name: Build documentation
       run: |
@@ -118,12 +117,12 @@ jobs:
         version: "latest"
 
     - name: Set up Python
-      run: uv python install 3.12
+      run: uv python install 3.13
 
     - name: Install dependencies
       run: |
-        uv venv --python 3.12
-        uv pip install -e ".[dev]"
+        uv venv --python 3.13
+        uv pip install -e .
 
     - name: Build package
       run: uv run python -m build

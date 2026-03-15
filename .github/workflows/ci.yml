@@ -28,7 +28,7 @@ jobs:
     - name: Install dependencies
       run: |
         uv venv --python ${{ matrix.python-version }}
-        uv pip install -e ".[dev]"
+        uv pip install -e .
 
     - name: Run Ruff lint
       run: uv run ruff check src tests
@@ -61,7 +61,7 @@ jobs:
     - name: Install dependencies
       run: |
         uv venv --python ${{ matrix.python-version }}
-        uv pip install -e ".[dev]"
+        uv pip install -e .
 
     - name: Run tests (excluding GUI and hardware)
       shell: bash
@@ -75,7 +75,7 @@ jobs:
           -n auto
 
     - name: Upload coverage to Codecov
-      if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
+      if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.13'
       uses: codecov/codecov-action@v4
       with:
         file: ./coverage.xml
@@ -85,9 +85,6 @@ jobs:
 
   docs:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ['3.12']
 
     steps:
     - uses: actions/checkout@v4
@@ -97,14 +94,13 @@ jobs:
       with:
         version: "latest"
 
-    - name: Set up Python ${{ matrix.python-version }}
-      run: uv python install ${{ matrix.python-version }}
+    - name: Set up Python
+      run: uv python install 3.13
 
     - name: Install dependencies
       run: |
-        uv venv --python ${{ matrix.python-version }}
-        uv pip install -e ".[dev]"
-        uv pip install -r docs/requirements.txt
+        uv venv --python 3.13
+        uv pip install -e .
 
     - name: Build documentation
       run: |
@@ -136,7 +132,7 @@ jobs:
     - name: Install dependencies
       run: |
         uv venv --python ${{ matrix.python-version }}
-        uv pip install -e ".[dev]"
+        uv pip install -e .
 
     - name: Build package
       run: uv run python -m build

@@ -1,5 +1,6 @@
 # Documentation build requirements for RheoQCM
-# Install with: pip install -r docs/requirements.txt
+# These are included in the core dependencies in pyproject.toml.
+# This file exists for standalone doc builds without installing the full package.
 
 # Sphinx core
 sphinx>=8.0
@@ -15,6 +16,3 @@ linkify-it-py>=2.0
 
 # Optional: live-reload development server
 sphinx-autobuild>=2024.0
-
-# Note: RheoQCM package should be installed before these docs deps
-# For local development: pip install -e ".[docs]" or uv pip install -e ".[docs]"

@@ -2,7 +2,7 @@
 # ========================
 # Development Tools for QCM Analysis Software
 
-.PHONY: help install install-dev install-gui \
+.PHONY: help install \
         install-jax-gpu install-jax-gpu-cuda13 install-jax-gpu-cuda12 gpu-check env-info \
         test test-fast test-coverage \
         clean clean-all clean-pyc clean-build clean-test clean-venv \
@@ -12,7 +12,7 @@
 PYTHON := python
 PYTEST := pytest
 PACKAGE_NAME := rheoQCM
-SRC_DIRS := src/rheoQCM src/QCMFuncs
+SRC_DIRS := src/rheoQCM
 TEST_DIR := tests
 DOCS_DIR := docs
 VENV := .venv
@@ -92,9 +92,7 @@ help:
 	@echo "  $(CYAN)version$(RESET)          Show package version"
 	@echo ""
 	@echo "$(BOLD)$(GREEN)INSTALLATION$(RESET)"
-	@echo "  $(CYAN)install$(RESET)          Install package in editable mode"
-	@echo "  $(CYAN)install-dev$(RESET)      Install with development dependencies"
-	@echo "  $(CYAN)install-gui$(RESET)      Install with GUI dependencies (PyQt6)"
+	@echo "  $(CYAN)install$(RESET)          Install package in editable mode (all dependencies)"
 	@echo ""
 	@echo "$(BOLD)$(GREEN)GPU ACCELERATION (System CUDA)$(RESET)"
 	@echo "  $(CYAN)install-jax-gpu$(RESET)        Auto-detect system CUDA and install JAX (Linux only)"
@@ -148,16 +146,6 @@ install:
 	@echo "$(BOLD)$(BLUE)Installing $(PACKAGE_NAME) in editable mode...$(RESET)"
 	@$(INSTALL_CMD) -e .
 	@echo "$(BOLD)$(GREEN)Done: Package installed!$(RESET)"
-
-install-dev: install
-	@echo "$(BOLD)$(BLUE)Installing development dependencies...$(RESET)"
-	@$(INSTALL_CMD) -e ".[dev]"
-	@echo "$(BOLD)$(GREEN)Done: Dev dependencies installed!$(RESET)"
-
-install-gui:
-	@echo "$(BOLD)$(BLUE)Installing GUI dependencies...$(RESET)"
-	@$(INSTALL_CMD) -e ".[gui]"
-	@echo "$(BOLD)$(GREEN)Done: GUI dependencies installed!$(RESET)"
 
 # Auto-detect system CUDA version and install matching JAX package
 install-jax-gpu:
