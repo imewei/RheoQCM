@@ -28,9 +28,16 @@ from PyQt6.QtCore import (  # noqa: E402
     QCoreApplication,
     QSize,
     Qt,
+    QUrl,
     qFatal,
 )
-from PyQt6.QtGui import QAction, QDoubleValidator, QIcon, QIntValidator  # noqa: E402
+from PyQt6.QtGui import (  # noqa: E402
+    QAction,
+    QDesktopServices,
+    QDoubleValidator,
+    QIcon,
+    QIntValidator,
+)
 from PyQt6.QtWidgets import (  # noqa: E402
     QApplication,
     QCheckBox,
@@ -1579,8 +1586,12 @@ class QCMApp(QMainWindow):
         self.ui.actionImport_QCM_Z.triggered.connect(
             self.on_triggered_actionImport_QCM_Z
         )
-        # about QCM_py
+        # about rheoQCM
         self.ui.actionAbout_QCM_py.triggered.connect(self.msg_about)
+        # exit
+        self.ui.actionExit.triggered.connect(QApplication.instance().quit)
+        # help manual - open documentation in browser
+        self.ui.actionHelp_Manual.triggered.connect(self.on_triggered_help_manual)
 
         # endregion
 
@@ -1875,6 +1886,10 @@ class QCMApp(QMainWindow):
         msg.setInformativeText("<P>".join(msg_text))
         msg.setStandardButtons(buttons)
         msg.exec()
+
+    def on_triggered_help_manual(self):
+        """Open the project documentation in the default web browser."""
+        QDesktopServices.openUrl(QUrl(_version.__source__))
 
     ## functions for open and save file
     def openFileNameDialog(

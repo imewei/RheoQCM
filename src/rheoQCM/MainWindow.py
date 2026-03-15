@@ -4251,15 +4251,6 @@ class Ui_MainWindow:
         )
         self.actionClear_All.setIcon(icon15)
         self.actionClear_All.setObjectName("actionClear_All")
-        self.actionDelete_Selected = QtGui.QAction(parent=MainWindow)
-        icon16 = QtGui.QIcon()
-        icon16.addPixmap(
-            QtGui.QPixmap(":/icon/rc/delete_selected.svg"),
-            QtGui.QIcon.Mode.Normal,
-            QtGui.QIcon.State.Off,
-        )
-        self.actionDelete_Selected.setIcon(icon16)
-        self.actionDelete_Selected.setObjectName("actionDelete_Selected")
         self.actionRegenerate_allsamp = QtGui.QAction(parent=MainWindow)
         self.actionRegenerate_allsamp.setObjectName("actionRegenerate_allsamp")
         self.actionFit_markedsamp = QtGui.QAction(parent=MainWindow)
@@ -4298,8 +4289,6 @@ class Ui_MainWindow:
         self.actionRegenerate_allref.setObjectName("actionRegenerate_allref")
         self.actionFit_markedref = QtGui.QAction(parent=MainWindow)
         self.actionFit_markedref.setObjectName("actionFit_markedref")
-        self.actionMaximum_Harmonic = QtGui.QAction(parent=MainWindow)
-        self.actionMaximum_Harmonic.setObjectName("actionMaximum_Harmonic")
         self.actionImport_QCM_Z = QtGui.QAction(parent=MainWindow)
         icon19 = QtGui.QIcon()
         icon19.addPixmap(
@@ -4319,8 +4308,6 @@ class Ui_MainWindow:
         self.actionRows_Index.setObjectName("actionRows_Index")
         self.actionSolve_new = QtGui.QAction(parent=MainWindow)
         self.actionSolve_new.setObjectName("actionSolve_new")
-        self.actionOpen_openQCM = QtGui.QAction(parent=MainWindow)
-        self.actionOpen_openQCM.setObjectName("actionOpen_openQCM")
         self.menuFile.addAction(self.actionNew_Exp)
         self.menuFile.addAction(self.actionLoad_Exp)
         self.menuFile.addAction(self.actionLoad_Settings)
@@ -4338,7 +4325,6 @@ class Ui_MainWindow:
         self.menuFile.addSeparator()
         self.menuFile.addAction(self.actionExit)
         self.menuSetting.addAction(self.actionReset)
-        self.menuSetting.addAction(self.actionMaximum_Harmonic)
         self.menuHelp.addAction(self.actionHelp_Manual)
         self.menuHelp.addAction(self.actionAbout_QCM_py)
         self.menubar.addAction(self.menuFile.menuAction())
@@ -5056,13 +5042,12 @@ class Ui_MainWindow:
         self.actionExit.setText(_translate("MainWindow", "Exit"))
         self.actionExit.setShortcut(_translate("MainWindow", "Ctrl+Q"))
         self.actionHelp_Manual.setText(_translate("MainWindow", "Help Manual"))
-        self.actionAbout_QCM_py.setText(_translate("MainWindow", "About QCMpy"))
-        self.actionAbout_QCM_py.setToolTip(_translate("MainWindow", "About QCMpy"))
+        self.actionAbout_QCM_py.setText(_translate("MainWindow", "About rheoQCM"))
+        self.actionAbout_QCM_py.setToolTip(_translate("MainWindow", "About rheoQCM"))
         self.actionNew_Exp.setText(_translate("MainWindow", "New Exp"))
         self.actionNew_Exp.setToolTip(_translate("MainWindow", "New Experiment"))
         self.actionNew_Exp.setShortcut(_translate("MainWindow", "Ctrl+N"))
         self.actionClear_All.setText(_translate("MainWindow", "Clear Data"))
-        self.actionDelete_Selected.setText(_translate("MainWindow", "Delete Selected"))
         self.actionRegenerate_allsamp.setText(
             _translate("MainWindow", "Regenerate S chn. all")
         )
@@ -5119,9 +5104,6 @@ class Ui_MainWindow:
         self.actionFit_markedref.setToolTip(
             _translate("MainWindow", "refiit marked data in R chn.")
         )
-        self.actionMaximum_Harmonic.setText(
-            _translate("MainWindow", "Maximum Harmonic")
-        )
         self.actionImport_QCM_Z.setText(_translate("MainWindow", "Import QCM-Z"))
         self.actionImport_QCM_Z.setToolTip(
             _translate("MainWindow", "Import QCM-Z Data (impedance analysis)")
@@ -5143,8 +5125,4 @@ class Ui_MainWindow:
         self.actionSolve_new.setText(_translate("MainWindow", "Solve new"))
         self.actionSolve_new.setToolTip(
             _translate("MainWindow", "Solve new collected data in current channel.")
-        )
-        self.actionOpen_openQCM.setText(_translate("MainWindow", "Open openQCM"))
-        self.actionOpen_openQCM.setToolTip(
-            _translate("MainWindow", "Open openQCM program")
         )
