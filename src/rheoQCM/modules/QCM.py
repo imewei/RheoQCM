@@ -464,7 +464,7 @@ class QCM:
         if n is None:
             n = self.refh
         return min(
-            np.pi / 2, -2 * np.arctan(np.real(delfstar[n]) / np.imag(delfstar[n]))
+            np.pi / 2, -2 * np.arctan2(np.real(delfstar[n]), np.imag(delfstar[n]))
         )
 
     def bulk_props(self, delfstar: dict, n: int | None = None) -> list:

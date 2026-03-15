@@ -734,7 +734,7 @@ def _solve_single_measurement(
         grho_refh = (jnp.pi * Zq * jnp.abs(delfstar_refh) / f1) ** 2
         phi = jnp.minimum(
             jnp.pi / 2,
-            -2 * jnp.arctan(jnp.real(delfstar_refh) / jnp.imag(delfstar_refh)),
+            -2 * jnp.arctan2(jnp.real(delfstar_refh), jnp.imag(delfstar_refh)),
         )
         drho = jnp.inf
         return drho, grho_refh, phi, jnp.array(True)
