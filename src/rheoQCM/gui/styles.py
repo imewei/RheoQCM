@@ -433,6 +433,11 @@ class StyleManager:
             cls._instance = cls()
         return cls._instance
 
+    @classmethod
+    def reset(cls) -> None:
+        """Reset singleton state. For testing only."""
+        cls._instance = None
+
     @property
     def palette(self) -> ColorPalette:
         """Get current color palette."""
@@ -937,7 +942,7 @@ class StyleManager:
             }}
 
             /* === RheoQCM: Transparent line edits for frequency displays === */
-            QLineEdit[readOnly="true"] {{
+            QLineEdit[displayOnly="true"] {{
                 background: transparent;
                 border: none;
             }}

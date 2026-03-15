@@ -416,14 +416,14 @@ class QCMApp(QMainWindow):
         # endregion
 
         # region settings_control
-        # Frequency display line edits: mark as read-only so global stylesheet
-        # applies transparent background automatically
+        # Frequency display line edits: mark as display-only for transparent styling
         for harm in self.all_harm_list(as_str=True):
             for suffix in ("lineEdit_startf", "lineEdit_endf"):
                 for chn in (harm, harm + "_r"):
                     widget = getattr(self.ui, suffix + chn, None)
                     if widget is not None:
                         widget.setReadOnly(True)
+                        widget.setProperty("displayOnly", True)
 
         # dateTimeEdit_reftime on dateTimeChanged
         self.ui.dateTimeEdit_reftime.dateTimeChanged.connect(
@@ -492,8 +492,9 @@ class QCMApp(QMainWindow):
             self.on_clicked_checkBox_fitfactorbyharm
         )
 
-        # datafilestr: mark read-only for theme-aware transparent background
+        # datafilestr: mark display-only for theme-aware transparent background
         self.ui.lineEdit_datafilestr.setReadOnly(True)
+        self.ui.lineEdit_datafilestr.setProperty("displayOnly", True)
 
         # endregion
 
@@ -1572,7 +1573,6 @@ class QCMApp(QMainWindow):
 
         # Theme submenu with radio-style exclusive actions
         self.ui.menuTheme = QMenu("Theme", self.ui.menuView)
-        self._theme_action_group = []
 
         self.actionTheme_light = QAction("Light", self)
         self.actionTheme_light.setCheckable(True)
@@ -2457,11 +2457,11 @@ class QCMApp(QMainWindow):
         analysis mode. Also renames 'Hardwares' toolbox tab to 'Crystal'.
         """
         tree = self.ui.treeWidget_settings_settings_hardware
-        # Hide "VNA" (index 1) and "Temperature" (index 3)
-        # Hide "Analyzer" (index 0) - acquisition-only selector
-        for idx in (3, 1, 0):  # reverse order to keep indices stable
-            item = tree.topLevelItem(idx)
-            if item is not None:
+        # Hide acquisition-only tree items by label (stable against reordering)
+        hidden_labels = {"Analyzer", "VNA", "Temperature"}
+        for i in range(tree.topLevelItemCount()):
+            item = tree.topLevelItem(i)
+            if item is not None and item.text(0) in hidden_labels:
                 item.setHidden(True)
 
         # Rename "Hardwares" toolbox tab → "Crystal" (the only remaining section)
