@@ -7908,8 +7908,8 @@ if __name__ == "__main__":
 
         def exception_hook(exctype, value, traceback):
             # logger.exception('Exception occurred')
-            logger.error("Exceptiion error", exc_info=(exctype, value, traceback))
-            qFatal("UI error occured.")
+            logger.error("Exception error", exc_info=(exctype, value, traceback))
+            qFatal("UI error occurred.")
             sys._excepthook(exctype, value, traceback)
             sys.exit(1)
 
