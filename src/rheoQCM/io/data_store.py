@@ -1911,7 +1911,7 @@ class DataStore:
         elif df is None:  # chn_name is not samp/ref and df is not given
             logger.info("out file reference and df is None")
             raise ValueError(
-                r"df should not be None when {} is reference source.".fromat(
+                r"df should not be None when {} is reference source.".format(
                     self.exp_ref[chn_name + "_ref"][0]
                 )
             )
