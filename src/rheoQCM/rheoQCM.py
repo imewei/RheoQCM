@@ -2093,7 +2093,7 @@ class QCMApp(QMainWindow):
         if self.data_saver.path:  # there is file
             self.data_saver.save_data_settings(settings=self.settings)
             logger.info("Data has been saved to file!")
-        elif (not self.data_saver.path) & len(
+        elif (not self.data_saver.path) and len(
             self.tempPath
         ) > 0:  # name given but file not been created (no data)
             logger.warning("No data collected!")
@@ -6786,8 +6786,8 @@ class QCMApp(QMainWindow):
             logger.info(idx)
             logger.info(self.ui.pushButton_manual_refit.isChecked())
             logger.info(idx < 2)
-            logger.info(self.ui.pushButton_manual_refit.isChecked() & (idx < 2))
-            if self.ui.pushButton_manual_refit.isChecked() & (
+            logger.info(self.ui.pushButton_manual_refit.isChecked() and (idx < 2))
+            if self.ui.pushButton_manual_refit.isChecked() and (
                 idx < 2
             ):  # current idx changed out of refit (2)
                 logger.info("samprefchn move out of 2")
@@ -7760,7 +7760,7 @@ class QCMApp(QMainWindow):
                         {"ln": "srec", "x": cen_rec_freq, "y": cen_rec_G},
                     )
                 elif self.settings["radioButton_spectra_showpolar"]:  # checked
-                    idx = np.where(f >= factor_span[0] & f <= factor_span[1])
+                    idx = np.where((f >= factor_span[0]) & (f <= factor_span[1]))
 
                     cen_rec_B = self.peak_tracker.get_output(
                         key="bmod", chn_name=chn_name, harm=harm
