@@ -32,9 +32,12 @@ __all__ = [
     "COLORS_DARK",
 ]
 
+import logging
 from dataclasses import dataclass
 from enum import Enum
 from typing import TYPE_CHECKING
+
+_logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from PyQt6.QtWidgets import QWidget
@@ -466,8 +469,8 @@ class StyleManager:
         for callback in self._callbacks:
             try:
                 callback()
-            except Exception:
-                pass
+            except Exception as e:
+                _logger.warning("Style callback %r raised: %s", callback, e)
 
     def get_full_stylesheet(self) -> str:
         """Get complete application stylesheet.

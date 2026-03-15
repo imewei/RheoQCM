@@ -689,10 +689,6 @@ class QCMApp(QMainWindow):
         self.ui.comboBox_settings_settings_analyzer.currentIndexChanged.connect(
             self.update_widget
         )
-        # TODO connect module importing function here
-        self.ui.comboBox_settings_settings_analyzer.currentIndexChanged.connect(
-            self.update_widget
-        )
 
         # insert thrmcpl type
         self.create_combobox(
