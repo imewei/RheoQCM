@@ -1,9 +1,6 @@
 """Format handlers for RheoQCM data files.
 
-Feature: 011-tech-debt-cleanup
-
-This package provides modular format handlers for different file types,
-extracted from the monolithic DataSaver.py for better testability.
+This package provides modular format handlers for different file types.
 
 Usage:
     from rheoQCM.io import get_handler, save_data, load_data
@@ -89,7 +86,7 @@ def load_data(path: Path, **options: Any) -> dict[str, Any]:
 
 
 __all__ = [
-    # DataStore (analysis-only successor to DataSaver)
+    # DataStore
     "DataStore",
     # Base
     "FormatHandler",

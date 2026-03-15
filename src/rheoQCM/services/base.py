@@ -119,7 +119,7 @@ class DefaultDataService:
     """Default in-memory data service implementation.
 
     Provides simple data caching for testability. Production code
-    should use DataSaver for full QCM data file handling.
+    should use DataStore for full QCM data file handling.
     """
 
     def __init__(self) -> None:

@@ -664,10 +664,10 @@ config_default = {
     # tolerance for peak fitting
     "xtol": 1e-10,  # -18
     "ftol": 1e-10,  # -18
-    ######### params for DataSaver module #########
+    ######### params for DataStore module #########
     "unsaved_path": r".\unsaved_data",
     "unsaved_filename": r"%Y%m%d%H%M%S",
-    ######### DataSaver module: import data format #####
+    ######### DataStore module: import data format #####
     # a number is going to replace '{}'
     "data_saver_import_data": {
         "t": ["time(s)", "time (s)", "t(s)"],

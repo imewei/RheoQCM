@@ -1,9 +1,8 @@
 """
-DataStore manages persistent QCM data storage in HDF5 files (analysis-only).
+DataStore manages persistent QCM data storage in HDF5 files.
 
-This module is the analysis-only successor to DataSaver, with live VNA
-acquisition methods removed. It provides the in-memory data store for
-the GUI session and all file I/O for saved QCM-D data.
+It provides the in-memory data store for the GUI session and all file
+I/O for saved QCM-D data.
 
 Responsibilities include:
 
@@ -55,11 +54,9 @@ logger = logging.getLogger(__name__)
 
 class DataStore:
     """
-    Manages persistent QCM data storage in HDF5 format (analysis-only).
+    Manages persistent QCM data storage in HDF5 format.
 
-    DataStore is the analysis-only successor to DataSaver, providing
-    the in-memory data store for the GUI session with all live VNA
-    acquisition methods removed.
+    Provides the in-memory data store for the GUI session.
 
     Provides a comprehensive interface for:
 
@@ -102,7 +99,7 @@ class DataStore:
 
     def __init__(self, ver="", settings=None):
         """
-        Initialize DataSaver with optional version and settings.
+        Initialize DataStore with optional version and settings.
 
         Parameters
         ----------
@@ -606,12 +603,6 @@ class DataStore:
             self.update_queue_col(chn_name, queue_id, "temp", temp)
 
         self.saveflg = False
-
-    # NOTE: Acquisition-only methods removed in DataStore migration:
-    # - dynamic_save() — live VNA acquisition saving
-    # - _append_new_queue() — live queue creation
-    # - _save_queue_data() — live queue data updates
-    # - _save_raw() — raw VNA sweep data writing
 
     def save_data(self):
         """

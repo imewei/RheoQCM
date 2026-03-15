@@ -376,12 +376,6 @@ def _jax_rdcalc(
     return -jnp.imag(nds) / jnp.real(nds)
 
 
-# T016: _jax_grho replaced with physics.grho (005-jax-perf)
-# T017: _jax_grhostar_from_refh replaced with physics.grhostar_from_refh (005-jax-perf)
-# T018: _jax_zstar_bulk replaced with physics.zstar_bulk (005-jax-perf)
-# T019: _jax_calc_delfstar_sla replaced with physics.calc_delfstar_sla (005-jax-perf)
-
-
 def _jax_calc_ZL_single_layer(
     n: int,
     grho_refh: jnp.ndarray,
@@ -391,9 +385,7 @@ def _jax_calc_ZL_single_layer(
     refh: int,
 ) -> jnp.ndarray:
     """Calculate load impedance for single layer (JAX)."""
-    # T017: Use physics.grhostar_from_refh instead of _jax_grhostar_from_refh
     grhostar = physics.grhostar_from_refh(n, grho_refh, phi, refh=refh)
-    # T018: Use physics.zstar_bulk instead of _jax_zstar_bulk
     zstar = physics.zstar_bulk(grhostar)
     D = 2 * jnp.pi * n * f1 * drho / zstar
     return 1j * zstar * jnp.tan(D)
@@ -410,7 +402,6 @@ def _jax_calc_delfstar(
 ) -> jnp.ndarray:
     """Calculate complex frequency shift for single layer (JAX)."""
     ZL = _jax_calc_ZL_single_layer(n, grho_refh, phi, drho, f1, refh)
-    # T019: Use physics.calc_delfstar_sla instead of _jax_calc_delfstar_sla
     return physics.calc_delfstar_sla(ZL, f1=f1)
 
 
@@ -418,7 +409,6 @@ def _jax_calc_delfstar_bulk(
     n: int, grho_refh: jnp.ndarray, phi: jnp.ndarray, f1: float, Zq: float, refh: int
 ) -> jnp.ndarray:
     """Calculate complex frequency shift for bulk material (JAX)."""
-    # T016: Use physics.grho instead of _jax_grho
     grho_n = physics.grho(n, grho_refh, phi, refh=refh)
     return (f1 * jnp.sqrt(grho_n) / (jnp.pi * Zq)) * (
         -jnp.sin(phi / 2) + 1j * jnp.cos(phi / 2)
@@ -1676,7 +1666,7 @@ class QCMModel:
         self, result: SolveResult | dict[str, Any]
     ) -> dict[str, Any]:
         """
-        Format result for export to DataSaver.
+        Format result for export to DataStore.
 
         Parameters
         ----------
