@@ -17,6 +17,8 @@ import pytest
 # Skip all tests if PyQt6 not available
 pytest.importorskip("PyQt6")
 
+pytestmark = pytest.mark.gui
+
 
 class TestConvergenceStatusWidget:
     """T060: Unit tests for ConvergenceStatusWidget color-coding logic."""

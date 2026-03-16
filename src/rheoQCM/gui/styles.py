@@ -494,7 +494,7 @@ class StyleManager:
             from PyQt6.QtWidgets import QApplication
 
             app = QApplication.instance()
-            if app is not None:
+            if app is not None and isinstance(app, QApplication):
                 palette = app.palette()
                 window_color = palette.color(QPalette.ColorRole.Window)
                 luminance = (
@@ -1008,7 +1008,7 @@ class StyleManager:
             from PyQt6.QtWidgets import QApplication
 
             app = QApplication.instance()
-            if app is not None:
+            if app is not None and isinstance(app, QApplication):
                 app.setStyleSheet(self.get_full_stylesheet())
         except Exception as e:
             _logger.warning("Failed to apply app stylesheet: %s", e)

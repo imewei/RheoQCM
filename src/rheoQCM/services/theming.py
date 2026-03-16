@@ -158,7 +158,7 @@ def get_system_theme() -> Theme:
         from PyQt6.QtWidgets import QApplication
 
         app = QApplication.instance()
-        if app is not None:
+        if app is not None and isinstance(app, QApplication):
             palette = app.palette()
             window_color = palette.color(QPalette.ColorRole.Window)
             # Dark theme if window background luminance is low

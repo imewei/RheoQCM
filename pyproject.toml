@@ -143,6 +143,9 @@ package = true
 # NOTE: For local NLSQ development, create .uv/uv.toml with:
 #   [sources]
 #   nlsq = { path = "/path/to/NLSQ", editable = true }
+override-dependencies = [
+    "uvloop>=0.22.1; sys_platform != 'win32'",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -176,6 +179,8 @@ filterwarnings = [
     "ignore:Failed to generate energy plot.*:UserWarning",
     "ignore:Low sample size .*:UserWarning",
     "ignore:some peaks have a prominence of 0:Warning:scipy\\.signal\\._peak_finding",
+    "ignore:jax\\.core\\.mapped_aval is deprecated:DeprecationWarning",
+    "ignore:jax\\.core\\.unmapped_aval is deprecated:DeprecationWarning",
 ]
 
 [tool.black]

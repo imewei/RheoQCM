@@ -48,7 +48,7 @@ class DiagnosticViewerDialog(QDialog):
         parent=None,
     ) -> None:
         super().__init__(parent)
-        self.result = result
+        self.fit_result = result
         self.fitter = fitter
         self._plot_paths: dict[str, Path] = {}
         self._setup_ui()
@@ -99,7 +99,7 @@ class DiagnosticViewerDialog(QDialog):
         with tempfile.TemporaryDirectory() as tmpdir:
             try:
                 paths = self.fitter.generate_diagnostic_suite(
-                    self.result,
+                    self.fit_result,
                     tmpdir,
                     formats=["png"],
                     dpi=100,
@@ -150,7 +150,7 @@ class DiagnosticViewerDialog(QDialog):
 
         try:
             paths = self.fitter.generate_diagnostic_suite(
-                self.result,
+                self.fit_result,
                 dir_path,
                 formats=["pdf", "png"],
                 dpi=300,

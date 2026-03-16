@@ -510,7 +510,7 @@ class ValidatorSpec:
 
 def validate_input(
     **validators: ValidatorSpec | Sequence[ValidatorSpec],
-) -> Callable[[T], T]:
+) -> Callable[[Callable[..., T]], Callable[..., T]]:
     """Decorator for validating function inputs.
 
     Applies validation functions to named parameters before
@@ -583,7 +583,7 @@ def validate_input(
                         raise ValueError(f"Unknown validation check: {spec.check}")
 
                     try:
-                        validated = check_func(value, name=param_name, **spec.kwargs)
+                        validated = check_func(value, name=param_name, **spec.kwargs)  # type: ignore[operator]
                         bound.arguments[param_name] = validated
                         value = validated
                     except ValidationError:

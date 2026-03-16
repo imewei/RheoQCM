@@ -756,6 +756,7 @@ class ButtonGroup(QWidget):
     ) -> None:
         super().__init__(parent)
 
+        self._layout: QVBoxLayout | QHBoxLayout
         if orientation == "vertical":
             self._layout = QVBoxLayout(self)
         else:
@@ -785,7 +786,7 @@ class StatusBar(QWidget):
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self._dark_mode = False
-        self._segments: dict[str, QLabel] = {}
+        self._segments: dict[str, QLabel | StatusIndicator] = {}
 
         self._setup_ui()
         self._apply_style()
@@ -826,8 +827,9 @@ class StatusBar(QWidget):
 
     def update_segment(self, name: str, text: str) -> None:
         """Update a segment's text."""
-        if name in self._segments:
-            self._segments[name].setText(text)
+        segment = self._segments.get(name)
+        if isinstance(segment, QLabel):
+            segment.setText(text)
 
     def add_indicator(self, name: str, label: str = "") -> StatusIndicator:
         """Add a status indicator.
