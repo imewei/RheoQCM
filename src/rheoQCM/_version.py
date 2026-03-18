@@ -8,5 +8,5 @@ __source__ = "https://github.com/imewei/RheoQCM"
 __report__ = "https://github.com/imewei/RheoQCM/issues"
 __license__ = "MIT"
 __deprecated__ = ""
-__date__ = "2025-12-26"
+__date__ = "2026-03-17"
 __version__ = ".".join(map(str, __version_info__))

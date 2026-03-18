@@ -1,15 +1,21 @@
 # Changelog
 
-## [0.1.1] - 2026-03-15
+## [0.1.1] - 2026-03-17
 
 ### Added
 
 - `make verify` and `make verify-fast` pre-push verification targets
 - Structured logging throughout the codebase (replaced print statements with `logging` module)
+- `ThemeManager` service for system-aware light/dark UI theming
+- Professional UI component library (`gui/components.py`, `gui/dialogs.py`, `gui/styles.py`)
+- `MCMCDiagnostics` structured diagnostic class for Bayesian convergence reporting
+- Input validation utilities module (`core/validation.py`)
+- Hidden acquisition-only widgets in analysis-only mode
 
 ### Changed
 
 - Consolidated all optional dependencies (dev, gui, fallback, docs) into core `dependencies` in pyproject.toml
+- Bumped minimum Python to 3.13; minimum NLSQ to >=0.6.8
 - Demoted ~434 diagnostic `logger.info()` calls to `logger.debug()` across 7 modules to reduce production log noise
 - Converted 36 f-string logger calls to %-style lazy formatting for zero-cost when log level is suppressed
 - Replaced deprecated `jaxopt` with `optimistix` for JAX-native least-squares optimization
@@ -17,9 +23,13 @@
 - Simplified `True if X else False` anti-patterns to direct boolean expressions (4 sites)
 - Replaced TODO markers with descriptive comments throughout the codebase
 - Renamed "About QCMpy" menu item to "About rheoQCM"
+- Refined GUI spacing, fonts, and sizing for data-dense layout
 
 ### Fixed
 
+- Resolved mypy type errors in validation, GUI components, dialogs, styles, and theming modules
+- Fixed GUI test marker and Windows uvloop compatibility in CI
+- Aligned harmonic dimensions and fixed pandas indexing in I/O layer
 - Wired unconnected `Exit` menu action to `QApplication.quit()`
 - Wired unconnected `Help Manual` menu action to open project URL in browser
 - Fixed `.fromat()` typo in `DataStore._set_ref` that would raise `AttributeError` at runtime

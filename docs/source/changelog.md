@@ -5,23 +5,30 @@ All notable changes to RheoQCM are documented here.
 For the complete changelog with all historical upstream versions, see
 [CHANGELOG.md](https://github.com/imewei/RheoQCM/blob/master/CHANGELOG.md).
 
-## [0.1.1] - 2026-03-15
+## [0.1.1] - 2026-03-17
 
 ### Added
 - `make verify` and `make verify-fast` pre-push verification targets
 - Comprehensive Sphinx documentation with theory, tutorials, and API reference
 - Structured logging throughout the codebase
+- `ThemeManager` service for system-aware light/dark UI theming
+- Professional UI component library and input validation utilities
+- `MCMCDiagnostics` structured diagnostic class
 
 ### Changed
 - Consolidated all optional dependencies into core `dependencies` in pyproject.toml
+- Bumped minimum Python to 3.13; minimum NLSQ to >=0.6.8
 - Replaced deprecated `jaxopt` with `optimistix` for JAX-native least-squares
 - Renamed "About QCMpy" menu item to "About rheoQCM"
+- Refined GUI spacing, fonts, and sizing for data-dense layout
 
 ### Fixed
 - Wired unconnected `Exit` and `Help Manual` menu actions
 - Fixed `.fromat()` typo, IEEE 754 NaN comparison bug, `dict.pop` loop-variable bug
 - PyQt6 compatibility (scoped enums, exec methods)
 - Numerical stability with `arctan2` and `clamp_phi`
+- Resolved mypy type errors and CI fixes for GUI test marker and Windows uvloop
+- Aligned harmonic dimensions and fixed pandas indexing in I/O layer
 
 ### Removed
 - VNA/hardware acquisition code (analysis-only tool)
@@ -110,6 +117,6 @@ See {doc}`tutorials/scripting-basics` for complete examples.
 
 | Version | Date | Python | JAX |
 |---------|------|--------|-----|
-| 0.1.1 | 2026-03-15 | 3.12+ | 0.8.0+ |
+| 0.1.1 | 2026-03-17 | 3.13+ | 0.8.0+ |
 | 0.1.0 | 2025-12-28 | 3.12+ | 0.8.0+ |
 | 0.21.0 | 2024-01-11 | 3.8+ | N/A |
