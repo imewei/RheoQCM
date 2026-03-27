@@ -667,12 +667,12 @@ config_default = {
     ######### DataStore module: import data format #####
     # a number is going to replace '{}'
     "data_saver_import_data": {
-        "t": ["time(s)", "time (s)", "t(s)"],
+        "t": ["time(s)", "time (s)", "t(s)", "Time [s]"],
         "temp": ["temp(c)", "temp"],
         "fs": ["freq{}"],
         "gs": ["gamma{}"],
-        "delfs": ["delf{}"],
-        "delgs": ["delg{}"],
+        "delfs": ["delf{}", "f{} [Hz]"],
+        "delgs": ["delg{}", "D{} [ppm]"],
         # 'harm_number_org': '1',
     },
     "data_saver_import_raw": {
