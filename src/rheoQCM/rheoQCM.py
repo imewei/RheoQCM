@@ -1673,7 +1673,7 @@ class QCMApp(QMainWindow):
             from rheoQCM.services.theming import ThemeManager
 
             tm = ThemeManager.instance()
-        except Exception:
+        except ImportError:
             return
 
         # Collect all MatplotlibWidget instances
@@ -1971,9 +1971,8 @@ class QCMApp(QMainWindow):
 
         msg = QMessageBox()
         msg.setTextFormat(Qt.TextFormat.RichText)
-        # msg.setIcon(QMessageBox.Information)
         msg.setWindowTitle("About " + _version.__projectname__)
-        msg.setText(f"<b>{_version.__projectname__} {_version.__version__}<\b>")
+        msg.setText(f"<b>{_version.__projectname__} {_version.__version__}</b>")
         msg.setInformativeText("<P>".join(msg_text))
         msg.setStandardButtons(buttons)
         msg.exec()

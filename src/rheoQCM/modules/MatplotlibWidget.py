@@ -176,7 +176,7 @@ class MatplotlibWidget(QWidget):
             tm = ThemeManager.instance()
             if self.axtype != "legend":
                 tm.apply_to_axes(ax1)
-        except Exception:
+        except ImportError:
             pass
         # append to list
         self.ax.append(ax1)
