@@ -2651,12 +2651,25 @@ class QCMApp(QMainWindow):
         f = None
         G = None
         B = None
-        logger.debug("spectraTab mode: %s", self.get_spectraTab_mode())
-        if self.get_spectraTab_mode() == "refit":  # for refitting
-            # get
+        mode = self.get_spectraTab_mode()
+        logger.debug("spectraTab mode: %s", mode)
+
+        # 'center' mode originally read from VNA (removed in analysis-only).
+        # Fall back to 'refit' behaviour when active data is available.
+        if mode == "center" and self.active:
+            mode = "refit"
+
+        if mode == "refit":  # for refitting (or center-as-refit fallback)
+            if not self.active:
+                logger.warning("No active data point selected.")
+                return f, G, B
 
             # get raw of active queue_id
             f, G, B = self.get_active_raw()
+            if f is None:
+                logger.warning("No raw data for active point.")
+                return f, G, B
+
             freq_span = self.get_freq_span(
                 harm=self.active["harm"], chn_name=self.active["chn_name"]
             )
@@ -4342,6 +4355,15 @@ class QCMApp(QMainWindow):
 
             # get channel name
             self.get_plt_chnname(plt_str)
+
+            # auto-display spectra for the picked point
+            try:
+                queue_id = self.get_active_queueid_from_l_harm_ind()
+                self.display_spectra_for_point(self.active["chn_name"], queue_id)
+            except Exception:
+                logger.debug(
+                    "Could not display spectra for picked point", exc_info=True
+                )
 
             # create contextMenu
             pkmenu = QMenu("pkmenu", self)
@@ -7897,6 +7919,78 @@ class QCMApp(QMainWindow):
             if self.settings.get("checkBox_harm" + harm, None)
         ]  # get all checked harmonics
 
+    def display_spectra_for_point(self, chn_name, queue_id):
+        """Display raw spectra and fit in mpl_sp<n> for a given queue_id.
+
+        Lightweight alternative to data_refit: reads stored raw data and
+        runs peak_fit to show the raw + fit overlay without saving results.
+        This replaces the live-acquisition display path that was removed
+        when VNA code was stripped.
+        """
+        for harm in self.checked_harm_list():
+            try:
+                f, G, B = self.data_saver.get_raw(chn_name, queue_id, harm)
+            except Exception:
+                logger.debug("No raw data for harm %s queue %s", harm, queue_id)
+                continue
+            if f is None:
+                continue
+
+            # Run peak fit for overlay curves
+            self.peak_tracker.update_input(
+                chn_name,
+                harm,
+                harmdata=self.settings["harmdata"],
+                freq_span=[],
+                fGB=[f, G, B],
+            )
+            try:
+                fit_result = self.peak_tracker.peak_fit(
+                    chn_name, harm, components=False
+                )
+            except Exception:
+                logger.debug("Peak fit failed for harm %s", harm)
+                fit_result = None
+
+            mpl_sp = getattr(self.ui, "mpl_sp" + harm)
+            if self.settings["radioButton_spectra_showGp"]:
+                data_args = [{"ln": "lG", "x": f, "y": G}]
+                if fit_result:
+                    data_args.append({"ln": "lGfit", "x": f, "y": fit_result["fit_g"]})
+            elif self.settings["radioButton_spectra_showBp"]:
+                data_args = [
+                    {"ln": "lG", "x": f, "y": G},
+                    {"ln": "lB", "x": f, "y": B},
+                ]
+                if fit_result:
+                    data_args.extend(
+                        [
+                            {"ln": "lGfit", "x": f, "y": fit_result["fit_g"]},
+                            {"ln": "lBfit", "x": f, "y": fit_result["fit_b"]},
+                        ]
+                    )
+            elif self.settings["radioButton_spectra_showpolar"]:
+                data_args = [{"ln": "lP", "x": G, "y": B}]
+                if fit_result:
+                    data_args.append(
+                        {
+                            "ln": "lPfit",
+                            "x": fit_result["fit_g"],
+                            "y": fit_result["fit_b"],
+                        }
+                    )
+            else:
+                continue
+
+            mpl_sp.update_data(*data_args)
+
+            if (
+                self.settings["checkBox_spectra_showchi"]
+                and fit_result
+                and "chisqr" in fit_result.get("v_fit", {})
+            ):
+                mpl_sp.update_sp_text_chi(fit_result["v_fit"]["chisqr"])
+
     def spectra_refresh_modulus(self):
         """
         calculate how many times refresh left before recording
@@ -7990,6 +8084,10 @@ if __name__ == "__main__":
             sys.exit(1)
 
     sys.excepthook = exception_hook
+
+    # Suppress GTK warnings from stale FUSE mounts (OneDrive, Box, etc.)
+    # that trigger "Failed to measure available space" on Linux file dialogs.
+    os.environ.setdefault("GIO_USE_VOLUME_MONITOR", "unix")
 
     app = QApplication(sys.argv)
     qcm_app = QCMApp()
