@@ -38,6 +38,7 @@ HDF5 layout (simplified):
 
 import csv
 import datetime
+import io
 import json
 import logging
 import os
@@ -432,9 +433,9 @@ class DataStore:
                 setattr(
                     self,
                     chn_name,
-                    pd.read_json(fh["data/" + chn_name][()]).sort_values(
-                        by=["queue_id"]
-                    ),
+                    pd.read_json(
+                        io.StringIO(fh["data/" + chn_name][()].decode())
+                    ).sort_values(by=["queue_id"]),
                 )
 
                 setattr(
@@ -448,9 +449,9 @@ class DataStore:
                     setattr(
                         self,
                         chn_name + "_ref",
-                        pd.read_json(fh["data/" + chn_name + "_ref"][()]).sort_values(
-                            by=["queue_id"]
-                        ),
+                        pd.read_json(
+                            io.StringIO(fh["data/" + chn_name + "_ref"][()].decode())
+                        ).sort_values(by=["queue_id"]),
                     )
                 else:
                     setattr(self, chn_name + "_ref", self._make_df())
@@ -461,7 +462,9 @@ class DataStore:
                 ):  # prop exists
                     for mech_key in fh["prop/" + chn_name].keys():
                         getattr(self, chn_name + "_prop")[mech_key] = pd.read_json(
-                            fh["prop/" + chn_name + "/" + mech_key][()]
+                            io.StringIO(
+                                fh["prop/" + chn_name + "/" + mech_key][()].decode()
+                            )
                         ).sort_values(by=["queue_id"])
 
             # replace None with nan in self.samp and self.ref
