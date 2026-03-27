@@ -286,13 +286,13 @@ class DataStore:
         ]
 
         mech_key = self.get_mech_key(nhcalc)
-        logger.debug(mech_key)
+        logger.debug("mech_key: %s", mech_key)
 
         if mech_key in getattr(self, chn_name + "_prop").keys():
             logger.debug("mech_key exists")
             df_mech = getattr(self, chn_name + "_prop")[mech_key].copy()
-            logger.debug(df_mech.head())
-            logger.debug(df_mech.columns)
+            logger.debug("df_mech.head: %s", df_mech.head())
+            logger.debug("df_mech.columns: %s", df_mech.columns)
             mech_queue_id = df_mech["queue_id"]
             data_queue_id = getattr(self, chn_name)["queue_id"]
 
@@ -300,7 +300,7 @@ class DataStore:
             # previous version w/ new column in the current list
             df_mech = self.add_missed_cols_to_df(df_mech, mech_keys_single)
             df_mech = self.add_missed_cols_to_df(df_mech, mech_keys_multiple)
-            logger.debug(df_mech)
+            logger.debug("df_mech: %s", df_mech)
 
             # check if queue_id is the same as self.chn_name
             if mech_queue_id.equals(data_queue_id):
@@ -318,7 +318,7 @@ class DataStore:
                     ].to_frame(),
                     how="outer",
                 )
-                logger.debug(df_mech)
+                logger.debug("df_mech: %s", df_mech)
                 # replace na with self.nan_harm_list
                 for col in mech_keys_single:
                     logger.debug("col: %s; type: %s", col, type(df_mech[col]))
@@ -330,7 +330,7 @@ class DataStore:
                     df_mech[col] = df_mech[col].apply(
                         lambda x: self.nan_harm_list() if np.isnan(x).all() else x
                     )  # add list of nan to all null
-                logger.debug(df_mech)
+                logger.debug("df_mech: %s", df_mech)
         else:  # not exist, make a new dataframe
             logger.debug("mech_key does not exist")
             df_mech = pd.DataFrame(
@@ -340,7 +340,7 @@ class DataStore:
             # set values
             nrows = len(getattr(self, chn_name)["queue_id"])
             nan_list = [self.nan_harm_list()] * nrows
-            logger.debug(nan_list)
+            logger.debug("nan_list: %s", nan_list)
             df_mech["queue_id"] = getattr(self, chn_name)["queue_id"]
             df_mech["queue_id"] = df_mech["queue_id"].astype("int")
             # df_mech['t'] = getattr(self, chn_name)['t']
@@ -351,7 +351,7 @@ class DataStore:
             for df_key in mech_keys_multiple:
                 df_mech[df_key] = nan_list
 
-        logger.debug(df_mech["delf_calcs"].head)
+        logger.debug("df_mech['delf_calcs'].head: %s", df_mech["delf_calcs"].head)
 
         # set it to class
         self.update_mech_df_in_prop(chn_name, nhcalc, df_mech)
@@ -386,7 +386,7 @@ class DataStore:
 
         # save version information
         self._save_ver()
-        logger.debug(self.ver)
+        logger.debug("self.ver: %s", self.ver)
         # save settings here to make sure the data file has enough information for reading later, even though the program crashes while running
         self.save_data_settings(settings=self.settings)
 
@@ -407,7 +407,7 @@ class DataStore:
         # get data information
         with h5py.File(self.path, "r") as fh:
             key_list = list(fh.keys())
-            logger.debug(key_list)
+            logger.debug("key_list: %s", key_list)
 
             dump_exp_ref = self._make_exp_ref()
             if "exp_ref" in fh.keys():
@@ -424,9 +424,9 @@ class DataStore:
             else:
                 self.exp_ref = dump_exp_ref
             self.ver = fh.attrs["ver"]
-            logger.debug(self.ver)
-            logger.debug(self.exp_ref)
-            logger.debug(fh["data/samp"][()])
+            logger.debug("self.ver: %s", self.ver)
+            logger.debug("self.exp_ref: %s", self.exp_ref)
+            logger.debug("fh['data/samp']: %s", fh["data/samp"][()])
             for chn_name in self._chn_keys:
                 # df for data from samp/ref chn
                 setattr(
@@ -690,7 +690,7 @@ class DataStore:
             # set func = {} in exp_ref which cannot be saved as text
             exp_ref["func"] = {}
 
-            logger.debug(self.exp_ref)
+            logger.debug("self.exp_ref: %s", self.exp_ref)
             if "exp_ref" in fh:
                 data_exp_ref = fh["exp_ref"]
                 data_exp_ref[()] = json.dumps(exp_ref)
@@ -708,7 +708,7 @@ class DataStore:
         with h5py.File(self.path, "r") as fh:
             chn_queue_list = list(fh["raw/" + chn_name].keys())
             chn_queue_list = list(map(int, chn_queue_list))  # convert from str to int
-            logger.debug(chn_queue_list)
+            logger.debug("chn_queue_list: %s", chn_queue_list)
         return chn_queue_list
 
     def get_queue_id_harms_from_raw(self, chn_name, queue_id):
@@ -816,7 +816,7 @@ class DataStore:
             ind = getattr(self, chn_name)[
                 getattr(self, chn_name).queue_id == queue_id
             ].index[0]  # integer
-            logger.debug(ind)
+            logger.debug("ind: %s", ind)
             getattr(self, chn_name).at[ind, col] = val
 
             # # following .loc works the same as .at
@@ -897,7 +897,7 @@ class DataStore:
                 for mech_key, df in getattr(self, chn_name + "_prop").items():
                     # get names of columns with list in it
                     cols = [col for col in df.columns if isinstance(df[col][0], list)]
-                    logger.debug(cols)
+                    logger.debug("cols: %s", cols)
 
                     for col in cols:
                         df[col] = df[col].apply(
@@ -1205,7 +1205,7 @@ class DataStore:
         df = getattr(self, chn_name).copy()
 
         if "ps" in df.columns:
-            logger.debug(df.columns)
+            logger.debug("df.columns: %s", df.columns)
             df = df.drop(columns="ps")
 
         # convert t column to datetime object
@@ -1301,8 +1301,8 @@ class DataStore:
         """
         reshape and tidy mech df (mech_key in samp_prop and ref_prop) for exporting
         """
-        logger.debug(chn_name)
-        logger.debug(mech_key)
+        logger.debug("chn_name: %s", chn_name)
+        logger.debug("mech_key: %s", mech_key)
         df = getattr(self, chn_name + "_prop")[mech_key].copy()
         cols = list(df.columns)
         cols.remove("queue_id")
@@ -1489,7 +1489,7 @@ class DataStore:
         """
 
         mech_key = self.get_mech_key(nhcalc)
-        logger.debug(mech_key)
+        logger.debug("mech_key: %s", mech_key)
 
         # data_queue_id = getattr(self, chn_name)['queue_id']
 
@@ -1895,7 +1895,7 @@ class DataStore:
                 df = getattr(self, source)
                 logger.debug("source %s", source)
                 logger.debug("idx_list_opened %s", idx_list_opened)
-                logger.debug(df)
+                logger.debug("df: %s", df)
                 self.copy_to_ref(
                     chn_name, df.loc[idx_list_opened, :]
                 )  # copy to reference data set
@@ -2197,7 +2197,7 @@ class DataStore:
 
                 # get interpolated f and g by chn_temp
                 for seg, ind_list in enumerate(film_idx):  # iterate each list
-                    logger.debug(self.exp_ref["func"])
+                    logger.debug("self.exp_ref['func']: %s", self.exp_ref["func"])
                     chn_func = self.exp_ref["func"][chn_name]
                     logger.debug("len(ind_list) %s", len(ind_list))
                     logger.debug("len(fun) %s", len(chn_func))
@@ -2246,7 +2246,7 @@ class DataStore:
                 # get interpolated f and g by chn_temp
                 for seg, ind_list in enumerate(film_idx):  # iterate each list
                     tempind = chn_temp[ind_list]
-                    logger.debug(self.exp_ref["func"])
+                    logger.debug("self.exp_ref['func']: %s", self.exp_ref["func"])
                     chn_func = self.exp_ref["func"][chn_name]
                     logger.debug("len(ind_list) %s", len(ind_list))
                     logger.debug("len(fun) %s", len(chn_func))
@@ -2536,7 +2536,9 @@ class DataStore:
                         if self._raw_exists(
                             fh, chn_name, int(df_chn.queue_id[ind]), harm
                         ):  # raw data exist
-                            logger.debug(df_chn.queue_id[ind])
+                            logger.debug(
+                                "df_chn.queue_id[ind]: %s", df_chn.queue_id[ind]
+                            )
                             logger.debug(
                                 fh[
                                     "raw/"
@@ -2676,10 +2678,10 @@ class DataStore:
         df["f0s"] = f0s
         df["g0s"] = g0s
 
-        logger.debug(f_arr.shape)
-        logger.debug(g_arr.shape)
-        logger.debug(fstar_arr.shape)
-        logger.debug(df["fstars"].iloc[0])
+        logger.debug("f_arr.shape: %s", f_arr.shape)
+        logger.debug("g_arr.shape: %s", g_arr.shape)
+        logger.debug("fstar_arr.shape: %s", fstar_arr.shape)
+        logger.debug("df['fstars'].iloc[0]: %s", df["fstars"].iloc[0])
 
         return df
 
@@ -2918,8 +2920,8 @@ class DataStore:
         else:
             logger.warning("Unsupported file extension: %s", ext)
             return
-        logger.debug(df.shape)
-        logger.debug(df.head())
+        logger.debug("df.shape: %s", df.shape)
+        logger.debug("df.head: %s", df.head())
 
         # import data to class
         self.import_data_from_df(df, t0, t0_str, f1, g1, config_default)
@@ -2936,7 +2938,7 @@ class DataStore:
         """
         # get column names
         columns = df.columns
-        logger.debug(columns)
+        logger.debug("columns: %s", columns)
 
         # the way to determine the corresponding column is:
         # check the same key in config_default.data_saver_import_data and find if any name string is in columns and use the name string to import data
@@ -2984,14 +2986,14 @@ class DataStore:
 
         # find column name with number
         col_with_num = df.filter(regex=r"\d+").columns
-        logger.debug(col_with_num)
+        logger.debug("col_with_num: %s", col_with_num)
 
         # extract the numbers
         r = re.compile(r"(\d+)")
         num_list = [
             int(m.group(1)) for col in col_with_num for m in [r.search(col)] if m
         ]
-        logger.debug(num_list)
+        logger.debug("num_list: %s", num_list)
 
         if not num_list:  # no number found
             logger.warning("No columns with harmonics was found!")
@@ -3140,8 +3142,8 @@ class DataStore:
         if samp_rows:
             self.samp = pd.concat([self.samp, *samp_rows], ignore_index=True)
 
-        logger.debug(self.samp.fs[0])
-        logger.debug(self.samp["marks"][0])
+        logger.debug("self.samp.fs[0]: %s", self.samp.fs[0])
+        logger.debug("self.samp['marks'][0]: %s", self.samp["marks"][0])
 
         self.queue_list = list(self.samp.index)
 
@@ -3160,13 +3162,13 @@ class DataStore:
             ]
         )
         self.ref = pd.concat([self.ref, ref_row], ignore_index=True)
-        logger.debug(self.ref.head())
-        logger.debug(self.ref["marks"][0])
+        logger.debug("self.ref.head: %s", self.ref.head())
+        logger.debug("self.ref['marks'][0]: %s", self.ref["marks"][0])
 
         # set reference
         self.set_ref_set("samp", "ref", idx_list=[0])
 
-        logger.debug(self.exp_ref)
+        logger.debug("self.exp_ref: %s", self.exp_ref)
 
         self.raw = {}
 
@@ -3176,4 +3178,4 @@ class DataStore:
 if __name__ == "__main__":
     data_saver = DataStore(settings={"max_harmonic": 9})
     temp = data_saver.temp_C_to_unit(25, unit="C")
-    logger.debug(temp)
+    logger.debug("temp: %s", temp)
