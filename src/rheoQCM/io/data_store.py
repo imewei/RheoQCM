@@ -2896,9 +2896,22 @@ class DataStore:
         # read QCM-D data
         logger.debug("ext %s", ext)
         if ext == ".csv":
-            df = pd.read_csv(path)
+            # Detect Biolin QSense format: first line is "sep= <char>"
+            with open(path, encoding="utf-8-sig") as fh:
+                first_line = fh.readline().rstrip("\n")
+            if first_line.startswith("sep="):
+                sep_char = first_line[4:].strip() or "\t"
+                # Biolin QSense exports declare "sep= " but use tabs
+                if sep_char == " ":
+                    sep_char = "\t"
+                df = pd.read_csv(path, sep=sep_char, skiprows=1)
+            else:
+                df = pd.read_csv(path)
         elif ext == ".xlsx":
             df = pd.read_excel(path)
+        else:
+            logger.warning("Unsupported file extension: %s", ext)
+            return
         logger.debug(df.shape)
         logger.debug(df.head())
 
@@ -2987,17 +3000,30 @@ class DataStore:
         logger.debug("base_num %s", base_num)
 
         # suppose 1st harmonic in data
-        if base_num == round(f1 / 1e6):  # number is frequency (assume f1 != 1 MHz)
+        if base_num == round(
+            f1 / 1e6
+        ):  # number might be frequency (assume f1 != 1 MHz)
             harm_list = [n / round(f1 / 1e6) for n in num_list]
+            # Verify all results are integers; if not, numbers are harmonics already
+            if not all(float(h).is_integer() for h in harm_list):
+                harm_list = num_list
+            else:
+                harm_list = [int(h) for h in harm_list]
         elif base_num == 1:  # number is harmonic
             harm_list = num_list
+        else:  # assume numbers are harmonics
+            harm_list = num_list
         logger.debug("harm_list %s", harm_list)
+
+        # Full harmonic range from settings (e.g. [1,3,5,7,9,11,13] for max_harmonic=13)
+        max_harm = int(self.settings.get("max_harmonic", max(harm_list)))
+        all_harms = list(range(1, max_harm + 1, 2))
 
         # initiate reference and create the make up raw data
         ref_fs = {"ref": []}
         ref_gs = {"ref": []}
         fGB = {"samp": {}, "ref": {}}  # a make up dict for f, G, B
-        for harm in harm_list:
+        for harm in all_harms:
             ref_fs["ref"].append(f1 * harm)
             ref_gs["ref"].append(g1 * harm)
             fGB["samp"][str(harm)] = np.nan
@@ -3028,7 +3054,7 @@ class DataStore:
                     break
                 else:
                     delgs_str = ""
-            if not delfs_str or not delfs_str:
+            if not delfs_str or not delgs_str:
                 logger.warning(
                     "No frequency or dissipation data found!\nPlease check the format of your data file or change the setup of program!"
                 )
@@ -3042,8 +3068,11 @@ class DataStore:
                     # dissipation
                     if self.mode == "qcmd":  #
                         # convert delD to delg
+                        d_values = df[delgs_str.format(harm)]
+                        if "[ppm]" in delgs_str:
+                            d_values = d_values * 1e-6  # ppm to dimensionless
                         df[delgs_str.format(harm)] = self.convert_D_to_gamma(
-                            df[delgs_str.format(harm)], f1, harm
+                            d_values, f1, harm
                         )
                     # convert delg to g
                     df[delgs_str.format(harm)] = df[delgs_str.format(harm)] + g1 * harm
@@ -3053,7 +3082,7 @@ class DataStore:
         for harm in harm_list:
             if fs_str and gs_str:
                 f_str = fs_str.format(harm)
-                g_str = fs_str.format(harm)
+                g_str = gs_str.format(harm)
             else:  # delta values
                 f_str = delfs_str.format(harm)
                 g_str = delgs_str.format(harm)
@@ -3061,17 +3090,26 @@ class DataStore:
             fg_rename_cols[g_str] = "g" + str(harm)
         df.rename(columns=fg_rename_cols, inplace=True)  # rename f/g columns
 
-        # f/g to one column fs/gs
-        df["fs"] = df.filter(regex=r"^f\d+$").values.tolist()
-        df["gs"] = df.filter(regex=r"^g\d+$").values.tolist()
+        # Pad missing harmonics with NaN so all rows span the full range
+        for h in all_harms:
+            if f"f{h}" not in df.columns:
+                df[f"f{h}"] = np.nan
+            if f"g{h}" not in df.columns:
+                df[f"g{h}"] = np.nan
+
+        # f/g to one column fs/gs (in harmonic order)
+        f_cols = [f"f{h}" for h in all_harms]
+        g_cols = [f"g{h}" for h in all_harms]
+        df["fs"] = df[f_cols].values.tolist()
+        df["gs"] = df[g_cols].values.tolist()
 
         # queue_list
         df["queue_id"] = list(df.index.astype(int))
         # marks
-        single_marks = [0 for _ in harm_list]
+        single_marks = [0 for _ in all_harms]
 
         # convert harm_list from list of int to list of str
-        harm_list = [str(harm) for harm in harm_list]
+        harm_list = [str(harm) for harm in all_harms]
 
         # Build samp rows directly — dynamic_save() was removed in DataStore migration.
         # Construct each row as a single-row DataFrame and concat into self.samp.
