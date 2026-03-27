@@ -952,7 +952,7 @@ def get_settings():
 def update_dict(file_path, default_dict):
     if os.path.exists(file_path):
         try:
-            with open(file_path) as f:
+            with open(file_path, encoding="utf-8") as f:
                 user_dict = json.load(f)  # read user default settings
                 for key, val in user_dict.items():
                     # overwrite keys to config_default

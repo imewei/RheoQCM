@@ -172,7 +172,7 @@ class JSONSettingsRepository:
             return copy.deepcopy(self._cache)
 
         try:
-            with open(self._filepath) as f:
+            with open(self._filepath, encoding="utf-8") as f:
                 loaded = json.load(f)
         except json.JSONDecodeError as e:
             raise CorruptedFileError(f"Settings file corrupted: {e}") from e
@@ -188,7 +188,7 @@ class JSONSettingsRepository:
             raise ValueError(f"Validation failed: {errors}")
 
         self._filepath.parent.mkdir(parents=True, exist_ok=True)
-        with open(self._filepath, "w") as f:
+        with open(self._filepath, "w", encoding="utf-8") as f:
             json.dump(settings, f, indent=2)
 
         self._cache = copy.deepcopy(settings)

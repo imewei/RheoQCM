@@ -1121,7 +1121,7 @@ class DataStore:
             elif ext.lower() == ".csv":  # prop export not yet supported for CSV
                 # add chn_name to samp and ref df
                 # and append ref to samp
-                with open(fileName, "w") as f:
+                with open(fileName, "w", encoding="utf-8") as f:
                     csvwriter = csv.writer(f)
                     csvwriter.writerow(
                         ["Version"]
@@ -1135,18 +1135,24 @@ class DataStore:
                     )
 
                 if self.ref.shape[0] > 0:
-                    df_samp.assign(chn="samp").append(df_ref.assign(chn="ref")).append(
-                        df_samp_ref.assign(chn="samp_ref")
-                    ).append(df_ref_ref.assign(chn="ref_ref")).to_csv(
-                        fileName, mode="a"
-                    )
+                    pd.concat(
+                        [
+                            df_samp.assign(chn="samp"),
+                            df_ref.assign(chn="ref"),
+                            df_samp_ref.assign(chn="samp_ref"),
+                            df_ref_ref.assign(chn="ref_ref"),
+                        ]
+                    ).to_csv(fileName, mode="a")
                 else:
-                    df_samp.assign(chn="samp").append(
-                        df_samp_ref.assign(chn="samp_ref")
+                    pd.concat(
+                        [
+                            df_samp.assign(chn="samp"),
+                            df_samp_ref.assign(chn="samp_ref"),
+                        ]
                     ).to_csv(fileName, mode="a")
 
             elif ext.lower() == ".json":  # prop export not yet supported for JSON
-                with open(fileName, "w") as f:
+                with open(fileName, "w", encoding="utf-8") as f:
                     ## lines with indent (this will make the file larger)
                     # lines = json.dumps({'samp': self.samp.to_dict(), 'ref': self.ref.to_dict()}, indent=4) + '\n'
                     # f.write(lines)
@@ -1275,7 +1281,7 @@ class DataStore:
             df_raw.to_csv(fileName, mode="a")
 
         elif ext.lower() == ".json":  # prop export not yet supported for JSON
-            with open(fileName, "w") as file:
+            with open(fileName, "w", encoding="utf-8") as file:
                 # lines with indent (this will make the file larger)
                 json.dump(
                     {
