@@ -1220,14 +1220,14 @@ class DataStore:
             )  # split columns: fs and gs
             df = df.drop(columns=col)  # drop columns: fs and gs
 
-        logger.debug(df.head())
+        logger.debug("df.head():\n%s", df.head())
 
         # drop columns with all
         if dropnancolumn:
             df = df.dropna(axis="columns", how="all")
             if "temp" not in df.columns:  # no temperature data
                 df["temp"] = np.nan  # add temp column back
-        logger.debug(df.head())
+        logger.debug("df.head() after dropna:\n%s", df.head())
 
         if dropnanmarkrow:  # keep rows with marks only
             # select rows with marks
@@ -1317,12 +1317,12 @@ class DataStore:
             else:  # single value
                 df[col] = df[col].apply(lambda x: x[0])
 
-        logger.debug(df.head())
+        logger.debug("df.head():\n%s", df.head())
 
         # drop columns with all
         if dropnancolumn:
             df = df.dropna(axis="columns", how="all")
-        logger.debug(df.head())
+        logger.debug("df.head() after dropna:\n%s", df.head())
 
         if dropnanmarkrow:  # rows with marks only
             # select rows with marks
@@ -1438,7 +1438,7 @@ class DataStore:
             logger.warning("no data saved!")
             return t
         else:
-            logger.debug(self.get_t_ref())
+            logger.debug("t_ref: %s", self.get_t_ref())
             t = t - self.get_t_ref()  # delta t to reference (t0)
             t = t.dt.total_seconds()  # convert to second
             return t
@@ -2218,7 +2218,7 @@ class DataStore:
                         cols.at[idx, "fs"] = fs_list[i]
                         cols.at[idx, "gs"] = gs_list[i]
 
-                logger.debug(cols[col].head())
+                logger.debug("cols[col].head():\n%s", cols[col].head())
 
             elif mode["temp"] == "var":  # single crystal and variable temperature
                 if np.isnan(chn_temp).all():  # no temp data
@@ -2266,7 +2266,7 @@ class DataStore:
                         cols.at[idx, "gs"] = gs_list[i]
 
                 logger.debug("cols[ind_list]\n%s", cols.iloc[ind_list])
-                logger.debug(cols[col].head())
+                logger.debug("cols[col].head():\n%s", cols[col].head())
         elif mode["cryst"] == "dual":
             pass  # dual-crystal branch
 
@@ -2407,8 +2407,8 @@ class DataStore:
         """
         new_mark, old_mark = mark_pair
         df_new = df.copy()
-        logger.debug(type(df_new))
-        logger.debug(df_new.tail())
+        logger.debug("df_new type: %s", type(df_new))
+        logger.debug("df_new.tail():\n%s", df_new.tail())
         df_new.marks = df_new.marks.apply(
             lambda x: [new_mark if mark == old_mark else mark for mark in x]
         )
