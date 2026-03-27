@@ -5,6 +5,8 @@ T064: BayesianFitWorker for background MCMC execution.
 
 from __future__ import annotations
 
+import logging
+import threading
 from typing import TYPE_CHECKING
 
 from PyQt6.QtCore import QThread, pyqtSignal
@@ -22,12 +24,21 @@ if TYPE_CHECKING:
     Float64Array = npt.NDArray[np.float64]
     ModelFunc = Callable[..., Float64Array]
 
+_logger = logging.getLogger(__name__)
+
 
 class BayesianFitWorker(QThread):
     """QThread worker for background Bayesian MCMC fitting.
 
     Runs BayesianFitter.fit() in a background thread to avoid blocking
     the GUI during long MCMC sampling.
+
+    Thread safety
+    -------------
+    Cancellation uses a ``threading.Event`` for safe cross-thread
+    signalling.  The ``finished`` signal is emitted on every code-path
+    (success, error, *and* cancellation) so that modal progress dialogs
+    never hang.
 
     Signals
     -------
@@ -39,12 +50,15 @@ class BayesianFitWorker(QThread):
         Emitted with BayesianFitResult on successful completion
     error
         Emitted with error message string on failure
+    cancelled
+        Emitted when fitting is cancelled by user
     """
 
     started = pyqtSignal()
     progress = pyqtSignal(int, str)  # percent, phase
     finished = pyqtSignal(object)  # BayesianFitResult
     error = pyqtSignal(str)
+    cancelled = pyqtSignal()
 
     def __init__(
         self,
@@ -95,7 +109,7 @@ class BayesianFitWorker(QThread):
         self.n_samples = n_samples
         self.n_warmup = n_warmup
         self.seed = seed
-        self._cancelled = False
+        self._cancel_event = threading.Event()
 
     def run(self) -> None:
         """Execute Bayesian fitting in background thread."""
@@ -114,7 +128,9 @@ class BayesianFitWorker(QThread):
 
             self.progress.emit(5, "Running NLSQ warm-start")
 
-            if self._cancelled:
+            if self._cancel_event.is_set():
+                _logger.info("Bayesian fit cancelled during warm-start")
+                self.cancelled.emit()
                 return
 
             self.progress.emit(10, "Starting MCMC sampling")
@@ -127,15 +143,39 @@ class BayesianFitWorker(QThread):
                 priors=self.priors,
             )
 
-            if self._cancelled:
+            if self._cancel_event.is_set():
+                _logger.info("Bayesian fit cancelled after sampling")
+                self.cancelled.emit()
                 return
 
             self.progress.emit(100, "Complete")
             self.finished.emit(result)
 
+        except ImportError:
+            self.error.emit(
+                "Bayesian fitting requires NumPyro. Install with: uv add numpyro"
+            )
+        except (ValueError, TypeError) as e:
+            self.error.emit(f"Invalid fitting parameters: {e}")
+        except RuntimeError as e:
+            self.error.emit(f"MCMC sampling failed: {e}")
         except Exception as e:
-            self.error.emit(str(e))
+            _logger.error("Unexpected error in Bayesian worker: %s", e, exc_info=True)
+            self.error.emit(f"Unexpected error: {e}")
 
     def cancel(self) -> None:
-        """Request cancellation of the fitting process."""
-        self._cancelled = True
+        """Request cancellation of the fitting process.
+
+        Thread-safe: uses ``threading.Event`` for cross-thread signalling.
+        """
+        self._cancel_event.set()
+
+    def is_cancelled(self) -> bool:
+        """Check if cancellation was requested.
+
+        Returns
+        -------
+        bool
+            True if cancel() has been called.
+        """
+        return self._cancel_event.is_set()
