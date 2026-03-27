@@ -2703,6 +2703,9 @@ class QCMApp(QMainWindow):
             # get harmonic
             harm = self.settings_harm
             # set freq_span[harm] to the maximum range (freq_range[harm])
+            if harm not in self.settings.get("freq_range", {}):
+                logger.warning("No frequency range for harmonic %s", harm)
+                return
             self.set_freq_span(self.settings["freq_range"][harm])
 
         elif self.get_spectraTab_mode() == "refit":  # for peak refitting
