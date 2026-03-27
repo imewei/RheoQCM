@@ -1778,7 +1778,7 @@ class QCMApp(QMainWindow):
             .toPyDateTime()
             .strftime(config_default["time_str_format"])
         )
-        logger.debug(self.settings["dateTimeEdit_reftime"])
+        logger.debug("dateTimeEdit_reftime: %s", self.settings["dateTimeEdit_reftime"])
         self.ui.label_settings_data_t0.setText(
             self.settings["dateTimeEdit_reftime"][:-3]
         )  # [:-3] remove the extra 000 at the end
@@ -1794,7 +1794,10 @@ class QCMApp(QMainWindow):
             .toPyDateTime()
             .strftime(config_default["time_str_format"])
         )
-        logger.debug(self.settings["dateTimeEdit_settings_data_t0shifted"])
+        logger.debug(
+            "dateTimeEdit_settings_data_t0shifted: %s",
+            self.settings["dateTimeEdit_settings_data_t0shifted"],
+        )
 
         self.data_saver.set_t0(
             t0_shifted=self.settings["dateTimeEdit_settings_data_t0shifted"]
@@ -2787,7 +2790,7 @@ class QCMApp(QMainWindow):
         """
         # get xlim
         xlim = ax.get_xlim()
-        logger.debug(xlim)
+        logger.debug("xlim: %s", xlim)
         center = (xlim[0] + xlim[1]) / 2
         xlim[1] - xlim[0]
 
@@ -2814,7 +2817,7 @@ class QCMApp(QMainWindow):
         """
 
         sender = self.sender().objectName()
-        logger.debug(sender)
+        logger.debug("sender: %s", sender)
         if (sender == "radioButton_spectra_showGp") or (
             sender == "radioButton_spectra_showBp"
         ):
@@ -2874,7 +2877,7 @@ class QCMApp(QMainWindow):
         fit_result = self.peak_tracker.peak_fit(
             self.settings_chn["name"], self.settings_harm, components=True
         )
-        logger.debug(fit_result["v_fit"])
+        logger.debug("fit_result['v_fit']: %s", fit_result["v_fit"])
         # plot fitted data
         self.ui.mpl_spectra_fit.update_data(
             {"ln": "lGfit", "x": data_lG[0], "y": fit_result["fit_g"]},
@@ -2908,8 +2911,8 @@ class QCMApp(QMainWindow):
         )
         gc_list = [fit_result["v_fit"]["g_c"]["value"]] * 2  # make its len() == 2
 
-        logger.debug(factor_span)
-        logger.debug(gc_list)
+        logger.debug("factor_span: %s", factor_span)
+        logger.debug("gc_list: %s", gc_list)
 
         # sp_fit
         self.ui.mpl_spectra_fit.update_data(
@@ -2917,8 +2920,8 @@ class QCMApp(QMainWindow):
         )
 
         # sp_polar
-        logger.debug(len(data_lG[0]))
-        logger.debug(factor_span)
+        logger.debug("len(data_lG[0]): %s", len(data_lG[0]))
+        logger.debug("factor_span: %s", factor_span)
         idx = np.where((data_lG[0] >= factor_span[0]) & (data_lG[0] <= factor_span[1]))[
             0
         ]  # determine the indices by f (data_lG[0])
@@ -2943,8 +2946,8 @@ class QCMApp(QMainWindow):
                 x=cen_trk_freq,
             )
 
-            logger.debug(cen_trk_freq)
-            logger.debug(cen_trk_G)
+            logger.debug("cen_trk_freq: %s", cen_trk_freq)
+            logger.debug("cen_trk_G: %s", cen_trk_G)
 
             self.ui.mpl_spectra_fit.update_data(
                 {"ln": "strk", "x": cen_trk_freq, "y": cen_trk_G}
@@ -2963,8 +2966,8 @@ class QCMApp(QMainWindow):
             x=cen_rec_freq,
         )
 
-        logger.debug(cen_rec_freq)
-        logger.debug(cen_rec_G)
+        logger.debug("cen_rec_freq: %s", cen_rec_freq)
+        logger.debug("cen_rec_G: %s", cen_rec_G)
 
         self.ui.mpl_spectra_fit.update_data(
             {"ln": "srec", "x": cen_rec_freq, "y": cen_rec_G}
@@ -3021,7 +3024,7 @@ class QCMApp(QMainWindow):
             if self.active["chn_name"] == "ref"
             else "_NA_"
         )
-        logger.debug(chn_txt)
+        logger.debug("chn_txt: %s", chn_txt)
         queue_id = self.get_active_queueid_from_l_harm_ind()
         path = name + chn_txt + str(queue_id)
 
@@ -3030,7 +3033,7 @@ class QCMApp(QMainWindow):
             path=path,
             filetype=config_default["export_rawfiletype"],
         )
-        logger.debug(fileName)
+        logger.debug("fileName: %s", fileName)
         if fileName:
             self.data_saver.raw_exporter(
                 fileName, self.active["chn_name"], queue_id, self.active["harm"]
@@ -3042,8 +3045,8 @@ class QCMApp(QMainWindow):
         """
         msg = "This process will delete current data in the selected channel and regenerate it from raw data.\n It may take long time whih is depends on the number of points."
 
-        logger.debug(chn_name)
-        logger.debug(mode)
+        logger.debug("chn_name: %s", chn_name)
+        logger.debug("mode: %s", mode)
 
         if not self.data_saver.path:  # no data
             logger.warning("No file opened.")
@@ -3159,7 +3162,7 @@ class QCMApp(QMainWindow):
 
             # add manual refit tab to tabWidget_settings_settings_samprefchn
             self.add_manual_refit_tab(True)
-            logger.debug(self.settings_chn)
+            logger.debug("self.settings_chn: %s", self.settings_chn)
 
             # self.ui.tabWidget_settings_settings_samprefchn.setCurrentIndex(-1) # show manual refit buttons and emit update_settings_chn
             # self.ui.tabWidget_settings_settings_harm.setCurrentIndex((int(self.active['harm'])-1)/2) # set to active harm and emit update_settings_chn
@@ -3323,8 +3326,8 @@ class QCMApp(QMainWindow):
         timeuint = self.settings["comboBox_timeunit"]
         # get tempunit
         tempunit = self.settings["comboBox_tempunit"]
-        logger.debug(timeuint)
-        logger.debug(tempunit)
+        logger.debug("timeuint: %s", timeuint)
+        logger.debug("tempunit: %s", tempunit)
 
         # axis scale will be auto changed when comboBox_plt<n>_opts changed. We don't need to get it here
 
@@ -3437,7 +3440,7 @@ class QCMApp(QMainWindow):
         for harm in plt_harms:  # selected
             harm = str(harm)
             # set xdata for harm
-            logger.debug(xdata.shape)
+            logger.debug("xdata.shape: %s", xdata.shape)
             if len(xdata.shape) == 1:  # one column e.g.: tuple (1,) is series
                 harm_xdata = xdata
             else:  # multiple columns
@@ -3502,7 +3505,7 @@ class QCMApp(QMainWindow):
         for harm in plt_harms:  # selected
             harm = str(harm)
             # set xdata for harm
-            logger.debug(xdata.shape)
+            logger.debug("xdata.shape: %s", xdata.shape)
             if len(xdata.shape) == 1:  # one column e.g.: tuple (1,) is series
                 harm_xdata = xdata
             else:  # multiple columns
@@ -3688,7 +3691,7 @@ class QCMApp(QMainWindow):
         return: data
         """
 
-        logger.debug(typestr)
+        logger.debug("typestr: %s", typestr)
         if typestr in ["df", "delf_exps"]:  # get delf
             data = self.data_saver.get_list_column_to_columns_marked_rows(
                 chn_name,
@@ -3807,7 +3810,7 @@ class QCMApp(QMainWindow):
 
     def update_data_axis(self, signal):
         sender_name = self.sender().objectName()
-        logger.debug(sender_name)
+        logger.debug("sender_name: %s", sender_name)
 
         # check which plot to update
         if ("plt1" in sender_name) or (
@@ -3817,7 +3820,7 @@ class QCMApp(QMainWindow):
 
             # plot option str in list [y, x]
             plt_opt = self.get_plt_opt(plt_str)
-            logger.debug(plt_opt)
+            logger.debug("plt_opt: %s", plt_opt)
 
             if "t" in plt_opt:  # there is time axis in the plot
                 self.update_time_unit(plt_str, plt_opt)
@@ -3998,7 +4001,7 @@ class QCMApp(QMainWindow):
             tempunit = r"K"
         elif tempunit == "F":
             tempunit = r"$\degree$F"
-        logger.debug(tempunit)
+        logger.debug("tempunit: %s", tempunit)
 
         return temp_str.replace("<unit>", tempunit)
 
@@ -4007,10 +4010,10 @@ class QCMApp(QMainWindow):
         clear 'l' and 'lm' lines of harm (str) in mpl_<plt_str>
         """
         sender = self.sender().objectName()
-        logger.debug(sender)
+        logger.debug("sender: %s", sender)
         str_list = sender.split("_")
-        logger.debug(str_list)
-        logger.debug(self.settings[sender])
+        logger.debug("str_list: %s", str_list)
+        logger.debug("self.settings[sender]: %s", self.settings[sender])
 
         if not self.settings[sender]:  # unchecked
             self.clr_mpl_l(
@@ -4053,9 +4056,9 @@ class QCMApp(QMainWindow):
         check which menu to open: mpl_data_open_selector_menu or mpl_data_pen_picker_menu
         """
         logger.debug("customMenu")
-        logger.debug(position)
-        logger.debug(mpl)
-        logger.debug(plt_str)
+        logger.debug("position: %s", position)
+        logger.debug("mpl: %s", mpl)
+        logger.debug("plt_str: %s", plt_str)
 
         if not self.data_saver.path:
             return
@@ -4077,9 +4080,9 @@ class QCMApp(QMainWindow):
         function to execute the selector custom context menu for selector
         """
         logger.debug("selector")
-        logger.debug(position)
-        logger.debug(mpl)
-        logger.debug(plt_str)
+        logger.debug("position: %s", position)
+        logger.debug("mpl: %s", mpl)
+        logger.debug("plt_str: %s", plt_str)
 
         # get .l['ls<n>'] data
         # dict for storing the selected indices
@@ -4090,17 +4093,17 @@ class QCMApp(QMainWindow):
             harm = str(harm)
             logger.debug("harm: %s", harm)
             (harm_sel_data,) = mpl.get_data(ls=["ls" + harm])  # (xdata, ydata)
-            logger.debug(harm_sel_data)
-            logger.debug(harm_sel_data[0])
+            logger.debug("harm_sel_data: %s", harm_sel_data)
+            logger.debug("harm_sel_data[0]: %s", harm_sel_data[0])
             if (
                 isinstance(harm_sel_data[0], pd.Series)
                 and harm_sel_data[0].shape[0] > 0
             ):  # data is not empty
                 harm_sel_idx = list(harm_sel_data[0].index)  # get indices from xdata
-                logger.debug(harm_sel_idx)
+                logger.debug("harm_sel_idx: %s", harm_sel_idx)
                 sel_idx_dict[harm] = harm_sel_idx
                 selflg = True
-        logger.debug(sel_idx_dict)
+        logger.debug("sel_idx_dict: %s", sel_idx_dict)
         # if no selected data return
         if not selflg:
             # pass
@@ -4281,16 +4284,16 @@ class QCMApp(QMainWindow):
         function to execute the picker custom context menu for selector
         """
         logger.debug("picker customMenu")
-        logger.debug(position)
-        logger.debug(mpl)
-        logger.debug(plt_str)
+        logger.debug("position: %s", position)
+        logger.debug("mpl: %s", mpl)
+        logger.debug("plt_str: %s", plt_str)
 
         # get .l['lp'] data
         (pk_data,) = mpl.get_data(ls=["lp"])  # (xdata, ydata)
-        logger.debug(pk_data)
-        logger.debug(pk_data[0])
-        logger.debug(type(pk_data))
-        logger.debug(type(pk_data[0]))
+        logger.debug("pk_data: %s", pk_data)
+        logger.debug("pk_data[0]: %s", pk_data[0])
+        logger.debug("type(pk_data): %s", type(pk_data))
+        logger.debug("type(pk_data[0]): %s", type(pk_data[0]))
 
         if isinstance(
             pk_data[0], float | int | np.int64
@@ -4299,10 +4302,10 @@ class QCMApp(QMainWindow):
             line, ind = label.split("_")
             line_prefix, harm = line[:-1], line[-1]
             logger.debug("label: %s", label)
-            logger.debug(line)
-            logger.debug(line_prefix)
-            logger.debug(harm)
-            logger.debug(ind)
+            logger.debug("line: %s", line)
+            logger.debug("line_prefix: %s", line_prefix)
+            logger.debug("harm: %s", harm)
+            logger.debug("ind: %s", ind)
 
             self.active["chn_name"] = self.get_plt_chnname(plt_str)
             self.active["harm"] = harm
@@ -4310,7 +4313,7 @@ class QCMApp(QMainWindow):
             self.active["l_str"] = line_prefix
             self.active["ind"] = int(ind)
 
-            logger.debug(self.active)
+            logger.debug("self.active: %s", self.active)
 
             # get channel name
             self.get_plt_chnname(plt_str)
@@ -4418,8 +4421,11 @@ class QCMApp(QMainWindow):
         # number of rows
         rowcount = self.ui.gridLayout_mech_expertmode_layers.rowCount()
         logger.debug("rowcount: %s", rowcount)
-        logger.debug(self.get_mechchndata("radioButton_mech_expertmode_calc_0"))
-        logger.debug(self.settings["mechchndata"])
+        logger.debug(
+            "mechchndata calc_0: %s",
+            self.get_mechchndata("radioButton_mech_expertmode_calc_0"),
+        )
+        logger.debug("self.settings['mechchndata']: %s", self.settings["mechchndata"])
         if (
             self.get_mechchndata("radioButton_mech_expertmode_calc_0", mech_chn="samp")
             is not None
@@ -4669,7 +4675,7 @@ class QCMApp(QMainWindow):
         set film lsyers widgets
         """
         idx = self.ui.tabWidget_mechanics_chn.currentIndex()
-        logger.debug(idx)
+        logger.debug("idx: %s", idx)
         if idx == 0:  # samp
             self.mech_chn = "samp"
         elif idx == 1:  # ref
@@ -4739,7 +4745,7 @@ class QCMApp(QMainWindow):
         """
         if mech_chn is None:  # use harmonic displayed in UI
             mech_chn = self.mech_chn
-        logger.debug(self.settings["mechchndata"])
+        logger.debug("self.settings['mechchndata']: %s", self.settings["mechchndata"])
         if self.get_mechchndata(objname, mech_chn=mech_chn) is not None:  # exists
             self.settings["mechchndata"][mech_chn].pop(objname)
 
@@ -4862,7 +4868,7 @@ class QCMApp(QMainWindow):
                 for key, pre_name in prefix.items()
             }
 
-        logger.debug(film_dict)
+        logger.debug("film_dict: %s", film_dict)
 
         return film_dict
 
@@ -4871,8 +4877,7 @@ class QCMApp(QMainWindow):
         set widgets related film_layers construction from self.settings['mechchndata']
         """
         logger.debug("mech_ch %s", self.mech_chn)
-        logger.debug("self.settings['mechchndata']")
-        logger.debug(self.settings["mechchndata"])
+        logger.debug("self.settings['mechchndata']: %s", self.settings["mechchndata"])
         # get number of layers
         layernum = self.get_mechchndata("spinBox_mech_expertmode_layernum")
         logger.debug("layernum: %s", layernum)
@@ -4886,7 +4891,9 @@ class QCMApp(QMainWindow):
                 layernum
             )  # use default value
             self.set_mechchndata("spinBox_mech_expertmode_layernum", layernum)
-            logger.debug(self.settings["mechchndata"])
+            logger.debug(
+                "self.settings['mechchndata']: %s", self.settings["mechchndata"]
+            )
         else:
             # generate layers
             self.ui.spinBox_mech_expertmode_layernum.setValue(int(layernum))
@@ -5322,7 +5329,7 @@ class QCMApp(QMainWindow):
             film_dict = self.make_film_dict_by_mechmodel_widgets()
         else:
             film_dict = self.make_film_layers_dict()
-        logger.debug(film_dict)
+        logger.debug("film_dict: %s", film_dict)
 
     def mech_solve_all(self):
         queue_ids = self.data_saver.get_queue_id_marked_rows(
@@ -6164,7 +6171,7 @@ class QCMApp(QMainWindow):
                 vh = self.ui.tableWidget_spectra_mechanics_table.verticalHeaderItem(
                     r.row()
                 ).text()
-                logger.debug(vh)
+                logger.debug("vh: %s", vh)
                 for key, val in config_default["mech_table_rowheaders"].items():
                     if vh == val:
                         varplot.append(key)
@@ -7314,16 +7321,19 @@ class QCMApp(QMainWindow):
         if (
             "dateTimeEdit_reftime" in self.settings.keys()
         ):  # reference time has been defined
-            logger.debug(self.settings["dateTimeEdit_reftime"])
             logger.debug(
+                "dateTimeEdit_reftime: %s", self.settings["dateTimeEdit_reftime"]
+            )
+            logger.debug(
+                "type(strptime reftime): %s",
                 type(
                     datetime.datetime.strptime(
                         self.settings["dateTimeEdit_reftime"],
                         config_default["time_str_format"],
                     )
-                )
+                ),
             )
-            logger.debug(type(datetime.datetime.now()))
+            logger.debug("type(datetime.now): %s", type(datetime.datetime.now()))
             # exit(0)
             self.load_normal_widgets(
                 [
@@ -7449,7 +7459,10 @@ class QCMApp(QMainWindow):
         if (
             "dateTimeEdit_settings_data_t0shifted" in self.settings
         ):  # t0_shifted has been defined
-            logger.debug(self.settings["dateTimeEdit_settings_data_t0shifted"])
+            logger.debug(
+                "dateTimeEdit_settings_data_t0shifted: %s",
+                self.settings["dateTimeEdit_settings_data_t0shifted"],
+            )
             self.ui.dateTimeEdit_settings_data_t0shifted.setDateTime(
                 datetime.datetime.strptime(
                     self.settings["dateTimeEdit_settings_data_t0shifted"],
@@ -7525,7 +7538,10 @@ class QCMApp(QMainWindow):
         update widgets related to reference source
         """
         logger.debug("ref_channel_opts")
-        logger.debug(self.settings["comboBox_settings_data_samprefsource"])
+        logger.debug(
+            "comboBox_settings_data_samprefsource: %s",
+            self.settings["comboBox_settings_data_samprefsource"],
+        )
         self.load_comboBox(self.ui.comboBox_settings_data_samprefsource)
         self.load_comboBox(self.ui.comboBox_settings_data_refrefsource)
         self.ui.lineEdit_settings_data_sampidx.setText(
@@ -7647,8 +7663,8 @@ class QCMApp(QMainWindow):
                 fit_result = self.peak_tracker.peak_fit(
                     chn_name, harm, components=False
                 )
-                logger.debug(fit_result)
-                logger.debug(fit_result["v_fit"])
+                logger.debug("fit_result: %s", fit_result)
+                logger.debug("fit_result['v_fit']: %s", fit_result["v_fit"])
 
                 # save data to fs and gs
                 fs.append(fit_result["v_fit"]["cen_rec"]["value"])  # fs
@@ -7663,8 +7679,8 @@ class QCMApp(QMainWindow):
                     fit_result["v_fit"]["g_c"]["value"]
                 ] * 2  # make its len() == 2
                 [fit_result["v_fit"]["b_c"]["value"]] * 2  # make its len() == 2
-                logger.debug(factor_span)
-                logger.debug(gc_list)
+                logger.debug("factor_span: %s", factor_span)
+                logger.debug("gc_list: %s", gc_list)
 
                 # update srec
                 cen_rec_freq = fit_result["v_fit"]["cen_rec"]["value"]
@@ -7676,8 +7692,8 @@ class QCMApp(QMainWindow):
                     ),
                     x=cen_rec_freq,
                 )
-                logger.debug(cen_rec_freq)
-                logger.debug(cen_rec_G)
+                logger.debug("cen_rec_freq: %s", cen_rec_freq)
+                logger.debug("cen_rec_G: %s", cen_rec_G)
 
                 # plot data in sp<harm> and fitting
                 if self.settings["radioButton_spectra_showGp"]:  # checked
@@ -7764,8 +7780,8 @@ class QCMApp(QMainWindow):
         """
         table = getattr(self.ui, tablename)
         item = table.currentItem()
-        logger.debug(table)
-        logger.debug(item)
+        logger.debug("table: %s", table)
+        logger.debug("item: %s", item)
         if item:
             text, r, c = item.text(), item.row(), item.column()
             logger.debug("currentItem %s %s %s %s", item, text, r, c)
@@ -7838,8 +7854,8 @@ class QCMApp(QMainWindow):
         #
         table = self.ui.tableWidget_settings_mechanics_contoursettings
         item = table.currentItem()
-        logger.debug(table)
-        logger.debug(item)
+        logger.debug("table: %s", table)
+        logger.debug("item: %s", item)
         if item:
             self.make_contours()
 

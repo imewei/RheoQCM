@@ -547,7 +547,7 @@ class MatplotlibWidget(QWidget):
 
     def data_rectsleector_picker_switch(self, checked):
         if checked:
-            logger.debug(True)
+            logger.debug("rect_selector activated: True")
             # active rectangle selector
             self.rect_selector.set_active(True)
             # connect pick event
@@ -582,8 +582,8 @@ class MatplotlibWidget(QWidget):
         # clear pick data .l['lp']
         self.clr_lines(l_list=["lp"])
 
-        logger.debug(eclick)
-        logger.debug(erelease)
+        logger.debug("eclick: %s", eclick)
+        logger.debug("erelease: %s", erelease)
         x1, x2 = sorted([eclick.xdata, erelease.xdata])  # x1 < x2
         y1, y2 = sorted([eclick.ydata, erelease.ydata])  # y1 < y2
 
@@ -638,11 +638,11 @@ class MatplotlibWidget(QWidget):
         x_p = thisline.get_xdata()
         y_p = thisline.get_ydata()
         ind = event.ind[0]
-        logger.debug(thisline)
-        logger.debug(thisline.get_label())
-        logger.debug(x_p.name)
-        logger.debug(y_p.name)
-        logger.debug(ind)
+        logger.debug("thisline: %s", thisline)
+        logger.debug("thisline.label: %s", thisline.get_label())
+        logger.debug("x_p.name: %s", x_p.name)
+        logger.debug("y_p.name: %s", y_p.name)
+        logger.debug("ind: %s", ind)
         logger.debug("x_p %s", x_p)
         logger.debug("%s %s", x_p.iloc[ind], y_p.iloc[ind])
         self.l["lp"][0].set_data(x_p.iloc[ind], y_p.iloc[ind])
@@ -1214,9 +1214,9 @@ class MatplotlibWidget(QWidget):
         set style of artists in class
         artists: 'linestyle', 'markersize' etc. the same keywords as in matplotlib
         """
-        logger.debug(line_list)
-        logger.debug(self.l)
-        logger.debug(self.l.keys())
+        logger.debug("line_list: %s", line_list)
+        logger.debug("self.l: %s", self.l)
+        logger.debug("self.l.keys: %s", self.l.keys())
         for key, val in kwargs.items():
             for line_key in line_list:
                 getattr(self.l[line_key][0], f"set_{key}")(val)

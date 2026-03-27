@@ -85,19 +85,19 @@ def index_from_str(idx_str, chn_idx, join_segs=True):
 
     # create a dummy data with index
     data = list(range(max(chn_idx) + 1))
-    logger.debug(chn_idx)
-    logger.debug(data)
+    logger.debug("chn_idx: %s", chn_idx)
+    logger.debug("data: %s", data)
     try:
         # check if string contains [ ]
         segs = re.findall(r"\[([0-9\:][^]]*)\]", idx_str)  # get [] as seg
-        logger.debug(segs)
+        logger.debug("segs: %s", segs)
         if segs:
             for seg in segs:
                 logger.debug("multi")
-                logger.debug(seg)
+                logger.debug("seg: %s", seg)
                 logger.debug("data[%s]", seg)
                 new_idx = _safe_slice(data, seg)
-                logger.debug(new_idx)
+                logger.debug("new_idx: %s", new_idx)
                 logger.debug("type(new_idx) %s", type(new_idx))
                 if join_segs:  # True: combine
                     if isinstance(new_idx, int):
@@ -152,12 +152,12 @@ def sel_ind_dict(harms, sel_idx_dict, mode, marks):
         sel_idx_dict = data_idx_dict
     if mode == "marked":
         for harm in harms:
-            logger.debug(harm)
+            logger.debug("harm: %s", harm)
             data_idx_dict[harm] = list(
                 marks[marks["mark" + harm] == 1].index
             )  # all the indices with data for each harm
         sel_idx_dict = data_idx_dict
-        logger.debug(sel_idx_dict)
+        logger.debug("sel_idx_dict: %s", sel_idx_dict)
 
     if mode == "selpts":
         pass

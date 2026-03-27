@@ -425,9 +425,9 @@ def findpeaks_py(
         logger.warning("findpeaks_py input x is not well assigned!\nx = %s", x)
         exit(0)
 
-    logger.debug(threshold)
+    logger.debug("threshold: %s", threshold)
     logger.debug("f distance %s", distance / (x[1] - x[0]))
-    logger.debug(prominence)
+    logger.debug("prominence: %s", prominence)
     logger.debug("f width %s", width / (x[1] - x[0]))
     peaks, props = find_peaks(
         resonance,
@@ -437,8 +437,8 @@ def findpeaks_py(
         width=max(1, width / (x[1] - x[0])),
     )
 
-    logger.debug(peaks)
-    logger.debug(props)
+    logger.debug("peaks: %s", peaks)
+    logger.debug("props: %s", props)
 
     indices = np.copy(peaks)
     values = resonance[indices]
@@ -453,10 +453,10 @@ def findpeaks_py(
             values = -np.sort(-values)
         else:
             order = np.argsort(values)
-        logger.debug(values)
-        logger.debug(peaks)
-        logger.debug(order)
-        logger.debug(props)
+        logger.debug("values: %s", values)
+        logger.debug("peaks: %s", peaks)
+        logger.debug("order: %s", order)
+        logger.debug("props: %s", props)
 
         for i in range(order.size):
             indices[i] = indices[order[i]]
@@ -493,7 +493,7 @@ def guess_peak_factors(freq, resonance):
         logger.debug("Rmax %s", Rmax)
         logger.debug("amp %s", amp)
         half_wid = np.absolute(freq[np.argmin(np.abs(half_max - resonance))] - cen)
-        logger.debug(half_wid)
+        logger.debug("half_wid: %s", half_wid)
         return amp, cen, half_wid, half_max
     elif peak_finder_method == "py_func":
         cen_index = np.argmax(resonance)
@@ -951,7 +951,7 @@ class PeakTracker:
             harm = self.active_harm
 
         result = self.harmoutput[chn_name][harm].get("result", None)
-        logger.debug(result)
+        logger.debug("result: %s", result)
         if not result:
             self.peak_guess = {}
             self.found_n = 0
@@ -960,8 +960,8 @@ class PeakTracker:
 
         val = result.params.valuesdict()
 
-        logger.debug(self.harmoutput[chn_name][harm]["found_n"])
-        logger.debug(self.harminput[chn_name][harm]["n"])
+        logger.debug("found_n: %s", self.harmoutput[chn_name][harm]["found_n"])
+        logger.debug("harminput n: %s", self.harminput[chn_name][harm]["n"])
         n_policy = self.harminput[chn_name][harm]["n_policy"]
 
         if n_policy == "max":
@@ -1023,7 +1023,7 @@ class PeakTracker:
             method_list = [self.harminput[self.active_chn][self.active_harm]["method"]]
 
         for method in method_list:
-            logger.debug(method)
+            logger.debug("method: %s", method)
             if method == "prev":
                 self.prev_guess()
             else:
@@ -1236,10 +1236,10 @@ class PeakTracker:
             )
 
             logger.debug("found_n %s", found_n)
-            logger.debug(result.params)
+            logger.debug("result.params: %s", result.params)
             logger.debug("params %s", result.params.valuesdict())
-            logger.debug(amp_array)
-            logger.debug(cen_array)
+            logger.debug("amp_array: %s", amp_array)
+            logger.debug("cen_array: %s", cen_array)
 
             maxamp_idx = np.argmax(amp_array)
             mincen_idx = np.argmin(cen_array)
@@ -1469,7 +1469,7 @@ class PeakTracker:
         Generate a human-readable fit result report.
         """
         v_fit = self.get_fit_values()
-        logger.debug(v_fit)
+        logger.debug("v_fit: %s", v_fit)
         keys = {
             "f (Hz)": "cen_rec",
             "\u0393" + " (Hz)": "wid_rec",
