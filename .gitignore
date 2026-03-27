@@ -105,6 +105,7 @@ coverage.xml
 *.py,cover
 .hypothesis/
 .pytest_cache/
+pytest-of-*/
 cover/
 .benchmarks/
 .optimization/
@@ -131,6 +132,7 @@ Pipfile.lock
 
 # UV
 uv.lock
+uv-*.lock
 .uv/
 
 # Poetry

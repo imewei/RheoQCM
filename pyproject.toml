@@ -233,13 +233,14 @@ exclude = [
 
 [tool.ruff.lint]
 select = [
-    "E",  # pycodestyle errors
-    "W",  # pycodestyle warnings
-    "F",  # pyflakes
-    "I",  # isort
-    "C",  # flake8-comprehensions
-    "B",  # flake8-bugbear
-    "UP", # pyupgrade
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "C",   # flake8-comprehensions
+    "B",   # flake8-bugbear
+    "UP",  # pyupgrade
+    "BLE", # flake8-blind-except (prevent broad except Exception)
 ]
 ignore = [
     "E501",  # line too long
@@ -250,6 +251,11 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
 "tests/*" = ["B", "C", "E", "F", "W"]
+# Legacy modules with broad excepts pending refactor (011-tech-debt P3)
+"src/rheoQCM/rheoQCM.py" = ["BLE001"]
+"src/rheoQCM/modules/*.py" = ["BLE001"]
+"src/rheoQCM/io/*.py" = ["BLE001"]
+"src/QCMFuncs/*.py" = ["BLE001"]
 
 [tool.mypy]
 python_version = "3.12"
