@@ -24,12 +24,10 @@ import UISettings  # UI basic settings module  # noqa: E402
 # packages
 from MainWindow import Ui_MainWindow  # UI from QT5  # noqa: E402
 from PyQt6.QtCore import (  # noqa: E402
-    QT_VERSION,
     QCoreApplication,
     QSize,
     Qt,
     QUrl,
-    qFatal,
 )
 from PyQt6.QtGui import (  # noqa: E402
     QAction,
@@ -1615,6 +1613,33 @@ class QCMApp(QMainWindow):
 
     # region #########  functions ##############
 
+    @staticmethod
+    def _safe_delete_widget(widget):
+        """Disconnect all signals and schedule widget for deletion.
+
+        Prevents dangling signal connections and potential memory leaks
+        when dynamically removing widgets.
+        """
+        if widget is None:
+            return
+        try:
+            widget.blockSignals(True)
+        except RuntimeError:
+            return  # already deleted C++ object
+        widget.deleteLater()
+
+    def closeEvent(self, event):
+        """Ensure background threads are stopped before closing."""
+        worker = self._bayesian_worker
+        if worker is not None and worker.isRunning():
+            logger.info("Waiting for Bayesian worker thread to finish...")
+            worker.cancel()
+            if not worker.wait(5000):
+                logger.warning("Bayesian worker did not finish in 5 s; terminating")
+                worker.terminate()
+                worker.wait(2000)
+        super().closeEvent(event)
+
     def link_tab_page(self, tab_idx):
         self.UITab = tab_idx
         if tab_idx in [0, 2]:  # link settings_control to spectra_show and data_data
@@ -1648,7 +1673,7 @@ class QCMApp(QMainWindow):
         # Persist to settings.json
         try:
             self._display_settings.set("display.theme", preference)
-        except Exception as e:
+        except (OSError, ValueError, TypeError) as e:
             logger.warning("Failed to save theme preference: %s", e)
 
     def _on_theme_changed(self) -> None:
@@ -4605,21 +4630,21 @@ class QCMApp(QMainWindow):
             for i in range(nlayers, pre_nlayers):
                 logger.debug("deleting layer index: %s", i)
                 # radiobutton
-                getattr(
-                    self.ui, "radioButton_mech_expertmode_calc_" + str(i)
-                ).deleteLater()
+                self._safe_delete_widget(
+                    getattr(self.ui, "radioButton_mech_expertmode_calc_" + str(i), None)
+                )
                 # combobox
-                getattr(
-                    self.ui, "comboBox_mech_expertmode_source_" + str(i)
-                ).deleteLater()
+                self._safe_delete_widget(
+                    getattr(self.ui, "comboBox_mech_expertmode_source_" + str(i), None)
+                )
                 # combobox
-                getattr(
-                    self.ui, "comboBox_mech_expertmode_indchn_" + str(i)
-                ).deleteLater()
+                self._safe_delete_widget(
+                    getattr(self.ui, "comboBox_mech_expertmode_indchn_" + str(i), None)
+                )
                 # lineedit
-                getattr(
-                    self.ui, "lineEdit_mech_expertmode_value_" + str(i)
-                ).deleteLater()
+                self._safe_delete_widget(
+                    getattr(self.ui, "lineEdit_mech_expertmode_value_" + str(i), None)
+                )
                 # deleting the whole row will move previous layers to (row - 1)
 
                 # pop the data from self.settings
@@ -6434,7 +6459,8 @@ class QCMApp(QMainWindow):
         """
         for i in reversed(range(self.ui.gridLayout_propplot.count())):
             item = self.ui.gridLayout_propplot.itemAt(i)
-            item.widget().deleteLater()
+            if item and item.widget():
+                self._safe_delete_widget(item.widget())
         self.prop_plot_list = []
 
     #### end mech related funcs ###
@@ -7935,17 +7961,35 @@ if __name__ == "__main__":
     # Get the logger specified in the file
     logger = logging.getLogger(__name__)
 
-    # replace system exception hook
-    if QT_VERSION >= 0x50501:
-        sys._excepthook = sys.excepthook
+    # replace system exception hook with graceful error dialog
+    _original_excepthook = sys.excepthook
 
-        def exception_hook(exctype, value, traceback):
-            logger.error("Exception error", exc_info=(exctype, value, traceback))
-            qFatal("UI error occurred.")
-            sys._excepthook(exctype, value, traceback)
+    def exception_hook(exctype, value, tb):
+        logger.error("Unhandled exception", exc_info=(exctype, value, tb))
+        try:
+            import traceback as tb_mod
+
+            detail = "".join(tb_mod.format_exception(exctype, value, tb))
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Icon.Critical)
+            msg.setWindowTitle("Unexpected Error")
+            msg.setText(
+                "An unexpected error occurred. "
+                "You may continue working, but saving your data is recommended."
+            )
+            msg.setDetailedText(detail)
+            continue_btn = msg.addButton("Continue", QMessageBox.ButtonRole.AcceptRole)
+            quit_btn = msg.addButton("Quit", QMessageBox.ButtonRole.DestructiveRole)
+            msg.setDefaultButton(continue_btn)
+            msg.exec()
+            if msg.clickedButton() == quit_btn:
+                sys.exit(1)
+        except Exception:
+            # Last resort if the dialog itself fails
+            _original_excepthook(exctype, value, tb)
             sys.exit(1)
 
-        sys.excepthook = exception_hook
+    sys.excepthook = exception_hook
 
     app = QApplication(sys.argv)
     qcm_app = QCMApp()

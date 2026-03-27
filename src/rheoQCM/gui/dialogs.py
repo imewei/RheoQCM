@@ -134,7 +134,7 @@ class DiagnosticViewerDialog(QDialog):
                     else:
                         self._labels[i].setText(f"{title}\n(Failed to generate)")
 
-            except Exception as e:
+            except (ImportError, ValueError, OSError, RuntimeError) as e:
                 for label in self._labels:
                     label.setText(f"Error: {e}")
 
@@ -162,7 +162,7 @@ class DiagnosticViewerDialog(QDialog):
                 "Export Complete",
                 f"Exported {len(paths)} files to {dir_path}",
             )
-        except Exception as e:
+        except (ImportError, ValueError, OSError, RuntimeError) as e:
             from PyQt6.QtWidgets import QMessageBox
 
             QMessageBox.warning(

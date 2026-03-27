@@ -503,7 +503,7 @@ class StyleManager:
                     + 0.114 * window_color.blue()
                 )
                 return luminance < 128
-        except Exception as e:
+        except (ImportError, AttributeError, RuntimeError) as e:
             _logger.debug("System theme detection failed: %s", e)
         return False
 
@@ -514,7 +514,7 @@ class StyleManager:
 
             tm = ThemeManager.instance()
             tm.set_theme(Theme.DARK if self._dark_mode else Theme.LIGHT)
-        except Exception as e:
+        except (ImportError, AttributeError, RuntimeError) as e:
             _logger.debug("ThemeManager sync skipped: %s", e)
 
     def register_callback(self, callback) -> None:
@@ -531,7 +531,7 @@ class StyleManager:
         for callback in self._callbacks:
             try:
                 callback()
-            except Exception as e:
+            except (TypeError, AttributeError, RuntimeError) as e:
                 _logger.warning("Style callback %r raised: %s", callback, e)
 
     def get_full_stylesheet(self) -> str:
@@ -1010,5 +1010,5 @@ class StyleManager:
             app = QApplication.instance()
             if app is not None and isinstance(app, QApplication):
                 app.setStyleSheet(self.get_full_stylesheet())
-        except Exception as e:
+        except (ImportError, AttributeError, RuntimeError) as e:
             _logger.warning("Failed to apply app stylesheet: %s", e)
