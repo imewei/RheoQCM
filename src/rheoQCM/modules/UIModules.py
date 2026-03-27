@@ -52,7 +52,7 @@ def list_modules(module):
     """
     return a dict of available temp modules stored in path
     """
-    logger.debug(dir(module))
+    logger.debug("dir(module): %s", dir(module))
     subcls_list = inspect.getmembers(module, inspect.isclass)
 
     return {subcls[0]: subcls[0] for subcls in subcls_list}
@@ -275,6 +275,10 @@ if __name__ == "__main__":
     idx_str = "[3:4]"
     chn_queue_list = list(range(13))
     logger.info("---")
-    logger.info(index_from_str(idx_str, chn_queue_list, join_segs=True))
+    logger.info(
+        "join_segs=True: %s", index_from_str(idx_str, chn_queue_list, join_segs=True)
+    )
     logger.info("---")
-    logger.info(index_from_str(idx_str, chn_queue_list, join_segs=False))
+    logger.info(
+        "join_segs=False: %s", index_from_str(idx_str, chn_queue_list, join_segs=False)
+    )

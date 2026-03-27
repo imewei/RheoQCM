@@ -6167,7 +6167,7 @@ class QCMApp(QMainWindow):
             varplot = []
             selrowidx = self.ui.tableWidget_spectra_mechanics_table.selectionModel().selectedRows()  # fully selected rows
             for r in selrowidx:
-                logger.debug(r.row())
+                logger.debug("selected row: %s", r.row())
                 vh = self.ui.tableWidget_spectra_mechanics_table.verticalHeaderItem(
                     r.row()
                 ).text()
@@ -6336,7 +6336,9 @@ class QCMApp(QMainWindow):
                     # add to scrollarea
                     self.update_mpl_to_prop_scrollarea()
                 else:  # there is no prop plot in the list or some thing wrong
-                    logger.debug(self.prop_plot_list)  # to show the structrue for debug
+                    logger.debug(
+                        "prop_plot_list: %s", self.prop_plot_list
+                    )  # to show the structure for debug
                     pass
 
     def get_label_replace_refh_unit(self, var, refh):
@@ -7309,7 +7311,7 @@ class QCMApp(QMainWindow):
             )
 
         # store t0_shift in a temp variable to prevent it been overwritten while loading reference time
-        logger.debug(self.settings.keys())
+        logger.debug("settings keys: %s", list(self.settings.keys()))
         if (
             "dateTimeEdit_settings_data_t0shifted" in self.settings.keys()
         ):  # there is t0_shifted
@@ -7648,7 +7650,7 @@ class QCMApp(QMainWindow):
                 if f is None:
                     logger.debug("got None")
                 else:
-                    logger.debug((len(f), len(G), len(B)))
+                    logger.debug("f/G/B lengths: %s", (len(f), len(G), len(B)))
 
                 # put f, G, B to peak_tracker for later fitting and/or tracking
                 self.peak_tracker.update_input(

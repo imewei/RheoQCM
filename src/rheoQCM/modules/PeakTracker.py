@@ -1107,7 +1107,7 @@ class PeakTracker:
         factor = self.get_input(key="factor")
 
         logger.debug("chn: %s, harm: %s", chn_name, harm)
-        logger.debug(self.get_output())
+        logger.debug("get_output: %s", self.get_output())
         logger.debug("mm factor %s", factor)
         logger.debug("self n %s", self.found_n)
 
