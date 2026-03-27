@@ -854,7 +854,6 @@ class PeakTracker:
             logger.debug("new_xlim %s", new_xlim)
         elif track_condition == "fixcntspn":
             logger.debug("fixcntspn")
-            pass
         elif track_condition == "usrdef":
             pass
 
