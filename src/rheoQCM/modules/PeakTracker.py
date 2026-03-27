@@ -913,15 +913,15 @@ class PeakTracker:
         elif n_policy == "fixed":
             self.found_n = self.harminput[chn_name][harm]["n"]
 
-        logger.debug(type(self.harminput[chn_name][harm]["n"]))
-        logger.debug(indices)
-        logger.debug(heights)
-        logger.debug(prominences)
-        logger.debug(widths)
+        logger.debug("harminput n type: %s", type(self.harminput[chn_name][harm]["n"]))
+        logger.debug("indices: %s", indices)
+        logger.debug("heights: %s", heights)
+        logger.debug("prominences: %s", prominences)
+        logger.debug("widths: %s", widths)
 
         for i in range(self.found_n):
             if i + 1 <= len(indices):
-                logger.debug(i)
+                logger.debug("peak index: %s", i)
                 self.peak_guess[i] = {
                     "amp": prominences[i],
                     "cen": self.x[indices[i]],

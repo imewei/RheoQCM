@@ -113,11 +113,12 @@ def setup_logging():
             logger_config = config_default["logger_config"]
         logging.config.dictConfig(logger_config)
     except Exception as e:
-        logger.warning("Setting logger failed! Use default logging level!")
+        logger.warning(
+            "Setting logger failed, using default logging level: %s", e, exc_info=True
+        )
         logging.basicConfig(
             level=config_default["logger_setting_config"]["default_level"]
         )
-        logger.warning(e)
 
 
 class QCMApp(QMainWindow):
@@ -2175,8 +2176,7 @@ class QCMApp(QMainWindow):
                 try:
                     shutil.copyfile(self.data_saver.path, fileName)
                 except Exception as e:
-                    logger.error("Failed to copy file!")
-                    logger.error(e)
+                    logger.error("Failed to copy file: %s", e, exc_info=True)
                     return
                 # change the path in data_saver
                 self.data_saver.path = fileName
@@ -4452,7 +4452,7 @@ class QCMApp(QMainWindow):
             # add layers above previous layer
             logger.debug("add")
             for i in range(pre_nlayers, nlayers):
-                logger.debug(i)
+                logger.debug("adding layer index: %s", i)
 
                 ## create wedgits
                 # radiobutton radioButton_mech_expertmode_calc_
@@ -4597,7 +4597,7 @@ class QCMApp(QMainWindow):
             # delete layers from row 1 (leave bulk (0))
             logger.debug("delete")
             for i in range(nlayers, pre_nlayers):
-                logger.debug(i)
+                logger.debug("deleting layer index: %s", i)
                 # radiobutton
                 getattr(
                     self.ui, "radioButton_mech_expertmode_calc_" + str(i)
@@ -4848,12 +4848,12 @@ class QCMApp(QMainWindow):
         n_layers = int(self.get_mechchndata("spinBox_mech_expertmode_layernum"))
         n_layers += 1  # add electrode layer
 
-        logger.debug(n_layers)
+        logger.debug("n_layers: %s", n_layers)
 
         film_dict = {}
 
         for n in range(n_layers):  # all layers
-            logger.debug(n)
+            logger.debug("processing layer: %s", n)
             n = str(
                 n
             )  # convert to string for storing as json, which does not support int key
@@ -4902,7 +4902,7 @@ class QCMApp(QMainWindow):
         layernum = int(self.get_mechchndata("spinBox_mech_expertmode_layernum"))
         mech_chn = self.mech_chn
         for n in range(layernum + 1):  # all layers
-            logger.debug(n)
+            logger.debug("processing layer: %s", n)
             n = str(
                 n
             )  # convert to string for storing as json, which does not support int key
