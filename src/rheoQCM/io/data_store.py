@@ -1777,7 +1777,7 @@ class DataStore:
             col_arr = col_arr - ref_arr
 
             # save it back to col_s
-            col_s.values[:] = col_arr.tolist()
+            col_s = pd.Series(col_arr.tolist(), index=col_s.index, name=col_s.name)
 
             if norm:  # normalize the data by harmonics
                 col_s = self._norm_by_harm(col_s)
@@ -2207,9 +2207,10 @@ class DataStore:
 
                     gs_list = np.transpose(np.array(g_list)).tolist()
 
-                    # save to df
-                    cols.loc[ind_list, "fs"] = fs_list
-                    cols.loc[ind_list, "gs"] = gs_list
+                    # save to df (per-row to avoid pandas 2.0 2D array interpretation)
+                    for i, idx in enumerate(ind_list):
+                        cols.at[idx, "fs"] = fs_list[i]
+                        cols.at[idx, "gs"] = gs_list[i]
 
                 logger.debug(cols[col].head())
 
@@ -2253,9 +2254,10 @@ class DataStore:
 
                     gs_list = np.transpose(np.array(g_list)).tolist()
 
-                    # save to df
-                    cols.loc[ind_list, "fs"] = fs_list
-                    cols.loc[ind_list, "gs"] = gs_list
+                    # save to df (per-row to avoid pandas 2.0 2D array interpretation)
+                    for i, idx in enumerate(ind_list):
+                        cols.at[idx, "fs"] = fs_list[i]
+                        cols.at[idx, "gs"] = gs_list[i]
 
                 logger.debug("cols[ind_list]\n%s", cols.iloc[ind_list])
                 logger.debug(cols[col].head())
