@@ -15,6 +15,7 @@ repos:
         args: [--unsafe]
       - id: check-added-large-files
         args: ['--maxkb=1000']
+        exclude: ^graphify-out/
       - id: check-merge-conflict
 
   # Ruff for linting and formatting
